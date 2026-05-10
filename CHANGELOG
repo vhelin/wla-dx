@@ -1,9 +1,10 @@
 
----------------------------------------------------------------------------------------------------------------
-1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SPC-700/SuperFX History
----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+  1... WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/
+                    8080/HUC6280/SPC-700/SuperFX/Cx4 History
+-------------------------------------------------------------------------------
 
-v10.7 (02-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
+v10.7 (10-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -61,6 +62,11 @@ v10.7 (02-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       bits, fixed to [0, 7] / [0, 31].
                     [68k] Removed automatic MOVE to MOVEQ, ADD to ADDQ and SUB to
                       SUBQ optimizations as correctness is more important.
+                    [68k] Added missing instructions: BCHG.B, BCHG.L, BCLR.B,
+                      BCLR.L, BSET.B, BSET.L, BTST.B, BTST.L, CHK.W, NBCD.B, TAS.B.
+                    [68k] Added .NGHEADER, .ENDNG, .NGSOFTDIP, .ENDNGSOFTDIP,
+                      .NGVECTORS and .ENDNGVECTORS for Neogeo development (and
+                      examples/neogeo and include/neogeo).
                     [650] Fixed STX and STY parsing.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
@@ -1587,7 +1593,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (09-May-2026) When calculating _sizeof_* for labels we now take unused
+v5.22 (10-May-2026) When calculating _sizeof_* for labels we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1608,6 +1614,7 @@ v5.22 (09-May-2026) When calculating _sizeof_* for labels we now take unused
                     Added -E for writing debug exports (VICE, RGBDS, MESEN,
                       EMULICIOUS, CSPECT, NOCASH, MAME and JSON).
                     .ASSERT can now be postponed to link time.
+                    Added -sM for writing MAME compatible flat symbol file.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

@@ -20,6 +20,10 @@ int is_reserved_definition(char *t);
 int strcaselesscmp(char *s1, char *s2);
 int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffer);
 
+#if defined(MC68000)
+void ngheader_free_allocations(void);
+#endif
+
 void generate_label(char *header, char *footer);
 void reset_label_stack(void);
 int add_label_to_label_stack(char *l);

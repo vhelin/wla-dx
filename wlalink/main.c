@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (9.5.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (10.5.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -1150,6 +1150,8 @@ static int _parse_flags(char **flags, int flagc) {
       s_symbol_mode = SYMBOL_MODE_WLA;
     else if (!strcmp(flags[count], "-sE"))
       s_symbol_mode = SYMBOL_MODE_EQU;
+    else if (!strcmp(flags[count], "-sM"))
+      s_symbol_mode = SYMBOL_MODE_MAME;
     else if (!strcmp(flags[count], "-A"))
       s_output_addr_to_line = ON;
     else if (!strcmp(flags[count], "-E")) {
@@ -1290,6 +1292,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-R  Make file paths in link file relative to its location\n");
     print_text(YES, "-s  Write also a NO$GMB/NO$SNES symbol file\n");
     print_text(YES, "-sE Write also an EQU symbol file\n");
+    print_text(YES, "-sM Write also a MAME-compatible flat symbol file\n");
     print_text(YES, "-S  Write also a WLA symbol file\n");
     print_text(YES, "-SX <WIDTH> The number of characters per line in console (default %d)\n", DEFAULT_SCREEN_DX);
     print_text(YES, "-SY <HEIGHT> The number of lines in console (default %d)\n", DEFAULT_SCREEN_DY);

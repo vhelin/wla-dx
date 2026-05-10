@@ -1,0 +1,27 @@
+.INCDIR "../../../include/neogeo"
+
+.INCLUDE "../../../memorymaps/neogeoz80.i"
+.INCLUDE "macros.inc"
+.INCLUDE "z80.inc"
+
+.ROMBANKMAP
+	BANKSTOTAL 32
+	BANKSIZE $0800
+	BANKS 32
+.ENDRO
+
+.EMPTYFILL $00
+
+.BANK 0 SLOT 0
+.ORGA $0000
+
+Start:
+	NG_Z80_INIT_LINEAR_BANKS
+	NG_Z80_CLEAR_COMMAND
+
+WaitCommand:
+	in a, (PORT_SOUND_COMMAND)
+	cp NG_SOUND_CMD_PREPARE_SWITCH
+	jr nz, WaitCommand
+	NG_Z80_REPLY NG_SOUND_CMD_PREPARE_SWITCH
+	jr WaitCommand

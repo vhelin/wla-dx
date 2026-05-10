@@ -134,6 +134,12 @@ debug export files for emulators and tools. Supported formats are ``VICE``,
 ``NOCASH``, ``MAME`` and ``JSON``. The ``MAME`` format writes a MAME debugger
 command file that can be loaded with MAME's ``source`` debugger command.
 
+If flag ``sM`` is used, WLALINK will produce a MAME-compatible flat symbol
+file. Each line has the form ``AABBCCDD name``, where ``AABBCCDD`` is the
+full CPU-visible hexadecimal address of the label. This format is suitable
+for ingestion by MAME debugger scripts and generic disassembler symbol
+importers (Ghidra/IDA/etc.).
+
 If flag ``d`` is used, WLALINK discards all unreferenced ``FREE``, ``SEMIFREE``,
 ``SEMISUBFREE``, ``SUPERFREE`` and ``RAM`` sections. This way you can link big
 libraries to your project and WLALINK will choose only the used sections, so you

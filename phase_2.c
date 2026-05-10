@@ -70,6 +70,36 @@ extern int g_smdheader_extramemory_type_2, g_smdheader_extramemory_type_3, g_smd
 extern char g_smdheader_modemsupport[13];
 extern char g_smdheader_regionsupport[4];
 extern int g_computesmdchecksum_defined, g_smdheader_defined;
+extern int g_ngheader_defined, g_ngheader_ngh, g_ngheader_systemversion, g_ngheader_promsize, g_ngheader_promsize_defined, g_ngheader_promsize_autopow2;
+extern int g_ngheader_backupramptr, g_ngheader_backupramsize, g_ngheader_eyecatcher, g_ngheader_logobank;
+extern int g_ngheader_jpconfig_type, g_ngheader_jpconfig_value, g_ngheader_usconfig_type, g_ngheader_usconfig_value;
+extern int g_ngheader_euconfig_type, g_ngheader_euconfig_value, g_ngheader_userentry_type, g_ngheader_userentry_value;
+extern int g_ngheader_playerstart_type, g_ngheader_playerstart_value, g_ngheader_demoend_type, g_ngheader_demoend_value;
+extern int g_ngheader_coinsound_type, g_ngheader_coinsound_value, g_ngheader_securitycodeptr_type, g_ngheader_securitycodeptr_value;
+extern int g_ngheader_emit_default_securitycode;
+extern int g_ngheader_cddacmdptr_defined, g_ngheader_cddacmdptr_value;
+extern char *g_ngheader_jpconfig_str, *g_ngheader_usconfig_str, *g_ngheader_euconfig_str;
+extern char *g_ngheader_userentry_str, *g_ngheader_playerstart_str, *g_ngheader_demoend_str;
+extern char *g_ngheader_coinsound_str, *g_ngheader_securitycodeptr_str;
+
+static unsigned char s_ngheader_security_code[] = {
+  0x76, 0x00, 0x4A, 0x6D, 0x0A, 0x14, 0x66, 0x00,
+  0x00, 0x3C, 0x20, 0x6D, 0x0A, 0x04, 0x3E, 0x2D,
+  0x0A, 0x08, 0x13, 0xC0, 0x00, 0x30, 0x00, 0x01,
+  0x32, 0x10, 0x0C, 0x01, 0x00, 0xFF, 0x67, 0x1A,
+  0x30, 0x28, 0x00, 0x02, 0xB0, 0x2D, 0x0A, 0xCE,
+  0x66, 0x10, 0x30, 0x28, 0x00, 0x04, 0xB0, 0x2D,
+  0x0A, 0xCF, 0x66, 0x06, 0xB2, 0x2D, 0x0A, 0xD0,
+  0x67, 0x08, 0x50, 0x88, 0x51, 0xCF, 0xFF, 0xD4,
+  0x36, 0x07, 0x4E, 0x75, 0x20, 0x6D, 0x0A, 0x04,
+  0x3E, 0x2D, 0x0A, 0x08, 0x32, 0x10, 0xE0, 0x49,
+  0x0C, 0x01, 0x00, 0xFF, 0x67, 0x1A, 0x30, 0x10,
+  0xB0, 0x2D, 0x0A, 0xCE, 0x66, 0x12, 0x30, 0x28,
+  0x00, 0x02, 0xE0, 0x48, 0xB0, 0x2D, 0x0A, 0xCF,
+  0x66, 0x06, 0xB2, 0x2D, 0x0A, 0xD0, 0x67, 0x08,
+  0x58, 0x88, 0x51, 0xCF, 0xFF, 0xD8, 0x36, 0x07,
+  0x4E, 0x75
+};
 #endif
 
 extern FILE *g_file_out_ptr;
@@ -83,6 +113,28 @@ extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
 static char s_include_directives_name[] = "INCLUDE_DIRECTIVES:";
+
+
+#if defined(MC68000)
+
+static void _ngheader_emit_pointer(int type, int value, char *string_value) {
+
+  if (type == TYPE_VALUE)
+    fprintf(g_file_out_ptr, "u%d ", value);
+  else if (type == TYPE_STACK_CALCULATION)
+    fprintf(g_file_out_ptr, "U%d ", value);
+  else
+    fprintf(g_file_out_ptr, "V%s ", string_value);
+}
+
+
+static void _ngheader_emit_jump(int type, int value, char *string_value) {
+
+  fprintf(g_file_out_ptr, "d78 d249 ");
+  _ngheader_emit_pointer(type, value, string_value);
+}
+
+#endif
 
 
 #if defined(W65816)
@@ -448,6 +500,80 @@ int phase_2(void) {
     
     fprintf(g_file_out_ptr, "s ");
 
+  }
+
+  /* NGHEADER */
+  if (g_ngheader_defined == YES) {
+    int i;
+    static char s_ngheader_signature[] = "NEO-GEO";
+
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_NGHEADER_PART_1");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x100);
+    fprintf(g_file_out_ptr, "k0 ");
+
+    for (i = 0; i < 7; i++)
+      fprintf(g_file_out_ptr, "d%d ", s_ngheader_signature[i]);
+    fprintf(g_file_out_ptr, "d%d ", g_ngheader_systemversion);
+    fprintf(g_file_out_ptr, "y%d ", g_ngheader_ngh);
+    if (g_ngheader_promsize_autopow2 == YES)
+      fprintf(g_file_out_ptr, "d255 d255 d255 d255 ");
+    else
+      fprintf(g_file_out_ptr, "u%d ", g_ngheader_promsize_defined == YES ? g_ngheader_promsize : g_max_address);
+    fprintf(g_file_out_ptr, "u%d ", g_ngheader_backupramptr);
+    fprintf(g_file_out_ptr, "y%d ", g_ngheader_backupramsize);
+    fprintf(g_file_out_ptr, "d%d ", g_ngheader_eyecatcher);
+    fprintf(g_file_out_ptr, "d%d ", g_ngheader_logobank);
+    _ngheader_emit_pointer(g_ngheader_jpconfig_type, g_ngheader_jpconfig_value, g_ngheader_jpconfig_str);
+    _ngheader_emit_pointer(g_ngheader_usconfig_type, g_ngheader_usconfig_value, g_ngheader_usconfig_str);
+    _ngheader_emit_pointer(g_ngheader_euconfig_type, g_ngheader_euconfig_value, g_ngheader_euconfig_str);
+    fprintf(g_file_out_ptr, "s ");
+
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_NGHEADER_PART_2");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x122);
+    fprintf(g_file_out_ptr, "k0 ");
+    _ngheader_emit_jump(g_ngheader_userentry_type, g_ngheader_userentry_value, g_ngheader_userentry_str);
+    _ngheader_emit_jump(g_ngheader_playerstart_type, g_ngheader_playerstart_value, g_ngheader_playerstart_str);
+    _ngheader_emit_jump(g_ngheader_demoend_type, g_ngheader_demoend_value, g_ngheader_demoend_str);
+    _ngheader_emit_jump(g_ngheader_coinsound_type, g_ngheader_coinsound_value, g_ngheader_coinsound_str);
+    fprintf(g_file_out_ptr, "s ");
+
+    /* optional CDDA command Z80 RAM pointer at $13A (Neo Geo CD) */
+    if (g_ngheader_cddacmdptr_defined == YES) {
+      if (create_a_new_section_structure() == FAILED)
+        return FAILED;
+      strcpy(g_sec_tmp->name, "!__WLA_NGHEADER_CDDACMDPTR");
+      g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+      fprintf(g_file_out_ptr, "A%d %d k0 ", g_sec_tmp->id, 0x13A);
+      fprintf(g_file_out_ptr, "d%d ", (g_ngheader_cddacmdptr_value >> 8) & 0xFF);
+      fprintf(g_file_out_ptr, "d%d ", g_ngheader_cddacmdptr_value & 0xFF);
+      fprintf(g_file_out_ptr, "s ");
+    }
+
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_NGHEADER_PART_3");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d ", g_sec_tmp->id, 0x182);
+    fprintf(g_file_out_ptr, "k0 ");
+    _ngheader_emit_pointer(g_ngheader_securitycodeptr_type, g_ngheader_securitycodeptr_value, g_ngheader_securitycodeptr_str);
+    fprintf(g_file_out_ptr, "s ");
+
+    if (g_ngheader_emit_default_securitycode == YES) {
+      if (create_a_new_section_structure() == FAILED)
+        return FAILED;
+      strcpy(g_sec_tmp->name, "!__WLA_NGHEADER_SECURITY_CODE");
+      g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+      fprintf(g_file_out_ptr, "A%d %d k0 L *WLA_NG_SECURITY_CODE ", g_sec_tmp->id, 0x186);
+      for (i = 0; i < (int)sizeof(s_ngheader_security_code); i++)
+        fprintf(g_file_out_ptr, "d%d ", s_ngheader_security_code[i]);
+      fprintf(g_file_out_ptr, "s ");
+    }
   }
 #endif
 

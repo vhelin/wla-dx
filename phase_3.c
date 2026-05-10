@@ -499,7 +499,7 @@ int phase_3(void) {
           l->address = address;
           l->bank = s->bank;
           l->slot = s->slot;
-	  l->base = base;
+          l->base = base;
 
           if (c == 'Z' || is_label_anonymous(l->label) == YES) {
             if (g_labels != NULL) {
@@ -530,10 +530,10 @@ int phase_3(void) {
         while (s != NULL && s->id != inz)
           s = s->next;
 
-	/* use .SECTION's base */
-	base_backup = base;
-	if (s->base >= 0)
-	  base = s->base;
+        /* use .SECTION's base */
+        base_backup = base;
+        if (s->base >= 0)
+          base = s->base;
       
         /* a .RAMSECTION? */
         if (s->status == SECTION_STATUS_RAM_FREE) {
@@ -574,10 +574,10 @@ int phase_3(void) {
       case 's':
         s->size = address - s->address;
 
-	if (base_backup >= 0) {
-	  base = base_backup;
-	  base_backup = -1;
-	}
+        if (base_backup >= 0) {
+          base = base_backup;
+          base_backup = -1;
+        }
 
         /* discard an empty section? */
         if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
@@ -611,7 +611,7 @@ int phase_3(void) {
         g_section_status = OFF;
         s = NULL;
 
-	continue;
+        continue;
 
       case 'O':
         err = fscanf(g_file_out_ptr, "%d ", &address);
@@ -707,12 +707,12 @@ int phase_3(void) {
         if (s->base < 0)
           s->base = base;
 
-	/* use .SECTION's base */
-	base_backup = base;
-	if (s->base >= 0)
-	  base = s->base;
+        /* use .SECTION's base */
+        base_backup = base;
+        if (s->base >= 0)
+          base = s->base;
 
-	s->listfile_items = 1;
+        s->listfile_items = 1;
         s->listfile_ints = NULL;
         s->listfile_cmds = NULL;
         g_section_status = ON;
@@ -833,7 +833,7 @@ int phase_3(void) {
       /* use .SECTION's base */
       base_backup = base;
       if (s->base >= 0)
-	base = s->base;
+        base = s->base;
 
       if (s->base < 0)
         s->base = base;
@@ -853,10 +853,10 @@ int phase_3(void) {
       s->size = address - s->address;
 
       if (base_backup >= 0) {
-	base = base_backup;
-	base_backup = -1;
+        base = base_backup;
+        base_backup = -1;
       }
-	
+
       /* discard an empty section? */
       if (s->size == 0 && s->keep == NO && g_keep_empty_sections == NO) {
         struct after_section *as;

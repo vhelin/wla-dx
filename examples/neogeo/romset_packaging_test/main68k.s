@@ -1,0 +1,42 @@
+.INCDIR "../../../include/neogeo"
+
+.INCLUDE "../../../memorymaps/neogeo68k.i"
+.INCLUDE "macros.inc"
+.INCLUDE "68k.inc"
+
+.ROMBANKMAP
+  BANKSTOTAL 1
+  BANKSIZE $100000
+  BANKS 1
+.ENDRO
+
+.EMPTYFILL $00
+
+.NGHEADER
+  NGH $2001
+  BACKUPRAMPTR $00100000
+  BACKUPRAMSIZE 2
+  USERENTRY Start
+  PLAYERSTART PlayerStart
+  DEMOEND DemoEnd
+  COINSOUND CoinSound
+.ENDNG
+
+.BANK 0 SLOT 0
+
+.ORGA $0200
+Start:
+	NG_SEND_SOUND_CMD NG_SOUND_CMD_PREPARE_SWITCH
+  bra.b Start
+
+.ORGA $0220
+PlayerStart:
+	rts
+
+.ORGA $0240
+DemoEnd:
+	rts
+
+.ORGA $0260
+CoinSound:
+	rts
