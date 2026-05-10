@@ -13066,10 +13066,10 @@ int parse_directive(void) {
         
         fprintf(g_file_out_ptr, "s ");
 
-  if (g_base_backup >= 0) {
-    g_base = g_base_backup;
-    g_base_backup = -1;
-  }
+        if (g_base_backup >= 0) {
+          g_base = g_base_backup;
+          g_base_backup = -1;
+        }
   
         return SUCCEEDED;
       }
