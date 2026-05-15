@@ -1,0 +1,14 @@
+;
+; Codemasters J-Cart helper definitions
+;
+
+.DEFINE REG_MD_JCART_DATA         $380000
+.DEFINE REG_MD_JCART_CTRL         $3F0000
+
+.MACRO MD_JCART_READ
+  move.w REG_MD_JCART_DATA, \1
+.ENDM
+
+.MACRO MD_JCART_WRITE_CTRL
+  move.w #\1, REG_MD_JCART_CTRL
+.ENDM

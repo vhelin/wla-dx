@@ -13,6 +13,10 @@ rom files you probably don't see anything on screen.
 files there have all the Game Boy hardware register address and memory
 definitions you could ever need and more.
 
+``include/megadrive`` contains Sega Mega Drive/Genesis and Sega CD register
+definitions and helper macros for the 68000 side, Z80 side, VDP, Sega CD main
+CPU, Sega CD sub CPU, J-Cart and common serial EEPROM wiring.
+
 
 ``tests/gb-z80/lib``
 --------------------
@@ -28,3 +32,7 @@ executing ``make`` in the ``lib`` directory.
 
 Here you can find default memory maps (see ``.MEMORYMAP``) for various computers
 and video game consoles.
+
+The Mega Drive/Genesis maps include the normal 68000 and Z80 maps, SSF banking,
+serial EEPROM cartridges, J-Cart cartridges, lock-on cartridges, and Sega CD
+main/sub CPU boot program layouts.

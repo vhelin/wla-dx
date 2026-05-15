@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (10.5.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (15.5.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -66,6 +66,7 @@ int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_lib
 int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_smd_checksum;
+int g_romformat = ROMFORMAT_BIN;
 int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definitions = NO, g_allow_value_mismatch_in_duplicate_labels = NO;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_c64_crt_type = C64_CRT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
@@ -1004,6 +1005,19 @@ static int _parse_c64_crt_type(char *type) {
 }
 
 
+static int _parse_romformat_type(char *type) {
+
+  if (strcaselesscmp(type, "BIN") == 0 || strcaselesscmp(type, "RAW") == 0 || strcaselesscmp(type, "GEN") == 0)
+    return ROMFORMAT_BIN;
+  if (strcaselesscmp(type, "SMD") == 0)
+    return ROMFORMAT_SMD;
+  if (strcaselesscmp(type, "MD") == 0)
+    return ROMFORMAT_MD;
+
+  return -1;
+}
+
+
 static int _parse_flags(char **flags, int flagc) {
 
   int output_mode_defined = 0, count, unknowns = 0;
@@ -1068,6 +1082,21 @@ static int _parse_flags(char **flags, int flagc) {
       }
       else
         return FAILED;
+      count++;
+    }
+    else if (!strcmp(flags[count], "-O")) {
+      int format;
+
+      if (count + 1 >= flagc) {
+        print_text(NO, "PARSE_FLAGS: -O requires an argument (BIN, SMD or MD).\n");
+        return FAILED;
+      }
+      format = _parse_romformat_type(flags[count + 1]);
+      if (format < 0) {
+        print_text(NO, "PARSE_FLAGS: Unknown Mega Drive ROM file format \"%s\" for -O; expected BIN, SMD or MD.\n", flags[count + 1]);
+        return FAILED;
+      }
+      g_romformat = format;
       count++;
     }
     else if (!strcmp(flags[count], "-64")) {
@@ -1284,6 +1313,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-i  Write list files\n");
     print_text(YES, "-L  <DIR> Library directory\n");
     print_text(YES, "-nS Don't sort the sections\n");
+    print_text(YES, "-O  <FMT> Mega Drive ROM file format (BIN, SMD, MD)\n");
     print_text(YES, "-p  Pause printing after a screen full of text has been printed,\n");
     print_text(YES, "    use this with -SX and -SY\n");
     print_text(YES, "-pR Write .RAMSECTIONs based on PRIORITY only, ignore .RAMSECTION types\n");

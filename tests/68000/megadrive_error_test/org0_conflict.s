@@ -1,0 +1,13 @@
+.INCLUDE "../../../memorymaps/md68k.i"
+
+.ROMBANKSIZE $4000
+.ROMBANKS 1
+
+.MDVECTORS
+  RESET Reset
+.ENDMDVECTORS
+
+.BANK 0 SLOT 0
+.ORGA $0000
+Reset:
+  rts

@@ -1,0 +1,13 @@
+.INCLUDE "../../../memorymaps/mcd68ksp.i"
+
+.ROMBANKSIZE $80000
+.ROMBANKS 1
+
+.MCDSPHEADER
+  SPMAIN Start
+.ENDMCDSPHEADER
+
+.BANK 0 SLOT 0
+.ORGA $0200
+Start:
+  rts

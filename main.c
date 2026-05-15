@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (10.5.2026)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (15.5.2026)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -956,6 +956,9 @@ static void _procedures_at_exit(void) {
 
 #if defined(MC68000)
   ngheader_free_allocations();
+  mdvectors_free_allocations();
+  mcdheader_free_allocations();
+  mcdspheader_free_allocations();
 #endif
 
   PROFILE_AT_EXIT();

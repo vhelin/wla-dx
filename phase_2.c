@@ -81,6 +81,22 @@ extern int g_ngheader_cddacmdptr_defined, g_ngheader_cddacmdptr_value;
 extern char *g_ngheader_jpconfig_str, *g_ngheader_usconfig_str, *g_ngheader_euconfig_str;
 extern char *g_ngheader_userentry_str, *g_ngheader_playerstart_str, *g_ngheader_demoend_str;
 extern char *g_ngheader_coinsound_str, *g_ngheader_securitycodeptr_str;
+extern int g_mdvectors_defined, g_mdvectors_default_defined;
+extern int g_mdvectors_defined_slots[MD_VECTOR_COUNT];
+extern int g_mdvectors_type[MD_VECTOR_COUNT], g_mdvectors_value[MD_VECTOR_COUNT];
+extern char *g_mdvectors_str[MD_VECTOR_COUNT];
+extern int g_mdvectors_default_type, g_mdvectors_default_value;
+extern char *g_mdvectors_default_str;
+extern char g_mcdheader_systemtype[17], g_mcdheader_copyright[17], g_mcdheader_titledomestic[49], g_mcdheader_titleoverseas[49];
+extern char g_mcdheader_serialnumber[15], g_mcdheader_devicesupport[17], g_mcdheader_regionsupport[4];
+extern int g_mcdheader_defined, g_mcdheader_ipstart_type, g_mcdheader_ipstart_value;
+extern int g_mcdheader_spstart_type, g_mcdheader_spstart_value, g_mcdheader_vblank_type, g_mcdheader_vblank_value;
+extern int g_mcdheader_hblank_type, g_mcdheader_hblank_value, g_mcdheader_userprocess_type, g_mcdheader_userprocess_value;
+extern char *g_mcdheader_ipstart_str, *g_mcdheader_spstart_str, *g_mcdheader_vblank_str, *g_mcdheader_hblank_str, *g_mcdheader_userprocess_str;
+extern int g_mcdspheader_defined, g_mcdspheader_spentry_type, g_mcdspheader_spentry_value;
+extern int g_mcdspheader_spinit_type, g_mcdspheader_spinit_value, g_mcdspheader_spmain_type, g_mcdspheader_spmain_value;
+extern int g_mcdspheader_spint2_type, g_mcdspheader_spint2_value, g_mcdspheader_spuser_type, g_mcdspheader_spuser_value;
+extern char *g_mcdspheader_spentry_str, *g_mcdspheader_spinit_str, *g_mcdspheader_spmain_str, *g_mcdspheader_spint2_str, *g_mcdspheader_spuser_str;
 
 static unsigned char s_ngheader_security_code[] = {
   0x76, 0x00, 0x4A, 0x6D, 0x0A, 0x14, 0x66, 0x00,
@@ -132,6 +148,15 @@ static void _ngheader_emit_jump(int type, int value, char *string_value) {
 
   fprintf(g_file_out_ptr, "d78 d249 ");
   _ngheader_emit_pointer(type, value, string_value);
+}
+
+
+static void _md_emit_fixed_string(char *s, int length) {
+
+  int i;
+
+  for (i = 0; i < length; i++)
+    fprintf(g_file_out_ptr, "d%d ", (unsigned char)s[i]);
 }
 
 #endif
@@ -437,6 +462,81 @@ int phase_2(void) {
 #endif
 
 #if defined(MC68000)
+  /* MDVECTORS */
+  if (g_mdvectors_defined == YES) {
+    int i, type, value;
+    char *string_value;
+
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_MDVECTORS");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d k0 ", g_sec_tmp->id, 0);
+
+    for (i = 0; i < MD_VECTOR_COUNT; i++) {
+      if (g_mdvectors_defined_slots[i] == YES) {
+        type = g_mdvectors_type[i];
+        value = g_mdvectors_value[i];
+        string_value = g_mdvectors_str[i];
+      }
+      else if (g_mdvectors_default_defined == YES) {
+        type = g_mdvectors_default_type;
+        value = g_mdvectors_default_value;
+        string_value = g_mdvectors_default_str;
+      }
+      else {
+        type = TYPE_VALUE;
+        value = 0;
+        string_value = NULL;
+      }
+      _ngheader_emit_pointer(type, value, string_value);
+    }
+
+    fprintf(g_file_out_ptr, "s ");
+  }
+
+  /* MCDHEADER */
+  if (g_mcdheader_defined == YES) {
+    int i;
+
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_MCDHEADER");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d k0 ", g_sec_tmp->id, 0);
+
+    _md_emit_fixed_string(g_mcdheader_systemtype, 16);
+    _md_emit_fixed_string(g_mcdheader_copyright, 16);
+    _md_emit_fixed_string(g_mcdheader_titledomestic, 48);
+    _md_emit_fixed_string(g_mcdheader_titleoverseas, 48);
+    _md_emit_fixed_string(g_mcdheader_serialnumber, 14);
+    _md_emit_fixed_string(g_mcdheader_devicesupport, 16);
+    _md_emit_fixed_string(g_mcdheader_regionsupport, 3);
+    for (i = 0; i < 13; i++)
+      fprintf(g_file_out_ptr, "d%d ", ' ');
+    _ngheader_emit_pointer(g_mcdheader_ipstart_type, g_mcdheader_ipstart_value, g_mcdheader_ipstart_str);
+    _ngheader_emit_pointer(g_mcdheader_spstart_type, g_mcdheader_spstart_value, g_mcdheader_spstart_str);
+    _ngheader_emit_pointer(g_mcdheader_vblank_type, g_mcdheader_vblank_value, g_mcdheader_vblank_str);
+    _ngheader_emit_pointer(g_mcdheader_hblank_type, g_mcdheader_hblank_value, g_mcdheader_hblank_str);
+    _ngheader_emit_pointer(g_mcdheader_userprocess_type, g_mcdheader_userprocess_value, g_mcdheader_userprocess_str);
+    fprintf(g_file_out_ptr, "s ");
+  }
+
+  /* MCDSPHEADER */
+  if (g_mcdspheader_defined == YES) {
+    if (create_a_new_section_structure() == FAILED)
+      return FAILED;
+    strcpy(g_sec_tmp->name, "!__WLA_MCDSPHEADER");
+    g_sec_tmp->status = SECTION_STATUS_ABSOLUTE;
+    fprintf(g_file_out_ptr, "A%d %d k0 ", g_sec_tmp->id, 0);
+    _ngheader_emit_pointer(g_mcdspheader_spentry_type, g_mcdspheader_spentry_value, g_mcdspheader_spentry_str);
+    _ngheader_emit_pointer(g_mcdspheader_spinit_type, g_mcdspheader_spinit_value, g_mcdspheader_spinit_str);
+    _ngheader_emit_pointer(g_mcdspheader_spmain_type, g_mcdspheader_spmain_value, g_mcdspheader_spmain_str);
+    _ngheader_emit_pointer(g_mcdspheader_spint2_type, g_mcdspheader_spint2_value, g_mcdspheader_spint2_str);
+    _ngheader_emit_pointer(g_mcdspheader_spuser_type, g_mcdspheader_spuser_value, g_mcdspheader_spuser_str);
+    fprintf(g_file_out_ptr, "s ");
+  }
+
   /* SMDHEADER */
   if (g_smdheader_defined == YES) {
     int i;

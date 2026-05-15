@@ -1,0 +1,8 @@
+.MCDHEADER
+  IPSTART Start
+.ENDMCDHEADER
+
+.SECTION "Code" FREE
+Start:
+  rts
+.ENDS

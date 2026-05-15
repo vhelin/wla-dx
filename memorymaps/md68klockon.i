@@ -1,0 +1,11 @@
+;
+; Sega Mega Drive/Genesis MC68000 Memory Map for lock-on cartridges
+;
+
+.MEMORYMAP
+DEFAULTSLOT 0
+SLOT 0 START $000000 SIZE $200000 NAME "LOCKON" ; host / lock-on ROM window
+SLOT 1 START $200000 SIZE $200000 NAME "CHILD"  ; pass-through child ROM window
+SLOT 2 START $A00000 SIZE   $2000 NAME "ZRAM"   ; 8KB Z80 RAM
+SLOT 3 START $FF0000 SIZE  $10000 NAME "WRAM"   ; 64KB Work RAM
+.ENDME

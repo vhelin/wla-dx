@@ -48,6 +48,9 @@ GB   ``.COUNTRYCODE 1``
 GB   ``.DESTINATIONCODE 1``
 ALL  ``.EMPTYFILL $C9``
 658  ``.ENDEMUVECTOR``
+68K  ``.ENDMCDHEADER``
+68K  ``.ENDMCDSPHEADER``
+68K  ``.ENDMDVECTORS``
 68K  ``.ENDNG``
 68K  ``.ENDNGSOFTDIP``
 68K  ``.ENDNGVECTORS``
@@ -62,6 +65,9 @@ GB   ``.LICENSEECODENEW "1A"``
 GB   ``.LICENSEECODEOLD $1A``
 658  ``.LOROM``
 GB8  ``.NAME "NAME OF THE ROM"``
+68K  ``.MCDHEADER``
+68K  ``.MCDSPHEADER``
+68K  ``.MDVECTORS``
 68K  ``.NGHEADER``
 68K  ``.NGSOFTDIP``
 68K  ``.NGVECTORS``
@@ -3600,6 +3606,94 @@ addresses. The emitted order is always ``VBLANK``, ``TIMER``, ``EXTERNAL``::
 
 This directive emits code only; it does not install interrupt handlers or
 enable interrupts.
+
+This is not a compulsory directive.
+
+
+``.MDVECTORS``
+---------------
+
+Defines the Sega Mega Drive/Genesis MC68000 exception and interrupt vector
+table at ``$000000-$0000FF``. ``RESET`` is required. ``INITIALSP`` / ``SSP``
+defaults to ``$00FFFE00`` and every other unspecified entry uses ``DEFAULT``
+when it is present, or ``$00000000`` otherwise. Pointer fields accept labels,
+numeric addresses and calculated addresses::
+
+    .MDVECTORS
+        RESET   Start
+        DEFAULT DefaultException
+        HBLANK  HBlankHandler
+        VBLANK  VBlankHandler
+    .ENDMDVECTORS
+
+Recognized vector names are ``INITIALSP`` / ``SSP``, ``RESET``,
+``BUSERROR``, ``ADDRESSERROR`` / ``ADDRERROR``, ``ILLEGALINSTR`` /
+``ILLEGAL``, ``ZERODIVIDE`` / ``DIVZERO``, ``CHKINSTR`` / ``CHK``,
+``TRAPV``, ``PRIVVIOLATION`` / ``PRIVILEGE``, ``TRACE``, ``LINEA`` /
+``LINE1010``, ``LINEF`` / ``LINE1111``, ``SPURIOUS``, ``LEVEL1``,
+``EXTERNAL`` / ``LEVEL2``, ``LEVEL3``, ``HBLANK`` / ``LEVEL4``, ``LEVEL5``,
+``VBLANK`` / ``LEVEL6``, ``LEVEL7`` and ``TRAP0`` through ``TRAP15``.
+Do not also place code or data at ``$000000`` with ``.ORG 0`` or ``.ORGA 0``;
+``.MDVECTORS`` owns the cartridge vector-table range.
+
+This is not a compulsory directive.
+
+
+``.MCDHEADER``
+---------------
+
+Defines a Sega CD / Mega CD main CPU initial-program header at ``$000000``.
+All fixed string fields are padded with spaces. ``IPSTART`` is required; other
+pointer fields default to ``0``::
+
+    .MCDHEADER
+        SYSTEMTYPE "SEGADISCSYSTEM"
+        COPYRIGHT "WLA DX"
+        TITLEDOMESTIC "WLA DX MEGA CD MAIN"
+        TITLEOVERSEAS "WLA DX SEGA CD MAIN"
+        SERIALNUMBER "GM 00000000-00"
+        DEVICESUPPORT "J"
+        REGIONSUPPORT "JUE"
+        IPSTART Start
+        SPSTART SubCpuProgram
+        VBLANKINT VBlankHandler
+        HBLANKINT HBlankHandler
+        USERPROCESS UserProcess
+    .ENDMCDHEADER
+
+String widths are ``SYSTEMTYPE`` 16 bytes, ``COPYRIGHT`` 16 bytes,
+``TITLEDOMESTIC`` 48 bytes, ``TITLEOVERSEAS`` 48 bytes, ``SERIALNUMBER`` 14
+bytes, ``DEVICESUPPORT`` 16 bytes and ``REGIONSUPPORT`` 3 bytes.
+Close the block with ``.ENDMCDHEADER``. ``.MCDHEADER`` and ``.MCDSPHEADER``
+cannot be used in the same source file.
+If ``DEVICESUPPORT`` is omitted, WLA DX emits a warning and uses ``"J"`` padded
+to the 16-byte field width.
+The field order follows the IP.BIN boot record layout documented in Sega's
+Mega CD technical bulletins. For standard cartridge header background, see
+https://plutiedev.com/rom-header; for Sega CD images, use ``.MCDHEADER``
+instead of ``.SMDHEADER``.
+
+This is not a compulsory directive.
+
+
+``.MCDSPHEADER``
+-----------------
+
+Defines a Sega CD / Mega CD sub CPU program header at ``$000000``. ``SPENTRY``
+is required; the remaining pointer fields default to ``0``::
+
+    .MCDSPHEADER
+        SPENTRY SubEntry
+        SPINIT SubInit
+        SPMAIN SubMain
+        SPINT2 SubInt2
+        SPUSER SubUser
+    .ENDMCDSPHEADER
+
+Close the block with ``.ENDMCDSPHEADER``. ``.MCDHEADER`` and ``.MCDSPHEADER``
+cannot be used in the same source file.
+The field order follows the SP.BIN boot record layout documented in Sega's
+Mega CD technical bulletins.
 
 This is not a compulsory directive.
 

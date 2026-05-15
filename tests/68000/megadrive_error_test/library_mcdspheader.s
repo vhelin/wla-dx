@@ -1,0 +1,8 @@
+.MCDSPHEADER
+  SPENTRY Start
+.ENDMCDSPHEADER
+
+.SECTION "Code" FREE
+Start:
+  rts
+.ENDS
