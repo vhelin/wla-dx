@@ -67,7 +67,6 @@ extern int g_smschecksumsize_defined, g_smschecksumsize;
 #if defined(MC68000)
 extern int g_computesmdchecksum_defined, g_smdheader_defined;
 extern int g_mdvectors_defined, g_mcdheader_defined;
-extern int g_romformat, g_romformat_defined;
 #endif
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
@@ -2591,9 +2590,6 @@ int write_object_file(void) {
 #if defined(MC68000)
   if (g_computesmdchecksum_defined != 0)
     ind |= 1 << 3;
-  ind |= (g_romformat & 3) << 4;
-  if (g_romformat_defined != NO)
-    ind |= 1 << 6;
 #endif
   
   fprintf(final_ptr, "%c", ind);

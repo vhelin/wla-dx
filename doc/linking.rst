@@ -163,13 +163,13 @@ the name of a label.
 If flag ``t`` is used with ``C64CRT``, WLALINK will write a Commodore 64 CRT
 cartridge image. Use flag ``-64`` to specify the cartridge type.
 
-If flag ``O`` is used with ``BIN``, ``SMD`` or ``MD``, WLALINK will override
-Mega Drive/Genesis ``.ROMFORMAT`` settings found in object files. ``BIN`` is
-normal raw output, ``SMD`` writes a 512-byte Super Magic Drive header and
-per-16KB even/odd interleaving, and ``MD`` writes all even bytes followed by
-all odd bytes for the whole ROM image. ``SMD`` output requires the ROM size to
-be a multiple of 16KB and is currently limited to 255 16KB blocks (4080KB) for
-single-file SMD images; ``MD`` output requires an even ROM size.
+If flag ``O`` is used with ``BIN``, ``SMD`` or ``MD``, WLALINK selects the Mega
+Drive/Genesis ROM output file format. ``BIN`` is normal raw output and is also
+the default when ``-O`` is omitted, ``SMD`` writes a 512-byte Super Magic Drive
+header and per-16KB even/odd interleaving, and ``MD`` writes all even bytes
+followed by all odd bytes for the whole ROM image. ``SMD`` output requires the
+ROM size to be a multiple of 16KB and is currently limited to 255 16KB blocks
+(4080KB) for single-file SMD images; ``MD`` output requires an even ROM size.
 
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise

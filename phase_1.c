@@ -79,7 +79,6 @@ int g_ngheader_cddacmdptr_defined = NO, g_ngheader_cddacmdptr_value = 0;
 char *g_ngheader_jpconfig_str = NULL, *g_ngheader_usconfig_str = NULL, *g_ngheader_euconfig_str = NULL;
 char *g_ngheader_userentry_str = NULL, *g_ngheader_playerstart_str = NULL, *g_ngheader_demoend_str = NULL;
 char *g_ngheader_coinsound_str = NULL, *g_ngheader_securitycodeptr_str = NULL;
-int g_romformat = ROMFORMAT_BIN, g_romformat_defined = NO;
 int g_md_org0_defined = NO;
 int g_mdvectors_defined = NO, g_mdvectors_default_defined = NO;
 int g_mdvectors_defined_slots[MD_VECTOR_COUNT];
@@ -1026,7 +1025,6 @@ int directive_ngvectors(void);
 int directive_mdvectors(void);
 int directive_mcdheader(void);
 int directive_mcdspheader(void);
-int directive_romformat(void);
 #endif
 
 
@@ -9611,55 +9609,6 @@ static int _mdvectors_field_to_index(char *field) {
 }
 
 
-static int _parse_romformat_value(int *format) {
-
-  int q = input_number();
-
-  /* input_number() has already emitted the concrete parse error here. */
-  if (q == FAILED)
-    return FAILED;
-
-  if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-    if (strcaselesscmp(g_label, "BIN") == 0 || strcaselesscmp(g_label, "RAW") == 0 || strcaselesscmp(g_label, "GEN") == 0) {
-      *format = ROMFORMAT_BIN;
-      return SUCCEEDED;
-    }
-    if (strcaselesscmp(g_label, "SMD") == 0) {
-      *format = ROMFORMAT_SMD;
-      return SUCCEEDED;
-    }
-    if (strcaselesscmp(g_label, "MD") == 0) {
-      *format = ROMFORMAT_MD;
-      return SUCCEEDED;
-    }
-  }
-
-  print_error(ERROR_DIR, ".ROMFORMAT expects BIN, SMD or MD.\n");
-  return FAILED;
-}
-
-
-int directive_romformat(void) {
-
-  int format;
-
-  no_library_files(".ROMFORMAT");
-
-  if (_parse_romformat_value(&format) == FAILED)
-    return FAILED;
-
-  if (g_romformat_defined == YES && g_romformat != format) {
-    print_error(ERROR_DIR, ".ROMFORMAT was defined for the second time with a different value.\n");
-    return FAILED;
-  }
-
-  g_romformat = format;
-  g_romformat_defined = YES;
-
-  return SUCCEEDED;
-}
-
-
 /* Emit a fixed-length ASCII field into the current section, padded (with
    0x20) or truncated to match the target width. If 'remap_ascii' is YES,
    apply the active .ASCIITABLE mapping. */
@@ -14135,12 +14084,6 @@ int parse_directive(void) {
     /* ROMBANKMAP */
     if (strcmp(directive_upper, "ROMBANKMAP") == 0)
       return directive_rombankmap();
-
-#if defined(MC68000)
-    /* ROMFORMAT */
-    if (strcmp(directive_upper, "ROMFORMAT") == 0)
-      return directive_romformat();
-#endif
 
     /* RAMSECTION */
     if (strcmp(directive_upper, "RAMSECTION") == 0)

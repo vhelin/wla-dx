@@ -1,6 +1,0 @@
-.ROMFORMAT SMD
-
-.SECTION "Code" FREE
-Start:
-  rts
-.ENDS

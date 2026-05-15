@@ -170,7 +170,7 @@ static int _build_plain_rom_image(unsigned char **image, int *image_size, int pa
   int i, offset = 0;
 
   if (g_sec_bankhd_first != NULL) {
-    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output does not support BANKHEADER sections.\n");
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive formatted output does not support BANKHEADER sections.\n");
     return FAILED;
   }
 
@@ -277,11 +277,11 @@ static int _write_megadrive_formatted_rom(FILE *f, int padded_size) {
   int image_size = 0, result;
 
   if (g_output_mode != OUTPUT_ROM) {
-    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output requires ROM output mode. Remove -b.\n");
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive formatted output requires ROM output mode. Remove -b.\n");
     return FAILED;
   }
   if (g_output_type != OUTPUT_TYPE_UNDEFINED || g_file_header != NULL || g_file_footer != NULL || g_smc_status != 0) {
-    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output cannot be combined with alternate output types, file headers/footers, or SMC headers.\n");
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive formatted output cannot be combined with alternate output types, file headers/footers, or SMC headers.\n");
     return FAILED;
   }
 
@@ -295,7 +295,7 @@ static int _write_megadrive_formatted_rom(FILE *f, int padded_size) {
   else if (g_romformat == ROMFORMAT_MD)
     result = _write_megadrive_md(f, image, image_size);
   else {
-    print_text(NO, "WRITE_ROM_FILE: Unknown Mega Drive ROMFORMAT value %d.\n", g_romformat);
+    print_text(NO, "WRITE_ROM_FILE: Unknown Mega Drive output format value %d.\n", g_romformat);
     result = FAILED;
   }
 

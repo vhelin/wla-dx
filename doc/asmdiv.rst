@@ -78,7 +78,6 @@ GB   ``.ROMDMG``
 GB   ``.ROMGBC``
 GB   ``.ROMGBCONLY``
 GB   ``.ROMSGB``
-68K  ``.ROMFORMAT SMD``
 GB   ``.ROMSIZE 1``
 658  ``.SLOWROM``
 658  ``.SMC``
@@ -3695,32 +3694,6 @@ Close the block with ``.ENDMCDSPHEADER``. ``.MCDHEADER`` and ``.MCDSPHEADER``
 cannot be used in the same source file.
 The field order follows the SP.BIN boot record layout documented in Sega's
 Mega CD technical bulletins.
-
-This is not a compulsory directive.
-
-
-``.ROMFORMAT``
----------------
-
-Selects the final Mega Drive/Genesis ROM file layout that WLALINK writes.
-Accepted values are ``BIN`` / ``RAW`` / ``GEN`` for normal raw output,
-``SMD`` for Super Magic Drive output and ``MD`` for globally split even/odd
-output::
-
-    .ROMFORMAT SMD
-
-``SMD`` output writes a 512-byte SMD header followed by each 16KB block with
-all even bytes first and all odd bytes second. The ROM size must be a multiple
-of 16KB. WLA DX writes single-file SMD images with at most 255 16KB blocks
-(4080KB); use ``BIN`` or ``MD`` output for larger Mega Drive ROMs. ``MD``
-output writes all even bytes for the whole image followed by all odd bytes, so
-the ROM size must be even. ``BIN`` is the default raw output. Use
-``wlalink -O <FMT>`` to override object-file ``.ROMFORMAT`` settings from the
-linker command line.
-
-Formatted Mega Drive output is ROM-output-only and cannot be combined with
-link-file headers, footers, SMC headers, alternate output types or BANKHEADER
-sections.
 
 This is not a compulsory directive.
 

@@ -66,7 +66,7 @@ int g_output_mode = OUTPUT_ROM, g_discard_unreferenced_sections = OFF, g_use_lib
 int g_program_start, g_program_end, g_sms_checksum, g_smstag_defined = 0, g_snes_rom_mode = SNES_ROM_MODE_LOROM, g_snes_rom_speed = SNES_ROM_SPEED_SLOWROM;
 int g_sms_header = 0, g_sms_checksum_already_written = 0, g_sms_checksum_size_defined = 0, g_sms_checksum_size = 0;
 int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode = 0, g_smd_checksum;
-int g_romformat = ROMFORMAT_BIN, g_romformat_cli_defined = NO;
+int g_romformat = ROMFORMAT_BIN;
 int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definitions = NO, g_allow_value_mismatch_in_duplicate_labels = NO;
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_c64_crt_type = C64_CRT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
@@ -1097,7 +1097,6 @@ static int _parse_flags(char **flags, int flagc) {
         return FAILED;
       }
       g_romformat = format;
-      g_romformat_cli_defined = YES;
       count++;
     }
     else if (!strcmp(flags[count], "-64")) {
