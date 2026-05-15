@@ -48,8 +48,8 @@ GB   ``.COUNTRYCODE 1``
 GB   ``.DESTINATIONCODE 1``
 ALL  ``.EMPTYFILL $C9``
 658  ``.ENDEMUVECTOR``
-68K  ``.ENDMCD``
-68K  ``.ENDMCDSP``
+68K  ``.ENDMCDHEADER``
+68K  ``.ENDMCDSPHEADER``
 68K  ``.ENDMDVECTORS``
 68K  ``.ENDNG``
 68K  ``.ENDNGSOFTDIP``
@@ -3660,12 +3660,13 @@ pointer fields default to ``0``::
         VBLANKINT VBlankHandler
         HBLANKINT HBlankHandler
         USERPROCESS UserProcess
-    .ENDMCD
+    .ENDMCDHEADER
 
 String widths are ``SYSTEMTYPE`` 16 bytes, ``COPYRIGHT`` 16 bytes,
 ``TITLEDOMESTIC`` 48 bytes, ``TITLEOVERSEAS`` 48 bytes, ``SERIALNUMBER`` 14
 bytes, ``DEVICESUPPORT`` 16 bytes and ``REGIONSUPPORT`` 3 bytes.
-``.MCDHEADER`` and ``.MCDSPHEADER`` cannot be used in the same source file.
+Close the block with ``.ENDMCDHEADER``. ``.MCDHEADER`` and ``.MCDSPHEADER``
+cannot be used in the same source file.
 If ``DEVICESUPPORT`` is omitted, WLA DX emits a warning and uses ``"J"`` padded
 to the 16-byte field width.
 The field order follows the IP.BIN boot record layout documented in Sega's
@@ -3688,9 +3689,10 @@ is required; the remaining pointer fields default to ``0``::
         SPMAIN SubMain
         SPINT2 SubInt2
         SPUSER SubUser
-    .ENDMCDSP
+    .ENDMCDSPHEADER
 
-``.MCDHEADER`` and ``.MCDSPHEADER`` cannot be used in the same source file.
+Close the block with ``.ENDMCDSPHEADER``. ``.MCDHEADER`` and ``.MCDSPHEADER``
+cannot be used in the same source file.
 The field order follows the SP.BIN boot record layout documented in Sega's
 Mega CD technical bulletins.
 

@@ -1087,11 +1087,15 @@ static int _parse_flags(char **flags, int flagc) {
     else if (!strcmp(flags[count], "-O")) {
       int format;
 
-      if (count + 1 >= flagc)
+      if (count + 1 >= flagc) {
+        print_text(NO, "PARSE_FLAGS: -O requires an argument (BIN, SMD or MD).\n");
         return FAILED;
+      }
       format = _parse_romformat_type(flags[count + 1]);
-      if (format < 0)
+      if (format < 0) {
+        print_text(NO, "PARSE_FLAGS: Unknown Mega Drive ROM file format \"%s\" for -O; expected BIN, SMD or MD.\n", flags[count + 1]);
         return FAILED;
+      }
       g_romformat = format;
       g_romformat_cli_defined = YES;
       count++;

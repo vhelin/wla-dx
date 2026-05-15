@@ -43,6 +43,11 @@ check: linked.bin linked.smd linked.md linked_override.bin
 		exit 1; \
 	fi
 	grep -F "Reserved .ROMFORMAT value" reserved.log >/dev/null
+	$(LD) $(LDFLAGS) -O FOO linkfile_bin linked_invalid_o.bin > invalid_o.log 2>&1 || true
+	grep -F "Unknown Mega Drive ROM file format \"FOO\"" invalid_o.log >/dev/null
+	test ! -f linked_invalid_o.bin
+	$(LD) $(LDFLAGS) -O > missing_o.log 2>&1 || true
+	grep -F -- "-O requires an argument" missing_o.log >/dev/null
 
 clean:
-	rm -f *.o core *~ linked.bin linked.smd linked.md linked_override.bin linked_conflict.bin linked_reserved.bin *.sym *.log
+	rm -f *.o core *~ linked.bin linked.smd linked.md linked_override.bin linked_conflict.bin linked_reserved.bin linked_invalid_o.bin *.sym *.log

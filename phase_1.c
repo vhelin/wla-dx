@@ -9313,6 +9313,7 @@ static void _copy_and_pad_string(char *output, char *input, int size, char paddi
   }
   while (i < size)
     output[i++] = padding;
+  output[size] = 0;
 }
 
 
@@ -9421,8 +9422,15 @@ void ngheader_free_allocations(void) {
 
 static void _md_free_unique_strings(char **strings, int count) {
 
-  char *owned[MD_VECTOR_COUNT + 16];
+  char **owned;
   int count_owned = 0, i, j, found;
+
+  if (count <= 0)
+    return;
+
+  owned = calloc(count, sizeof(char *));
+  if (owned == NULL)
+    return;
 
   for (i = 0; i < count; i++) {
     if (strings[i] == NULL)
@@ -9442,6 +9450,7 @@ static void _md_free_unique_strings(char **strings, int count) {
 
   for (i = 0; i < count_owned; i++)
     free(owned[i]);
+  free(owned);
 }
 
 
@@ -10011,7 +10020,7 @@ int directive_mcdheader(void) {
         continue;
     }
 
-    if (strcaselesscmp(g_tmp, ".ENDMCD") == 0)
+    if (strcaselesscmp(g_tmp, ".ENDMCDHEADER") == 0)
       break;
     else if (strcaselesscmp(g_tmp, "SYSTEMTYPE") == 0) {
       q = input_number();
@@ -10140,7 +10149,7 @@ int directive_mcdspheader(void) {
         continue;
     }
 
-    if (strcaselesscmp(g_tmp, ".ENDMCDSP") == 0)
+    if (strcaselesscmp(g_tmp, ".ENDMCDSPHEADER") == 0)
       break;
     else if (strcaselesscmp(g_tmp, "SPENTRY") == 0) {
       if (_ngheader_parse_pointer("SPENTRY", &g_mcdspheader_spentry_type, &g_mcdspheader_spentry_value, &g_mcdspheader_spentry_str) == FAILED)
