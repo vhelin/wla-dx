@@ -1,0 +1,8 @@
+.MDVECTORS
+  RESET Reset
+.ENDMDVECTORS
+
+.SECTION "Code" FREE
+Reset:
+  rts
+.ENDS

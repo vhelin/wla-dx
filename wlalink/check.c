@@ -18,6 +18,7 @@ extern struct object_file *g_obj_first;
 extern int g_emptyfill, g_sms_checksum, g_smstag_defined, g_snes_rom_mode, g_snes_rom_speed, g_smc_status, g_sms_header;
 extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize, g_sms_checksum_already_written;
 extern int g_sms_checksum_size_defined, g_sms_checksum_size, g_smd_checksum, g_romheader_baseaddress;
+extern int g_romformat, g_romformat_cli_defined;
 
 
 int check_file_types(void) {
@@ -121,6 +122,8 @@ int check_headers(void) {
         g_sms_checksum_already_written = (extr_bits >> 1) & 1;
         g_sms_checksum_size_defined = (extr_bits >> 2) & 1;
         g_smd_checksum = (extr_bits >> 3) & 1;
+        if (g_romformat_cli_defined == NO)
+          g_romformat = (extr_bits >> 4) & 3;
         /* sms checksum size */
         g_sms_checksum_size = READ_T;
         /* ROM header base address */
@@ -151,6 +154,15 @@ int check_headers(void) {
 
         if (g_smd_checksum == 0 && ((extr_bits >> 3) & 1) != 0)
           g_smd_checksum = 1;
+        if (g_romformat_cli_defined == NO) {
+          e = (extr_bits >> 4) & 3;
+          if (g_romformat == ROMFORMAT_BIN)
+            g_romformat = e;
+          else if (e != ROMFORMAT_BIN && e != g_romformat) {
+            print_text(NO, "CHECK_HEADERS: Conflicting .ROMFORMAT directives in file \"%s\".\n", o->name);
+            return FAILED;
+          }
+        }
         
         e = (more_bits >> 1) & 3;
         if (g_snes_sramsize < e) {

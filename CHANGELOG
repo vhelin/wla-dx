@@ -4,7 +4,7 @@
                     8080/HUC6280/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.7 (10-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
+v10.7 (15-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -67,6 +67,9 @@ v10.7 (10-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                     [68k] Added .NGHEADER, .ENDNG, .NGSOFTDIP, .ENDNGSOFTDIP,
                       .NGVECTORS and .ENDNGVECTORS for Neogeo development (and
                       examples/neogeo and include/neogeo).
+                    [68k] Added Sega Mega Drive/Genesis and Sega CD support:
+                      .MDVECTORS, .MCDHEADER, .MCDSPHEADER, .ROMFORMAT,
+                      BIN/SMD/MD linker output, memory maps and include files.
                     [650] Fixed STX and STY parsing.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
@@ -1593,7 +1596,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (10-May-2026) When calculating _sizeof_* for labels we now take unused
+v5.22 (15-May-2026) When calculating _sizeof_* for labels we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1615,6 +1618,8 @@ v5.22 (10-May-2026) When calculating _sizeof_* for labels we now take unused
                       EMULICIOUS, CSPECT, NOCASH, MAME and JSON).
                     .ASSERT can now be postponed to link time.
                     Added -sM for writing MAME compatible flat symbol file.
+                    Added -O (BIN, SMD, MD) Mega Drive output ROM file
+                      format.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

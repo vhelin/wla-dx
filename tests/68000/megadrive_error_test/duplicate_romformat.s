@@ -1,0 +1,12 @@
+.INCLUDE "../../../memorymaps/md68k.i"
+
+.ROMBANKSIZE $4000
+.ROMBANKS 1
+
+.ROMFORMAT BIN
+.ROMFORMAT SMD
+
+.BANK 0 SLOT 0
+.ORGA $0200
+Start:
+  rts

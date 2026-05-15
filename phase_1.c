@@ -79,6 +79,37 @@ int g_ngheader_cddacmdptr_defined = NO, g_ngheader_cddacmdptr_value = 0;
 char *g_ngheader_jpconfig_str = NULL, *g_ngheader_usconfig_str = NULL, *g_ngheader_euconfig_str = NULL;
 char *g_ngheader_userentry_str = NULL, *g_ngheader_playerstart_str = NULL, *g_ngheader_demoend_str = NULL;
 char *g_ngheader_coinsound_str = NULL, *g_ngheader_securitycodeptr_str = NULL;
+int g_romformat = ROMFORMAT_BIN, g_romformat_defined = NO;
+int g_md_org0_defined = NO;
+int g_mdvectors_defined = NO, g_mdvectors_default_defined = NO;
+int g_mdvectors_defined_slots[MD_VECTOR_COUNT];
+int g_mdvectors_type[MD_VECTOR_COUNT], g_mdvectors_value[MD_VECTOR_COUNT];
+char *g_mdvectors_str[MD_VECTOR_COUNT];
+int g_mdvectors_default_type = TYPE_VALUE, g_mdvectors_default_value = 0;
+char *g_mdvectors_default_str = NULL;
+char g_mcdheader_systemtype[17] = "SEGA MEGA DRIVE ";
+char g_mcdheader_copyright[17] = "                ";
+char g_mcdheader_titledomestic[49] = "                                                ";
+char g_mcdheader_titleoverseas[49] = "                                                ";
+char g_mcdheader_serialnumber[15] = "              ";
+char g_mcdheader_devicesupport[17] = "J               ";
+char g_mcdheader_regionsupport[4] = "JUE";
+int g_mcdheader_defined = NO;
+int g_mcdheader_ipstart_type = TYPE_VALUE, g_mcdheader_ipstart_value = 0;
+int g_mcdheader_spstart_type = TYPE_VALUE, g_mcdheader_spstart_value = 0;
+int g_mcdheader_vblank_type = TYPE_VALUE, g_mcdheader_vblank_value = 0;
+int g_mcdheader_hblank_type = TYPE_VALUE, g_mcdheader_hblank_value = 0;
+int g_mcdheader_userprocess_type = TYPE_VALUE, g_mcdheader_userprocess_value = 0;
+char *g_mcdheader_ipstart_str = NULL, *g_mcdheader_spstart_str = NULL;
+char *g_mcdheader_vblank_str = NULL, *g_mcdheader_hblank_str = NULL, *g_mcdheader_userprocess_str = NULL;
+int g_mcdspheader_defined = NO;
+int g_mcdspheader_spentry_type = TYPE_VALUE, g_mcdspheader_spentry_value = 0;
+int g_mcdspheader_spinit_type = TYPE_VALUE, g_mcdspheader_spinit_value = 0;
+int g_mcdspheader_spmain_type = TYPE_VALUE, g_mcdspheader_spmain_value = 0;
+int g_mcdspheader_spint2_type = TYPE_VALUE, g_mcdspheader_spint2_value = 0;
+int g_mcdspheader_spuser_type = TYPE_VALUE, g_mcdspheader_spuser_value = 0;
+char *g_mcdspheader_spentry_str = NULL, *g_mcdspheader_spinit_str = NULL, *g_mcdspheader_spmain_str = NULL;
+char *g_mcdspheader_spint2_str = NULL, *g_mcdspheader_spuser_str = NULL;
 #endif
 
 int g_org_defined = 1, g_background_defined = 0;
@@ -992,6 +1023,10 @@ int directive_define_def_equ(void);
 int directive_ngheader(void);
 int directive_ngsoftdip(void);
 int directive_ngvectors(void);
+int directive_mdvectors(void);
+int directive_mcdheader(void);
+int directive_mcdspheader(void);
+int directive_romformat(void);
 #endif
 
 
@@ -2762,6 +2797,16 @@ int directive_org(void) {
     return FAILED;
   }
 
+#if defined(MC68000)
+  if (g_bank == 0 && g_slots[g_current_slot].address == 0 && g_parsed_int == 0) {
+    if (g_mdvectors_defined == YES) {
+      print_error(ERROR_DIR, ".MDVECTORS emits the vector table at $000000; don't also place code or data with .ORG 0.\n");
+      return FAILED;
+    }
+    g_md_org0_defined = YES;
+  }
+#endif
+
   g_org_defined = 1;
   fprintf(g_file_out_ptr, "O%d ", g_parsed_int);
 
@@ -2806,6 +2851,16 @@ int directive_orga(void) {
                 current_slot_address, (unsigned int)(current_slot_address + g_slots[g_current_slot].size - 1));
     return FAILED;
   }
+
+#if defined(MC68000)
+  if (g_bank == 0 && g_parsed_int == 0) {
+    if (g_mdvectors_defined == YES) {
+      print_error(ERROR_DIR, ".MDVECTORS emits the vector table at $000000; don't also place code or data with .ORGA 0.\n");
+      return FAILED;
+    }
+    g_md_org0_defined = YES;
+  }
+#endif
 
   fprintf(g_file_out_ptr, "O%d ", g_parsed_int - current_slot_address);
 
@@ -9364,6 +9419,89 @@ void ngheader_free_allocations(void) {
 }
 
 
+static void _md_free_unique_strings(char **strings, int count) {
+
+  char *owned[MD_VECTOR_COUNT + 16];
+  int count_owned = 0, i, j, found;
+
+  for (i = 0; i < count; i++) {
+    if (strings[i] == NULL)
+      continue;
+
+    found = NO;
+    for (j = 0; j < count_owned; j++) {
+      if (owned[j] == strings[i]) {
+        found = YES;
+        break;
+      }
+    }
+
+    if (found == NO)
+      owned[count_owned++] = strings[i];
+  }
+
+  for (i = 0; i < count_owned; i++)
+    free(owned[i]);
+}
+
+
+void mdvectors_free_allocations(void) {
+
+  char *strings[MD_VECTOR_COUNT + 1];
+  int i;
+
+  for (i = 0; i < MD_VECTOR_COUNT; i++)
+    strings[i] = g_mdvectors_str[i];
+  strings[MD_VECTOR_COUNT] = g_mdvectors_default_str;
+
+  _md_free_unique_strings(strings, MD_VECTOR_COUNT + 1);
+
+  for (i = 0; i < MD_VECTOR_COUNT; i++)
+    g_mdvectors_str[i] = NULL;
+  g_mdvectors_default_str = NULL;
+}
+
+
+void mcdheader_free_allocations(void) {
+
+  char *strings[5];
+
+  strings[0] = g_mcdheader_ipstart_str;
+  strings[1] = g_mcdheader_spstart_str;
+  strings[2] = g_mcdheader_vblank_str;
+  strings[3] = g_mcdheader_hblank_str;
+  strings[4] = g_mcdheader_userprocess_str;
+
+  _md_free_unique_strings(strings, 5);
+
+  g_mcdheader_ipstart_str = NULL;
+  g_mcdheader_spstart_str = NULL;
+  g_mcdheader_vblank_str = NULL;
+  g_mcdheader_hblank_str = NULL;
+  g_mcdheader_userprocess_str = NULL;
+}
+
+
+void mcdspheader_free_allocations(void) {
+
+  char *strings[5];
+
+  strings[0] = g_mcdspheader_spentry_str;
+  strings[1] = g_mcdspheader_spinit_str;
+  strings[2] = g_mcdspheader_spmain_str;
+  strings[3] = g_mcdspheader_spint2_str;
+  strings[4] = g_mcdspheader_spuser_str;
+
+  _md_free_unique_strings(strings, 5);
+
+  g_mcdspheader_spentry_str = NULL;
+  g_mcdspheader_spinit_str = NULL;
+  g_mcdspheader_spmain_str = NULL;
+  g_mcdspheader_spint2_str = NULL;
+  g_mcdspheader_spuser_str = NULL;
+}
+
+
 static void _ngheader_copy_pointer(int source_type, int source_value, char *source_str,
                                    int *target_type, int *target_value, char **target_str) {
 
@@ -9382,6 +9520,133 @@ static void _ng_emit_jump(int type, int value, char *string_value) {
     fprintf(g_file_out_ptr, "U%d ", value);
   else
     fprintf(g_file_out_ptr, "V%s ", string_value);
+}
+
+
+static int _mdvectors_field_to_index(char *field) {
+
+  if (strcaselesscmp(field, "INITIALSP") == 0 || strcaselesscmp(field, "SSP") == 0)
+    return 0;
+  if (strcaselesscmp(field, "RESET") == 0)
+    return 1;
+  if (strcaselesscmp(field, "BUSERROR") == 0)
+    return 2;
+  if (strcaselesscmp(field, "ADDRESSERROR") == 0 || strcaselesscmp(field, "ADDRERROR") == 0)
+    return 3;
+  if (strcaselesscmp(field, "ILLEGALINSTR") == 0 || strcaselesscmp(field, "ILLEGAL") == 0)
+    return 4;
+  if (strcaselesscmp(field, "ZERODIVIDE") == 0 || strcaselesscmp(field, "DIVZERO") == 0)
+    return 5;
+  if (strcaselesscmp(field, "CHKINSTR") == 0 || strcaselesscmp(field, "CHK") == 0)
+    return 6;
+  if (strcaselesscmp(field, "TRAPV") == 0)
+    return 7;
+  if (strcaselesscmp(field, "PRIVVIOLATION") == 0 || strcaselesscmp(field, "PRIVILEGE") == 0)
+    return 8;
+  if (strcaselesscmp(field, "TRACE") == 0)
+    return 9;
+  if (strcaselesscmp(field, "LINEA") == 0 || strcaselesscmp(field, "LINE1010") == 0)
+    return 10;
+  if (strcaselesscmp(field, "LINEF") == 0 || strcaselesscmp(field, "LINE1111") == 0)
+    return 11;
+  if (strcaselesscmp(field, "SPURIOUS") == 0)
+    return 24;
+  if (strcaselesscmp(field, "LEVEL1") == 0)
+    return 25;
+  if (strcaselesscmp(field, "EXTERNAL") == 0 || strcaselesscmp(field, "LEVEL2") == 0)
+    return 26;
+  if (strcaselesscmp(field, "LEVEL3") == 0)
+    return 27;
+  if (strcaselesscmp(field, "HBLANK") == 0 || strcaselesscmp(field, "LEVEL4") == 0)
+    return 28;
+  if (strcaselesscmp(field, "LEVEL5") == 0)
+    return 29;
+  if (strcaselesscmp(field, "VBLANK") == 0 || strcaselesscmp(field, "LEVEL6") == 0)
+    return 30;
+  if (strcaselesscmp(field, "LEVEL7") == 0)
+    return 31;
+  if (strcaselesscmp(field, "TRAP0") == 0)
+    return 32;
+  if (strcaselesscmp(field, "TRAP1") == 0)
+    return 33;
+  if (strcaselesscmp(field, "TRAP2") == 0)
+    return 34;
+  if (strcaselesscmp(field, "TRAP3") == 0)
+    return 35;
+  if (strcaselesscmp(field, "TRAP4") == 0)
+    return 36;
+  if (strcaselesscmp(field, "TRAP5") == 0)
+    return 37;
+  if (strcaselesscmp(field, "TRAP6") == 0)
+    return 38;
+  if (strcaselesscmp(field, "TRAP7") == 0)
+    return 39;
+  if (strcaselesscmp(field, "TRAP8") == 0)
+    return 40;
+  if (strcaselesscmp(field, "TRAP9") == 0)
+    return 41;
+  if (strcaselesscmp(field, "TRAP10") == 0)
+    return 42;
+  if (strcaselesscmp(field, "TRAP11") == 0)
+    return 43;
+  if (strcaselesscmp(field, "TRAP12") == 0)
+    return 44;
+  if (strcaselesscmp(field, "TRAP13") == 0)
+    return 45;
+  if (strcaselesscmp(field, "TRAP14") == 0)
+    return 46;
+  if (strcaselesscmp(field, "TRAP15") == 0)
+    return 47;
+
+  return -1;
+}
+
+
+static int _parse_romformat_value(int *format) {
+
+  int q = input_number();
+
+  if (q == FAILED)
+    return FAILED;
+
+  if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
+    if (strcaselesscmp(g_label, "BIN") == 0 || strcaselesscmp(g_label, "RAW") == 0 || strcaselesscmp(g_label, "GEN") == 0) {
+      *format = ROMFORMAT_BIN;
+      return SUCCEEDED;
+    }
+    if (strcaselesscmp(g_label, "SMD") == 0) {
+      *format = ROMFORMAT_SMD;
+      return SUCCEEDED;
+    }
+    if (strcaselesscmp(g_label, "MD") == 0) {
+      *format = ROMFORMAT_MD;
+      return SUCCEEDED;
+    }
+  }
+
+  print_error(ERROR_DIR, ".ROMFORMAT expects BIN, SMD or MD.\n");
+  return FAILED;
+}
+
+
+int directive_romformat(void) {
+
+  int format;
+
+  no_library_files(".ROMFORMAT");
+
+  if (_parse_romformat_value(&format) == FAILED)
+    return FAILED;
+
+  if (g_romformat_defined == YES && g_romformat != format) {
+    print_error(ERROR_DIR, ".ROMFORMAT was defined for the second time with a different value.\n");
+    return FAILED;
+  }
+
+  g_romformat = format;
+  g_romformat_defined = YES;
+
+  return SUCCEEDED;
 }
 
 
@@ -9646,6 +9911,271 @@ int directive_smdheader(void) {
   g_smdheader_defined = YES;
   g_computesmdchecksum_defined++;
       
+  return SUCCEEDED;
+}
+
+
+int directive_mdvectors(void) {
+
+  int q, token_result, index;
+
+  if (g_mdvectors_defined == YES) {
+    print_error(ERROR_DIR, ".MDVECTORS can be defined only once.\n");
+    return FAILED;
+  }
+
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .MDVECTORS.\n");
+    return FAILED;
+  }
+  if (g_md_org0_defined == YES) {
+    print_error(ERROR_DIR, ".MDVECTORS emits the vector table at $000000; don't also place code or data with .ORG/.ORGA 0.\n");
+    return FAILED;
+  }
+
+  g_mdvectors_type[0] = TYPE_VALUE;
+  g_mdvectors_value[0] = 0x00FFFE00;
+  g_mdvectors_defined_slots[0] = YES;
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDMDVECTORS") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "DEFAULT") == 0) {
+      if (_ngheader_parse_pointer("DEFAULT", &g_mdvectors_default_type, &g_mdvectors_default_value, &g_mdvectors_default_str) == FAILED)
+        return FAILED;
+      g_mdvectors_default_defined = YES;
+    }
+    else {
+      index = _mdvectors_field_to_index(g_tmp);
+      if (index < 0) {
+        token_result = FAILED;
+        break;
+      }
+      if (_ngheader_parse_pointer(g_tmp, &g_mdvectors_type[index], &g_mdvectors_value[index], &g_mdvectors_str[index]) == FAILED)
+        return FAILED;
+      g_mdvectors_defined_slots[index] = YES;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .MDVECTORS data structure.\n");
+    return FAILED;
+  }
+
+  if (g_mdvectors_defined_slots[1] == NO) {
+    print_error(ERROR_DIR, ".MDVECTORS requires RESET to be defined.\n");
+    return FAILED;
+  }
+
+  if (g_mdvectors_default_defined == NO)
+    print_error(ERROR_WRN, ".MDVECTORS has no DEFAULT handler; unspecified vectors will point to $00000000.\n");
+
+  g_mdvectors_defined = YES;
+
+  return SUCCEEDED;
+}
+
+
+int directive_mcdheader(void) {
+
+  int q, token_result, ipstart_defined = NO;
+
+  if (g_mcdheader_defined == YES) {
+    print_error(ERROR_DIR, ".MCDHEADER can be defined only once.\n");
+    return FAILED;
+  }
+  if (g_mcdspheader_defined == YES) {
+    print_error(ERROR_DIR, ".MCDHEADER and .MCDSPHEADER cannot be used in the same source file.\n");
+    return FAILED;
+  }
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .MCDHEADER.\n");
+    return FAILED;
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDMCD") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "SYSTEMTYPE") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "SYSTEMTYPE expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_systemtype, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "COPYRIGHT") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "COPYRIGHT expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_copyright, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "TITLEDOMESTIC") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 48) {
+        print_error(ERROR_DIR, "TITLEDOMESTIC expects a string with maximum 48 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_titledomestic, g_label, 48, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "TITLEOVERSEAS") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 48) {
+        print_error(ERROR_DIR, "TITLEOVERSEAS expects a string with maximum 48 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_titleoverseas, g_label, 48, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "SERIALNUMBER") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 14) {
+        print_error(ERROR_DIR, "SERIALNUMBER expects a string with maximum 14 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_serialnumber, g_label, 14, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "DEVICESUPPORT") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 16) {
+        print_error(ERROR_DIR, "DEVICESUPPORT expects a string with maximum 16 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_devicesupport, g_label, 16, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "REGIONSUPPORT") == 0) {
+      q = input_number();
+      if (q != INPUT_NUMBER_STRING || strlen(g_label) > 3) {
+        print_error(ERROR_DIR, "REGIONSUPPORT expects a string with maximum 3 characters.\n");
+        return FAILED;
+      }
+      _copy_and_pad_string(g_mcdheader_regionsupport, g_label, 3, ' ');
+    }
+    else if (strcaselesscmp(g_tmp, "IPSTART") == 0) {
+      if (_ngheader_parse_pointer("IPSTART", &g_mcdheader_ipstart_type, &g_mcdheader_ipstart_value, &g_mcdheader_ipstart_str) == FAILED)
+        return FAILED;
+      ipstart_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SPSTART") == 0) {
+      if (_ngheader_parse_pointer("SPSTART", &g_mcdheader_spstart_type, &g_mcdheader_spstart_value, &g_mcdheader_spstart_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "VBLANKINT") == 0) {
+      if (_ngheader_parse_pointer("VBLANKINT", &g_mcdheader_vblank_type, &g_mcdheader_vblank_value, &g_mcdheader_vblank_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "HBLANKINT") == 0) {
+      if (_ngheader_parse_pointer("HBLANKINT", &g_mcdheader_hblank_type, &g_mcdheader_hblank_value, &g_mcdheader_hblank_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "USERPROCESS") == 0) {
+      if (_ngheader_parse_pointer("USERPROCESS", &g_mcdheader_userprocess_type, &g_mcdheader_userprocess_value, &g_mcdheader_userprocess_str) == FAILED)
+        return FAILED;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .MCDHEADER data structure.\n");
+    return FAILED;
+  }
+  if (ipstart_defined == NO) {
+    print_error(ERROR_DIR, ".MCDHEADER requires IPSTART to be defined.\n");
+    return FAILED;
+  }
+
+  g_mcdheader_defined = YES;
+
+  return SUCCEEDED;
+}
+
+
+int directive_mcdspheader(void) {
+
+  int q, token_result, spentry_defined = NO;
+
+  if (g_mcdspheader_defined == YES) {
+    print_error(ERROR_DIR, ".MCDSPHEADER can be defined only once.\n");
+    return FAILED;
+  }
+  if (g_mcdheader_defined == YES) {
+    print_error(ERROR_DIR, ".MCDHEADER and .MCDSPHEADER cannot be used in the same source file.\n");
+    return FAILED;
+  }
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .MCDSPHEADER.\n");
+    return FAILED;
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDMCDSP") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "SPENTRY") == 0) {
+      if (_ngheader_parse_pointer("SPENTRY", &g_mcdspheader_spentry_type, &g_mcdspheader_spentry_value, &g_mcdspheader_spentry_str) == FAILED)
+        return FAILED;
+      spentry_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "SPINIT") == 0) {
+      if (_ngheader_parse_pointer("SPINIT", &g_mcdspheader_spinit_type, &g_mcdspheader_spinit_value, &g_mcdspheader_spinit_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "SPMAIN") == 0) {
+      if (_ngheader_parse_pointer("SPMAIN", &g_mcdspheader_spmain_type, &g_mcdspheader_spmain_value, &g_mcdspheader_spmain_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "SPINT2") == 0) {
+      if (_ngheader_parse_pointer("SPINT2", &g_mcdspheader_spint2_type, &g_mcdspheader_spint2_value, &g_mcdspheader_spint2_str) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "SPUSER") == 0) {
+      if (_ngheader_parse_pointer("SPUSER", &g_mcdspheader_spuser_type, &g_mcdspheader_spuser_value, &g_mcdspheader_spuser_str) == FAILED)
+        return FAILED;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .MCDSPHEADER data structure.\n");
+    return FAILED;
+  }
+  if (spentry_defined == NO) {
+    print_error(ERROR_DIR, ".MCDSPHEADER requires SPENTRY to be defined.\n");
+    return FAILED;
+  }
+
+  g_mcdspheader_defined = YES;
+
   return SUCCEEDED;
 }
 
@@ -13464,6 +13994,20 @@ int parse_directive(void) {
     if (strcmp(directive_upper, "MEMORYMAP") == 0)
       return directive_memorymap();
 
+#if defined(MC68000)
+    /* MDVECTORS */
+    if (strcmp(directive_upper, "MDVECTORS") == 0)
+      return directive_mdvectors();
+
+    /* MCDHEADER */
+    if (strcmp(directive_upper, "MCDHEADER") == 0)
+      return directive_mcdheader();
+
+    /* MCDSPHEADER */
+    if (strcmp(directive_upper, "MCDSPHEADER") == 0)
+      return directive_mcdspheader();
+#endif
+
     break;
     
   case 'N':
@@ -13578,6 +14122,12 @@ int parse_directive(void) {
     /* ROMBANKMAP */
     if (strcmp(directive_upper, "ROMBANKMAP") == 0)
       return directive_rombankmap();
+
+#if defined(MC68000)
+    /* ROMFORMAT */
+    if (strcmp(directive_upper, "ROMFORMAT") == 0)
+      return directive_romformat();
+#endif
 
     /* RAMSECTION */
     if (strcmp(directive_upper, "RAMSECTION") == 0)

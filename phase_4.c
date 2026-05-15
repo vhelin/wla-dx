@@ -65,7 +65,9 @@ extern int g_smschecksumsize_defined, g_smschecksumsize;
 #endif
 
 #if defined(MC68000)
-extern int g_computesmdchecksum_defined;
+extern int g_computesmdchecksum_defined, g_smdheader_defined;
+extern int g_mdvectors_defined, g_mcdheader_defined;
+extern int g_romformat;
 #endif
 
 struct label_def *g_unknown_labels = NULL, *g_unknown_labels_last = NULL;
@@ -417,6 +419,13 @@ int phase_4(void) {
 
   if (g_verbose_level >= 100)
     print_text(YES, "Internal pass 2...\n");
+
+#if defined(MC68000)
+  if (g_mdvectors_defined == YES && g_smdheader_defined == NO)
+    print_text(NO, "WARNING: .MDVECTORS was used without .SMDHEADER; Mega Drive cartridge ROMs should also define .SMDHEADER.\n");
+  if (g_mcdheader_defined == YES && g_smdheader_defined == YES)
+    print_text(NO, "WARNING: .MCDHEADER and .SMDHEADER describe different Mega Drive boot layouts; use .MCDHEADER for Sega CD images and .SMDHEADER for cartridge ROMs.\n");
+#endif
 
   /* rewind to the beginning of the internal data stream */
   fseek(g_file_out_ptr, 0, SEEK_SET);
@@ -2582,6 +2591,7 @@ int write_object_file(void) {
 #if defined(MC68000)
   if (g_computesmdchecksum_defined != 0)
     ind |= 1 << 3;
+  ind |= (g_romformat & 3) << 4;
 #endif
   
   fprintf(final_ptr, "%c", ind);

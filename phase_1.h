@@ -22,6 +22,9 @@ int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffe
 
 #if defined(MC68000)
 void ngheader_free_allocations(void);
+void mdvectors_free_allocations(void);
+void mcdheader_free_allocations(void);
+void mcdspheader_free_allocations(void);
 #endif
 
 void generate_label(char *header, char *footer);

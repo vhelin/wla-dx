@@ -1,0 +1,17 @@
+.INCLUDE "../../../memorymaps/mcd68kip.i"
+
+.ROMBANKSIZE $80000
+.ROMBANKS 1
+
+.MCDHEADER
+  IPSTART Start
+.ENDMCD
+
+.MCDSPHEADER
+  SPENTRY Start
+.ENDMCDSP
+
+.BANK 0 SLOT 0
+.ORGA $0200
+Start:
+  rts

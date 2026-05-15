@@ -51,6 +51,7 @@ extern int g_section_table_table_max, g_section_write_order[SECTION_TYPES_COUNT-
 extern int g_use_priority_only_writing_sections, g_use_priority_only_writing_ramsections;
 extern int g_allow_duplicate_labels_and_definitions;
 extern int g_allow_value_mismatch_in_duplicate_labels;
+extern int g_romformat;
 
 static int s_current_stack_calculation_addr = 0;
 
@@ -160,6 +161,123 @@ static int _write_emptyfill_padding(FILE *f, int size) {
   }
 
   return SUCCEEDED;
+}
+
+
+static int _build_plain_rom_image(unsigned char **image, int *image_size, int padded_size) {
+
+  unsigned char *buffer;
+  int i, offset = 0;
+
+  if (g_sec_bankhd_first != NULL) {
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output does not support BANKHEADER sections.\n");
+    return FAILED;
+  }
+
+  buffer = malloc(padded_size > 0 ? padded_size : 1);
+  if (buffer == NULL) {
+    print_text(NO, "WRITE_ROM_FILE: Out of memory while building Mega Drive ROM image.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < g_rombanks; i++) {
+    memcpy(buffer + offset, g_rom + g_bankaddress[i], g_banksizes[i]);
+    offset += g_banksizes[i];
+  }
+
+  while (offset < padded_size)
+    buffer[offset++] = (unsigned char)g_emptyfill;
+
+  *image = buffer;
+  *image_size = padded_size;
+
+  return SUCCEEDED;
+}
+
+
+static int _write_megadrive_smd(FILE *f, unsigned char *image, int image_size) {
+
+  unsigned char header[512];
+  int block, byte_index, base, blocks;
+
+  if ((image_size & 0x3FFF) != 0) {
+    print_text(NO, "WRITE_ROM_FILE: SMD output requires ROM size to be a multiple of 16KB. Use .EMPTYFILL/padding to align it.\n");
+    return FAILED;
+  }
+
+  blocks = image_size / 0x4000;
+  if (blocks > 255) {
+    print_text(NO, "WRITE_ROM_FILE: SMD output supports at most 255 16KB blocks.\n");
+    return FAILED;
+  }
+
+  memset(header, 0, sizeof(header));
+  header[0] = (unsigned char)blocks;
+  header[2] = 0x40;
+  header[8] = 0xAA;
+  header[9] = 0xBB;
+  header[10] = 0x06;
+
+  if (fwrite(header, 1, sizeof(header), f) != sizeof(header))
+    return FAILED;
+
+  for (block = 0; block < blocks; block++) {
+    base = block * 0x4000;
+    for (byte_index = 0; byte_index < 0x4000; byte_index += 2)
+      fprintf(f, "%c", image[base + byte_index]);
+    for (byte_index = 1; byte_index < 0x4000; byte_index += 2)
+      fprintf(f, "%c", image[base + byte_index]);
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _write_megadrive_md(FILE *f, unsigned char *image, int image_size) {
+
+  int i;
+
+  if ((image_size & 1) != 0) {
+    print_text(NO, "WRITE_ROM_FILE: MD output requires an even ROM size. Use .EMPTYFILL/padding to align it.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < image_size; i += 2)
+    fprintf(f, "%c", image[i]);
+  for (i = 1; i < image_size; i += 2)
+    fprintf(f, "%c", image[i]);
+
+  return SUCCEEDED;
+}
+
+
+static int _write_megadrive_formatted_rom(FILE *f, int padded_size) {
+
+  unsigned char *image = NULL;
+  int image_size = 0, result;
+
+  if (g_output_mode != OUTPUT_ROM) {
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output requires ROM output mode. Remove -b.\n");
+    return FAILED;
+  }
+  if (g_output_type != OUTPUT_TYPE_UNDEFINED || g_file_header != NULL || g_file_footer != NULL || g_smc_status != 0) {
+    print_text(NO, "WRITE_ROM_FILE: Mega Drive ROMFORMAT output cannot be combined with alternate output types, file headers/footers, or SMC headers.\n");
+    return FAILED;
+  }
+
+  if (_build_plain_rom_image(&image, &image_size, padded_size) == FAILED)
+    return FAILED;
+
+  if (g_romformat == ROMFORMAT_SMD)
+    result = _write_megadrive_smd(f, image, image_size);
+  else if (g_romformat == ROMFORMAT_MD)
+    result = _write_megadrive_md(f, image, image_size);
+  else
+    result = fwrite(image, 1, image_size, f) == (size_t)image_size ? SUCCEEDED : FAILED;
+
+  free(image);
+
+  return result;
 }
 
 
@@ -3456,6 +3574,17 @@ int write_rom_file(char *outname) {
 
   if (g_output_type == OUTPUT_TYPE_C64_CRT) {
     if (_write_c64_crt_file(f, outname) == FAILED) {
+      fclose(f);
+      return FAILED;
+    }
+
+    fclose(f);
+
+    return SUCCEEDED;
+  }
+
+  if (g_romformat != ROMFORMAT_BIN) {
+    if (_write_megadrive_formatted_rom(f, neogeo_padded_size) == FAILED) {
       fclose(f);
       return FAILED;
     }
