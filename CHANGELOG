@@ -69,7 +69,7 @@ v10.7 (15-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       examples/neogeo and include/neogeo).
                     [68k] Added Sega Mega Drive/Genesis and Sega CD support:
                       .MDVECTORS, .MCDHEADER, .MCDSPHEADER, .ROMFORMAT,
-                      BIN/SMD/MD linker output, memory maps and include files.
+                      memory maps and include files.
                     [650] Fixed STX and STY parsing.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").

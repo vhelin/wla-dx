@@ -168,7 +168,8 @@ Mega Drive/Genesis ``.ROMFORMAT`` settings found in object files. ``BIN`` is
 normal raw output, ``SMD`` writes a 512-byte Super Magic Drive header and
 per-16KB even/odd interleaving, and ``MD`` writes all even bytes followed by
 all odd bytes for the whole ROM image. ``SMD`` output requires the ROM size to
-be a multiple of 16KB; ``MD`` output requires an even ROM size.
+be a multiple of 16KB and is currently limited to 255 16KB blocks (4080KB) for
+single-file SMD images; ``MD`` output requires an even ROM size.
 
 If flag ``i`` is given, WLALINK will write list files. Note that you must
 compile the object and library files with ``-i`` flag as well. Otherwise

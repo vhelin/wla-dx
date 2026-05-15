@@ -3666,6 +3666,8 @@ String widths are ``SYSTEMTYPE`` 16 bytes, ``COPYRIGHT`` 16 bytes,
 ``TITLEDOMESTIC`` 48 bytes, ``TITLEOVERSEAS`` 48 bytes, ``SERIALNUMBER`` 14
 bytes, ``DEVICESUPPORT`` 16 bytes and ``REGIONSUPPORT`` 3 bytes.
 ``.MCDHEADER`` and ``.MCDSPHEADER`` cannot be used in the same source file.
+If ``DEVICESUPPORT`` is omitted, WLA DX emits a warning and uses ``"J"`` padded
+to the 16-byte field width.
 The field order follows the IP.BIN boot record layout documented in Sega's
 Mega CD technical bulletins. For standard cartridge header background, see
 https://plutiedev.com/rom-header; for Sega CD images, use ``.MCDHEADER``
@@ -3707,10 +3709,12 @@ output::
 
 ``SMD`` output writes a 512-byte SMD header followed by each 16KB block with
 all even bytes first and all odd bytes second. The ROM size must be a multiple
-of 16KB. ``MD`` output writes all even bytes for the whole image followed by
-all odd bytes, so the ROM size must be even. ``BIN`` is the default raw output.
-Use ``wlalink -O <FMT>`` to override object-file ``.ROMFORMAT`` settings from
-the linker command line.
+of 16KB. WLA DX writes single-file SMD images with at most 255 16KB blocks
+(4080KB); use ``BIN`` or ``MD`` output for larger Mega Drive ROMs. ``MD``
+output writes all even bytes for the whole image followed by all odd bytes, so
+the ROM size must be even. ``BIN`` is the default raw output. Use
+``wlalink -O <FMT>`` to override object-file ``.ROMFORMAT`` settings from the
+linker command line.
 
 Formatted Mega Drive output is ROM-output-only and cannot be combined with
 link-file headers, footers, SMC headers, alternate output types or BANKHEADER

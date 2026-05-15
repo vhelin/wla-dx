@@ -9606,6 +9606,7 @@ static int _parse_romformat_value(int *format) {
 
   int q = input_number();
 
+  /* input_number() has already emitted the concrete parse error here. */
   if (q == FAILED)
     return FAILED;
 
@@ -9986,7 +9987,7 @@ int directive_mdvectors(void) {
 
 int directive_mcdheader(void) {
 
-  int q, token_result, ipstart_defined = NO;
+  int q, token_result, ipstart_defined = NO, devicesupport_defined = NO;
 
   if (g_mcdheader_defined == YES) {
     print_error(ERROR_DIR, ".MCDHEADER can be defined only once.\n");
@@ -10059,6 +10060,7 @@ int directive_mcdheader(void) {
         return FAILED;
       }
       _copy_and_pad_string(g_mcdheader_devicesupport, g_label, 16, ' ');
+      devicesupport_defined = YES;
     }
     else if (strcaselesscmp(g_tmp, "REGIONSUPPORT") == 0) {
       q = input_number();
@@ -10103,6 +10105,8 @@ int directive_mcdheader(void) {
     print_error(ERROR_DIR, ".MCDHEADER requires IPSTART to be defined.\n");
     return FAILED;
   }
+  if (devicesupport_defined == NO)
+    print_error(ERROR_WRN, ".MCDHEADER has no DEVICESUPPORT field; defaulting to \"J\".\n");
 
   g_mcdheader_defined = YES;
 

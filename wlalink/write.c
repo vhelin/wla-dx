@@ -195,24 +195,31 @@ static int _build_plain_rom_image(unsigned char **image, int *image_size, int pa
 }
 
 
+#define MD_SMD_HEADER_SIZE 512
+#define MD_SMD_BLOCK_SIZE 0x4000
+#define MD_SMD_MAX_BLOCKS 255
+
+
 static int _write_megadrive_smd(FILE *f, unsigned char *image, int image_size) {
 
-  unsigned char header[512];
-  int block, byte_index, base, blocks;
+  unsigned char header[MD_SMD_HEADER_SIZE], block_buffer[MD_SMD_BLOCK_SIZE];
+  int block, byte_index, base, blocks, output_index;
 
-  if ((image_size & 0x3FFF) != 0) {
+  if ((image_size & (MD_SMD_BLOCK_SIZE - 1)) != 0) {
     print_text(NO, "WRITE_ROM_FILE: SMD output requires ROM size to be a multiple of 16KB. Use .EMPTYFILL/padding to align it.\n");
     return FAILED;
   }
 
-  blocks = image_size / 0x4000;
-  if (blocks > 255) {
-    print_text(NO, "WRITE_ROM_FILE: SMD output supports at most 255 16KB blocks.\n");
+  blocks = image_size / MD_SMD_BLOCK_SIZE;
+  if (blocks > MD_SMD_MAX_BLOCKS) {
+    print_text(NO, "WRITE_ROM_FILE: SMD output supports at most 255 16KB blocks (4080KB); use BIN/MD output for larger Mega Drive ROMs.\n");
     return FAILED;
   }
 
   memset(header, 0, sizeof(header));
   header[0] = (unsigned char)blocks;
+  /* Single-file SMD header: byte 0 is the 16KB block count, byte 2 marks a
+     complete single-file image, and AA BB 06 is the SMD ID sequence. */
   header[2] = 0x40;
   header[8] = 0xAA;
   header[9] = 0xBB;
@@ -222,11 +229,14 @@ static int _write_megadrive_smd(FILE *f, unsigned char *image, int image_size) {
     return FAILED;
 
   for (block = 0; block < blocks; block++) {
-    base = block * 0x4000;
-    for (byte_index = 0; byte_index < 0x4000; byte_index += 2)
-      fprintf(f, "%c", image[base + byte_index]);
-    for (byte_index = 1; byte_index < 0x4000; byte_index += 2)
-      fprintf(f, "%c", image[base + byte_index]);
+    base = block * MD_SMD_BLOCK_SIZE;
+    output_index = 0;
+    for (byte_index = 0; byte_index < MD_SMD_BLOCK_SIZE; byte_index += 2)
+      block_buffer[output_index++] = image[base + byte_index];
+    for (byte_index = 1; byte_index < MD_SMD_BLOCK_SIZE; byte_index += 2)
+      block_buffer[output_index++] = image[base + byte_index];
+    if (fwrite(block_buffer, 1, MD_SMD_BLOCK_SIZE, f) != MD_SMD_BLOCK_SIZE)
+      return FAILED;
   }
 
   return SUCCEEDED;
@@ -235,17 +245,27 @@ static int _write_megadrive_smd(FILE *f, unsigned char *image, int image_size) {
 
 static int _write_megadrive_md(FILE *f, unsigned char *image, int image_size) {
 
-  int i;
+  unsigned char buffer[4096];
+  int i, output_index, parity;
 
   if ((image_size & 1) != 0) {
     print_text(NO, "WRITE_ROM_FILE: MD output requires an even ROM size. Use .EMPTYFILL/padding to align it.\n");
     return FAILED;
   }
 
-  for (i = 0; i < image_size; i += 2)
-    fprintf(f, "%c", image[i]);
-  for (i = 1; i < image_size; i += 2)
-    fprintf(f, "%c", image[i]);
+  for (parity = 0; parity < 2; parity++) {
+    output_index = 0;
+    for (i = parity; i < image_size; i += 2) {
+      buffer[output_index++] = image[i];
+      if (output_index == (int)sizeof(buffer)) {
+        if (fwrite(buffer, 1, output_index, f) != (size_t)output_index)
+          return FAILED;
+        output_index = 0;
+      }
+    }
+    if (output_index > 0 && fwrite(buffer, 1, output_index, f) != (size_t)output_index)
+      return FAILED;
+  }
 
   return SUCCEEDED;
 }
@@ -268,12 +288,16 @@ static int _write_megadrive_formatted_rom(FILE *f, int padded_size) {
   if (_build_plain_rom_image(&image, &image_size, padded_size) == FAILED)
     return FAILED;
 
-  if (g_romformat == ROMFORMAT_SMD)
+  if (g_romformat == ROMFORMAT_BIN)
+    result = fwrite(image, 1, image_size, f) == (size_t)image_size ? SUCCEEDED : FAILED;
+  else if (g_romformat == ROMFORMAT_SMD)
     result = _write_megadrive_smd(f, image, image_size);
   else if (g_romformat == ROMFORMAT_MD)
     result = _write_megadrive_md(f, image, image_size);
-  else
-    result = fwrite(image, 1, image_size, f) == (size_t)image_size ? SUCCEEDED : FAILED;
+  else {
+    print_text(NO, "WRITE_ROM_FILE: Unknown Mega Drive ROMFORMAT value %d.\n", g_romformat);
+    result = FAILED;
+  }
 
   free(image);
 

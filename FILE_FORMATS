@@ -33,7 +33,8 @@ header:
                    bit 1 - sms checksum was already written (1 == yes)
                    bit 2 - use a special range for sms checksum calculation (1 == yes)
                    bit 3 - sega mega drive checksum (1 == compute)
-                   bits 4-5 - sega mega drive rom file format (0 == bin/raw, 1 == smd, 2 == md, 3 == reserved))
+                   bits 4-5 - sega mega drive rom file format (0 == bin/raw, 1 == smd, 2 == md, 3 == reserved)
+                   bit 6 - sega mega drive rom file format was explicitly defined (1 == yes))
   4     special range for sms checksum calculation (int)
   4     base address for SMS ROM header (int)
 

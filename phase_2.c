@@ -156,7 +156,7 @@ static void _md_emit_fixed_string(char *s, int length) {
   int i;
 
   for (i = 0; i < length; i++)
-    fprintf(g_file_out_ptr, "d%d ", s[i]);
+    fprintf(g_file_out_ptr, "d%d ", (unsigned char)s[i]);
 }
 
 #endif
