@@ -77,6 +77,12 @@ SH2_BRA_TARGET:
   nop                         ; @BT $00 $09
   nop                         ; @BT $00 $09
 SH2_BSR_TARGET:
+  bf 127                      ; @BT $8B $7F
+  bt -128                     ; @BT $89 $80
+  bra 2047                    ; @BT $A7 $FF
+  nop                         ; @BT $00 $09
+  bsr -2048                   ; @BT $B8 $00
+  nop                         ; @BT $00 $09
   braf @r1                    ; @BT $01 $23
   nop                         ; @BT $00 $09
   bsrf @r2                    ; @BT $02 $03

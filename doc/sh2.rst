@@ -18,5 +18,7 @@ For PC-relative word and longword loads, labels are resolved by WLAlink and must
 be aligned for the selected access size.
 
 Branch labels for ``bf``, ``bt``, ``bf/s``, ``bt/s``, ``bra`` and ``bsr`` are
-resolved relative to ``PC+4``. WLA DX does not currently insert or validate delay
-slot contents, so source code must provide correct delay-slot instructions.
+resolved relative to ``PC+4``. WLA DX does not currently insert delay-slot
+instructions automatically, but it does perform some validation and emits
+warnings for problematic delay-slot contents such as branch, jump and return
+instructions, so source code must still provide correct delay-slot instructions.

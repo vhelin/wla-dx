@@ -2328,7 +2328,7 @@ int evaluate_token(void) {
         }
         if (result_type != SUCCEEDED)
           return FAILED;
-        if (value < -128 || value > 255) {
+        if (value < -128 || value > 127) {
           print_error(ERROR_NUM, "Out of 8-bit branch displacement range.\n");
           return FAILED;
         }
@@ -2352,7 +2352,7 @@ int evaluate_token(void) {
         }
         if (result_type != SUCCEEDED)
           return FAILED;
-        if (value < -2048 || value > 4095) {
+        if (value < -2048 || value > 2047) {
           print_error(ERROR_NUM, "Out of 12-bit branch displacement range.\n");
           return FAILED;
         }
