@@ -298,7 +298,6 @@ int listfile_collect(void) {
       origin++;
       continue;
 
-#if defined(SUPERFX) || defined(CX4)
     case '*':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
@@ -316,7 +315,6 @@ int listfile_collect(void) {
       add++;
       origin++;
       continue;
-#endif
 
     case '.':
       continue;
@@ -399,7 +397,6 @@ int listfile_collect(void) {
         continue;
       }
       
-#if defined(SPC700)
     case 'n':
       err = fscanf(g_file_out_ptr, "%*d %*s ");
       if (err < 0)
@@ -417,7 +414,33 @@ int listfile_collect(void) {
       add += 2;
       origin += 2;
       continue;
-#endif
+
+    case 'l':
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add++;
+      origin++;
+      continue;
+
+    case 'm':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add += 2;
+      origin += 2;
+      continue;
+
+    case '@':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add++;
+      origin++;
+      continue;
 
     case 'D':
       err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);

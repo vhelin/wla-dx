@@ -5760,7 +5760,6 @@ int data_stream_parser_parse(void) {
       s_dsp_add += 2;
       continue;
 
-#if defined(SUPERFX) || defined(CX4)
     case '*':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
       if (err < 1)
@@ -5774,7 +5773,6 @@ int data_stream_parser_parse(void) {
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add++;
       continue;
-#endif
 
     case '+':
       {
@@ -5825,7 +5823,6 @@ int data_stream_parser_parse(void) {
         continue;
       }
 
-#if defined(SPC700)
     case 'n':
       err = fscanf(g_file_out_ptr, "%d ", &temp_1);
       if (err < 1)
@@ -5842,7 +5839,36 @@ int data_stream_parser_parse(void) {
         return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
       s_dsp_add += 2;
       continue;
-#endif
+
+      /* SH-2 8-bit PC relative branch displacement */
+    case 'l':
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add++;
+      continue;
+
+      /* SH-2 12-bit PC relative branch displacement */
+    case 'm':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add += 2;
+      continue;
+
+      /* SH-2 8-bit PC relative load displacement */
+    case '@':
+      err = fscanf(g_file_out_ptr, "%d ", &temp_1);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, temp_s);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_dsp_file_name_id, s_dsp_line_number, c, err);
+      s_dsp_add++;
+      continue;
 
     case 'D':
       err = fscanf(g_file_out_ptr, "%d %d %d %d ", &temp_1, &temp_2, &temp_3, &s_dsp_inz);

@@ -89,6 +89,10 @@ make -f makefiles/makefile.amiga.cx4
 move wla-cx4 TO binaries
 
 make -f makefiles/makefile.amiga.cx4 clean
+make -f makefiles/makefile.amiga.sh2
+move wla-sh2 TO binaries
+
+make -f makefiles/makefile.amiga.sh2 clean
 
 echo *********************
 echo * compiling WLALINK *

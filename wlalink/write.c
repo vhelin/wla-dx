@@ -2986,6 +2986,77 @@ int fix_references(void) {
         }
         mem_insert_ref(x, (i >> 1) & 0xFF);
       }
+      /* SH-2 relative 8-bit branch displacement, encoded in words from PC+4 */
+      else if (r->type == REFERENCE_TYPE_SH2_RELATIVE_8BIT) {
+        int target, instruction_address;
+
+        target = (int)l->address;
+        instruction_address = r->address - 1;
+        i = target - (instruction_address + 4);
+        if ((i & 1) != 0) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: SH-2 branch target ($%x) must be word aligned.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, target);
+          return FAILED;
+        }
+        i /= 2;
+        if (i < -128 || i > 127) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d words from $%x to $%x \"%s\") for an SH-2 8-bit branch displacement.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, instruction_address, target, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+      }
+      /* SH-2 relative 12-bit branch displacement, encoded in words from PC+4 */
+      else if (r->type == REFERENCE_TYPE_SH2_RELATIVE_12BIT) {
+        int target, instruction_address;
+
+        target = (int)l->address;
+        instruction_address = r->address;
+        i = target - (instruction_address + 4);
+        if ((i & 1) != 0) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: SH-2 branch target ($%x) must be word aligned.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, target);
+          return FAILED;
+        }
+        i /= 2;
+        if (i < -2048 || i > 2047) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d words from $%x to $%x \"%s\") for an SH-2 12-bit branch displacement.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, instruction_address, target, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, ((r->special_id & 0x0F) << 4) | ((i >> 8) & 0x0F));
+        mem_insert_ref(x + 1, i & 0xFF);
+      }
+      /* SH-2 PC-relative load displacement, encoded as unsigned scaled 8-bit */
+      else if (r->type == REFERENCE_TYPE_SH2_PC_RELATIVE_8BIT) {
+        int target, instruction_address, base, scale;
+
+        target = (int)l->address;
+        instruction_address = r->address - 1;
+        scale = r->special_id;
+        if (scale == 4)
+          base = (instruction_address & ~3) + 4;
+        else
+          base = instruction_address + 4;
+        i = target - base;
+        if (i < 0) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: SH-2 PC-relative target ($%x) is before the base address $%x.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, target, base);
+          return FAILED;
+        }
+        if ((i % scale) != 0) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: SH-2 PC-relative target ($%x) must be aligned to %d bytes from base $%x.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, target, scale, base);
+          return FAILED;
+        }
+        i /= scale;
+        if (i > 255) {
+          print_text(NO, "%s: %s:%d: FIX_REFERENCES: Too large distance (%d units from $%x to $%x \"%s\") for an SH-2 PC-relative load displacement.\n",
+                  get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, i, base, target, l->name);
+          return FAILED;
+        }
+        mem_insert_ref(x, i & 0xFF);
+      }
       /* direct / relative 8-bit with a value definition */
       else if (l->status == LABEL_STATUS_DEFINE && (r->type == REFERENCE_TYPE_DIRECT_8BIT || r->type == REFERENCE_TYPE_RELATIVE_8BIT)) {
         i = ((int)l->address) & 0xFFFF;

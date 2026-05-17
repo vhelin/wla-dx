@@ -26,6 +26,9 @@
 #ifdef SPC700
 #include "../ispc700.c"
 #endif
+#ifdef SH2
+#include "../ish2.c"
+#endif
 
 
 /* this program is used to print the instructions */
@@ -36,13 +39,8 @@ int main(int argc, char *argv[]) {
   int i;
 
 
-  i = 0;
-  while (TRUE) {
-    printf("%s\n", opt_table[i].op);
-    i++;
-    if (opt_table[i].type == -1)
-      break;
-  }
+  for (i = 0; strcmp(g_instructions_table[i].string, "E") != 0; i++)
+    printf("%s\n", g_instructions_table[i].string);
 
   return 0;
 }

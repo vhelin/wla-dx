@@ -1,0 +1,94 @@
+
+WLA DX: SH-2 mnemonics listed in alphabetical order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+x = 8bit
+? = 16bit
+
+
+
+"ADD" $300C
+"ADD" $7000
+"ADDC" $300E
+"ADDV" $300F
+"AND" $2009
+"AND" $C900
+"BF" $8B00
+"BF/S" $8F00
+"BRA" $A000
+"BRAF" $0023
+"BSR" $B000
+"BSRF" $0003
+"BT" $8900
+"BT/S" $8D00
+"CLRMAC" $0028
+"CLRT" $0008
+"CMP/EQ" $3000
+"CMP/EQ" $8800
+"CMP/GE" $3003
+"CMP/GT" $3007
+"CMP/HI" $3006
+"CMP/HS" $3002
+"CMP/PL" $4015
+"CMP/PZ" $4011
+"CMP/STR" $200C
+"DIV0S" $2007
+"DIV0U" $0019
+"DIV1" $3004
+"DT" $4010
+"JMP" $402B
+"JSR" $400B
+"LDC" $400E
+"LDC" $401E
+"LDC" $402E
+"LDS" $400A
+"LDS" $401A
+"LDS" $402A
+"MOV" $6003
+"MOV" $E000
+"MOVA" $C700
+"MOVT" $0029
+"MULS" $200F
+"MULU" $200E
+"NEG" $600B
+"NEGC" $600A
+"NOP" $0009
+"NOT" $6007
+"OR" $200B
+"OR" $CB00
+"ROTCL" $4024
+"ROTCR" $4025
+"ROTL" $4004
+"ROTR" $4005
+"RTE" $002B
+"RTS" $000B
+"SETT" $0018
+"SHAL" $4020
+"SHAR" $4021
+"SHLL" $4000
+"SHLL16" $4028
+"SHLL2" $4008
+"SHLL8" $4018
+"SHLR" $4001
+"SHLR16" $4029
+"SHLR2" $4009
+"SHLR8" $4019
+"SLEEP" $001B
+"STC" $0002
+"STC" $0012
+"STC" $0022
+"STS" $000A
+"STS" $001A
+"STS" $002A
+"SUB" $3008
+"SUBC" $300A
+"SUBV" $300B
+"TRAPA" $C300
+"TST" $2008
+"TST" $C800
+"XOR" $200A
+"XOR" $CA00
+"XTRCT" $200D

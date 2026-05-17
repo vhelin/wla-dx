@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (15.5.2026)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (18.5.2026)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -1080,7 +1080,7 @@ int main(int argc, char *argv[]) {
   g_ext_incdirs.max_name_size_bytes = MAX_NAME_LENGTH + 1;
 
   /* select little/big endianess */
-#if defined(MC6800) || defined(MC6801) || defined(MC6809) || defined(MC68000)
+#if defined(MC6800) || defined(MC6801) || defined(MC6809) || defined(MC68000) || defined(SH2)
   g_little_endian = NO;
 #else
   g_little_endian = YES;

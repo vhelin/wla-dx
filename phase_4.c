@@ -1549,7 +1549,6 @@ int phase_4(void) {
       
       continue;
 
-#if defined(SPC700)
       /* 13BIT COMPUTATION */
 
     case 'N':
@@ -1628,7 +1627,6 @@ int phase_4(void) {
       }
 
       continue;
-#endif
 
       /* 24BIT COMPUTATION */
 
@@ -2118,7 +2116,6 @@ int phase_4(void) {
         continue;
       }
 
-#if defined(SPC700)
       /* 13BIT REFERENCE */
 
     case 'n':
@@ -2181,7 +2178,95 @@ int phase_4(void) {
         return FAILED;
 
       continue;
-#endif
+
+      /* SH-2 8BIT PC RELATIVE BRANCH DISPLACEMENT */
+
+    case 'l':
+      err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (_new_unknown_reference(REFERENCE_TYPE_SH2_RELATIVE_8BIT) == NULL)
+        return FAILED;
+
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an SH-2 8-bit branch displacement", get_file_name(s_filename_id), s_line_number);
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* SH-2 12BIT PC RELATIVE BRANCH DISPLACEMENT */
+
+    case 'm':
+      {
+        struct label_def *label;
+
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        label = _new_unknown_reference(REFERENCE_TYPE_SH2_RELATIVE_12BIT);
+        if (label == NULL)
+          return FAILED;
+        label->special_id = inz & 0x0F;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an SH-2 12-bit branch displacement", get_file_name(s_filename_id), s_line_number);
+        if (mem_insert((inz << 4) & 0xF0) == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+
+      continue;
+
+      /* SH-2 8BIT PC RELATIVE LOAD DISPLACEMENT */
+
+    case '@':
+      {
+        struct label_def *label;
+
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        label = _new_unknown_reference(REFERENCE_TYPE_SH2_PC_RELATIVE_8BIT);
+        if (label == NULL)
+          return FAILED;
+        label->special_id = inz;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for an SH-2 PC-relative displacement", get_file_name(s_filename_id), s_line_number);
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+
+      continue;
 
       /* 8BIT PC RELATIVE REFERENCE */
 
@@ -2590,6 +2675,11 @@ int write_object_file(void) {
 #if defined(MC68000)
   if (g_computesmdchecksum_defined != 0)
     ind |= 1 << 3;
+#endif
+
+#if defined(SH2)
+  /* SH-2 bit */
+  ind |= 1 << 4;
 #endif
   
   fprintf(final_ptr, "%c", ind);
@@ -3008,6 +3098,10 @@ int write_library_file(void) {
 #if defined(CSG65CE02)
   /* 65ce02 bit */
   ind |= 1 << 2;
+#endif
+#if defined(SH2)
+  /* SH-2 bit */
+  ind |= 1 << 3;
 #endif
     
   fprintf(final_ptr, "%c", ind);

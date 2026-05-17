@@ -115,6 +115,7 @@ struct object_file {
   int little_endian;
   int cpu_65816;
   int cpu_65ce02;
+  int cpu_sh2;
   int id;
   int fix_slot;
   int listfile_items;

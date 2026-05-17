@@ -45,6 +45,11 @@ extern int g_input_number_expects_dot;
 static struct instruction *s_instruction_tmp;
 static int s_parser_source_index;
 
+#if defined(SH2)
+static void _sh2_clear_delay_slot(void);
+static void _sh2_note_assembled_instruction(struct instruction *instruction);
+#endif
+
 #define IS_THE_MATCH_COMPLETE(x) (s_instruction_tmp->string[x] == 0 && (g_buffer[s_parser_source_index] == 0x0A || g_buffer[s_parser_source_index] == '\\' || (g_buffer[s_parser_source_index] == ' ' && g_buffer[s_parser_source_index+1] == '\\')))
 
 
@@ -54,6 +59,10 @@ static void _output_assembled_instruction(struct instruction *instruction, const
   
   if (instruction == NULL)
     return;
+
+#if defined(SH2)
+  _sh2_note_assembled_instruction(instruction);
+#endif
   
   va_start(ap, format);
 
@@ -1337,6 +1346,475 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 #endif
 
 
+#if defined(SH2)
+
+#define SH2_REG_SR   16
+#define SH2_REG_GBR  17
+#define SH2_REG_VBR  18
+#define SH2_REG_MACH 19
+#define SH2_REG_MACL 20
+#define SH2_REG_PR   21
+
+static int _sh2_skip_spaces(int index) {
+
+  while (g_buffer[index] == ' ' || g_buffer[index] == '\t')
+    index++;
+
+  return index;
+}
+
+
+static int _sh2_is_end(int index) {
+
+  index = _sh2_skip_spaces(index);
+
+  if (g_buffer[index] == 0x0A || g_buffer[index] == '\\' || (g_buffer[index] == ' ' && g_buffer[index + 1] == '\\'))
+    return SUCCEEDED;
+
+  return FAILED;
+}
+
+
+static int _sh2_parse_comma(int *index) {
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != ',')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_gpr(int *index, int *reg) {
+
+  int i, value;
+
+  i = _sh2_skip_spaces(*index);
+  if (toupper((int)g_buffer[i]) != 'R')
+    return FAILED;
+  i++;
+
+  if (g_buffer[i] < '0' || g_buffer[i] > '9')
+    return FAILED;
+
+  value = g_buffer[i] - '0';
+  i++;
+  if (g_buffer[i] >= '0' && g_buffer[i] <= '9') {
+    value = value * 10 + (g_buffer[i] - '0');
+    i++;
+  }
+
+  if (value < 0 || value > 15)
+    return FAILED;
+  if (isalnum((int)g_buffer[i]) || g_buffer[i] == '_')
+    return FAILED;
+
+  *reg = value;
+  *index = i;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_identifier(int *index, char *identifier) {
+
+  int i, n;
+
+  i = _sh2_skip_spaces(*index);
+  n = 0;
+  while (isalpha((int)g_buffer[i])) {
+    if (n >= MAX_NAME_LENGTH)
+      return FAILED;
+    identifier[n++] = (char)toupper((int)g_buffer[i]);
+    i++;
+  }
+
+  if (n == 0)
+    return FAILED;
+  if (isalnum((int)g_buffer[i]) || g_buffer[i] == '_')
+    return FAILED;
+
+  identifier[n] = 0;
+  *index = i;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_system_register(int *index, int *reg) {
+
+  char identifier[MAX_NAME_LENGTH + 1];
+
+  if (_sh2_parse_identifier(index, identifier) == FAILED)
+    return FAILED;
+
+  if (strcmp(identifier, "SR") == 0)
+    *reg = SH2_REG_SR;
+  else if (strcmp(identifier, "GBR") == 0)
+    *reg = SH2_REG_GBR;
+  else if (strcmp(identifier, "VBR") == 0)
+    *reg = SH2_REG_VBR;
+  else if (strcmp(identifier, "MACH") == 0)
+    *reg = SH2_REG_MACH;
+  else if (strcmp(identifier, "MACL") == 0)
+    *reg = SH2_REG_MACL;
+  else if (strcmp(identifier, "PR") == 0)
+    *reg = SH2_REG_PR;
+  else
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_expected_register(unsigned short opcode) {
+
+  switch (opcode) {
+  case 0x400E:
+  case 0x4007:
+  case 0x0002:
+  case 0x4003:
+    return SH2_REG_SR;
+  case 0x401E:
+  case 0x4017:
+  case 0x0012:
+  case 0x4013:
+    return SH2_REG_GBR;
+  case 0x402E:
+  case 0x4027:
+  case 0x0022:
+  case 0x4023:
+    return SH2_REG_VBR;
+  case 0x400A:
+  case 0x4006:
+  case 0x000A:
+  case 0x4002:
+    return SH2_REG_MACH;
+  case 0x401A:
+  case 0x4016:
+  case 0x001A:
+  case 0x4012:
+    return SH2_REG_MACL;
+  case 0x402A:
+  case 0x4026:
+  case 0x002A:
+  case 0x4022:
+    return SH2_REG_PR;
+  default:
+    return -1;
+  }
+}
+
+
+static int _sh2_parse_number(int *index, int *value, int *result_type, char *label) {
+
+  int old_index, result;
+
+  *index = _sh2_skip_spaces(*index);
+  old_index = g_source_index;
+  g_source_index = *index;
+  result = input_number();
+  *index = g_source_index;
+  g_source_index = old_index;
+
+  *result_type = result;
+  if (result == SUCCEEDED)
+    *value = g_parsed_int;
+  else if (result == INPUT_NUMBER_ADDRESS_LABEL && label != NULL)
+    strcpy(label, g_label);
+  else if (result == INPUT_NUMBER_STACK)
+    *value = g_latest_stack;
+
+  return result;
+}
+
+
+static int _sh2_parse_immediate(int *index, int *value, int *result_type, char *label) {
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '#')
+    return FAILED;
+  *index = *index + 1;
+
+  return _sh2_parse_number(index, value, result_type, label);
+}
+
+
+static int _sh2_emit_low8(unsigned short opcode, int value, int result_type, char *label) {
+
+  int high;
+
+  high = (opcode >> 8) & 0xFF;
+
+  if (result_type == SUCCEEDED) {
+    if (value < -128 || value > 255) {
+      print_error(ERROR_NUM, "Out of 8-bit range.\n");
+      return FAILED;
+    }
+    _output_assembled_instruction(s_instruction_tmp, "y%d ", opcode | (value & 0xFF));
+  }
+  else if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+    _output_assembled_instruction(s_instruction_tmp, "k%d d%d Q%s ", g_active_file_info_last->line_current, high, label);
+  else if (result_type == INPUT_NUMBER_STACK)
+    _output_assembled_instruction(s_instruction_tmp, "d%d c%d ", high, value);
+  else
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_finish(int index) {
+
+  if (_sh2_is_end(index) == FAILED)
+    return FAILED;
+
+  g_source_index = _sh2_skip_spaces(index);
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_at_gpr(int *index, int *reg) {
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+
+  return _sh2_parse_gpr(index, reg);
+}
+
+
+static int _sh2_parse_at_gpr_plus(int *index, int *reg) {
+
+  if (_sh2_parse_at_gpr(index, reg) == FAILED)
+    return FAILED;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '+')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_at_minus_gpr(int *index, int *reg) {
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '-')
+    return FAILED;
+  *index = *index + 1;
+
+  return _sh2_parse_gpr(index, reg);
+}
+
+
+static int _sh2_parse_at_disp_gpr(int *index, int *disp, int *result_type, char *label, int *reg) {
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '(')
+    return FAILED;
+  *index = *index + 1;
+
+  if (_sh2_parse_number(index, disp, result_type, label) == FAILED)
+    return FAILED;
+  if (_sh2_parse_comma(index) == FAILED)
+    return FAILED;
+  if (_sh2_parse_gpr(index, reg) == FAILED)
+    return FAILED;
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != ')')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_at_disp_named_reg(int *index, int *disp, int *result_type, char *label, const char *name) {
+
+  char identifier[MAX_NAME_LENGTH + 1];
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '(')
+    return FAILED;
+  *index = *index + 1;
+
+  if (_sh2_parse_number(index, disp, result_type, label) == FAILED)
+    return FAILED;
+  if (_sh2_parse_comma(index) == FAILED)
+    return FAILED;
+  if (_sh2_parse_identifier(index, identifier) == FAILED)
+    return FAILED;
+  if (strcmp(identifier, name) != 0)
+    return FAILED;
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != ')')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_at_r0_gpr(int *index, int *reg) {
+
+  int r0;
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '(')
+    return FAILED;
+  *index = *index + 1;
+  if (_sh2_parse_gpr(index, &r0) == FAILED)
+    return FAILED;
+  if (r0 != 0)
+    return FAILED;
+  if (_sh2_parse_comma(index) == FAILED)
+    return FAILED;
+  if (_sh2_parse_gpr(index, reg) == FAILED)
+    return FAILED;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != ')')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_parse_at_r0_gbr(int *index) {
+
+  char identifier[MAX_NAME_LENGTH + 1];
+  int r0;
+
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '@')
+    return FAILED;
+  *index = *index + 1;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != '(')
+    return FAILED;
+  *index = *index + 1;
+  if (_sh2_parse_gpr(index, &r0) == FAILED)
+    return FAILED;
+  if (r0 != 0)
+    return FAILED;
+  if (_sh2_parse_comma(index) == FAILED)
+    return FAILED;
+  if (_sh2_parse_identifier(index, identifier) == FAILED)
+    return FAILED;
+  if (strcmp(identifier, "GBR") != 0)
+    return FAILED;
+  *index = _sh2_skip_spaces(*index);
+  if (g_buffer[*index] != ')')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _sh2_encode_disp4(int disp, int scale) {
+
+  if (disp < 0) {
+    print_error(ERROR_NUM, "Negative displacement is not allowed here.\n");
+    return -1;
+  }
+  if ((disp % scale) != 0) {
+    print_error(ERROR_NUM, "Displacement must be aligned to operand size.\n");
+    return -1;
+  }
+  disp /= scale;
+  if (disp > 15) {
+    print_error(ERROR_NUM, "Out of 4-bit displacement range.\n");
+    return -1;
+  }
+
+  return disp;
+}
+
+
+static int _sh2_encode_disp8(int disp, int scale) {
+
+  if (disp < 0) {
+    print_error(ERROR_NUM, "Negative displacement is not allowed here.\n");
+    return -1;
+  }
+  if ((disp % scale) != 0) {
+    print_error(ERROR_NUM, "Displacement must be aligned to operand size.\n");
+    return -1;
+  }
+  disp /= scale;
+  if (disp > 255) {
+    print_error(ERROR_NUM, "Out of 8-bit displacement range.\n");
+    return -1;
+  }
+
+  return disp;
+}
+
+
+static int s_sh2_delay_slot_active = NO;
+static char s_sh2_delay_slot_source[INSTRUCTION_STRING_LENGTH_MAX + 1];
+
+
+static int _sh2_instruction_has_delay_slot(struct instruction *instruction) {
+
+  if (strcmp(instruction->string, "BF/S") == 0 || strcmp(instruction->string, "BT/S") == 0 ||
+      strcmp(instruction->string, "BRA") == 0 || strcmp(instruction->string, "BRAF") == 0 ||
+      strcmp(instruction->string, "BSR") == 0 || strcmp(instruction->string, "BSRF") == 0 ||
+      strcmp(instruction->string, "JMP") == 0 || strcmp(instruction->string, "JSR") == 0 ||
+      strcmp(instruction->string, "RTE") == 0 || strcmp(instruction->string, "RTS") == 0)
+    return YES;
+
+  return NO;
+}
+
+
+static void _sh2_clear_delay_slot(void) {
+
+  s_sh2_delay_slot_active = NO;
+  s_sh2_delay_slot_source[0] = 0;
+}
+
+
+static void _sh2_note_assembled_instruction(struct instruction *instruction) {
+
+  if (s_sh2_delay_slot_active == YES) {
+    if (_sh2_instruction_has_delay_slot(instruction) == YES)
+      print_error(ERROR_WRN, "SH-2 delay slot after \"%s\" contains \"%s\"; delayed branches, jumps and returns are not allowed in a delay slot.\n", s_sh2_delay_slot_source, instruction->string);
+    _sh2_clear_delay_slot();
+  }
+
+  if (_sh2_instruction_has_delay_slot(instruction) == YES) {
+    strcpy(s_sh2_delay_slot_source, instruction->string);
+    s_sh2_delay_slot_active = YES;
+  }
+}
+
+#endif
+
+
 int evaluate_token(void) {
 
   int f, x, y, last_stack_id_backup, instruction_i;
@@ -1347,7 +1825,7 @@ int evaluate_token(void) {
 #if defined(SPC700)
   int g;
 #endif
-#if !defined(MC68000) && !defined(CX4)
+#if !defined(MC68000) && !defined(CX4) && !defined(SH2)
   int z;
 #endif
 #if defined(HUC6280)
@@ -1369,6 +1847,9 @@ int evaluate_token(void) {
 
   /* is it a directive? */
   if (g_tmp[0] == '.') {
+#if defined(SH2)
+    _sh2_clear_delay_slot();
+#endif
     x = parse_directive();
     if (x != DIRECTIVE_NOT_IDENTIFIED)
       return x;
@@ -1484,6 +1965,512 @@ int evaluate_token(void) {
 #endif
 
     switch (s_instruction_tmp->type) {
+
+#if defined(SH2)
+
+      /*************************************************************************************************/
+      /* <SH-2> */
+      /*************************************************************************************************/
+
+    case SH2_MODE_NONE:
+      if (_sh2_finish(s_parser_source_index) == SUCCEEDED) {
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex);
+        return SUCCEEDED;
+      }
+      break;
+
+    case SH2_MODE_RN:
+      {
+        int index, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_RM_RN:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_IMM8_RN:
+      {
+        int index, value, result_type, rn;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_immediate(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (_sh2_emit_low8(s_instruction_tmp->hex | (rn << 8), value, result_type, label) == FAILED)
+          return FAILED;
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_IMM8_R0:
+      {
+        int index, value, result_type, rn;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_immediate(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (rn != 0)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (_sh2_emit_low8(s_instruction_tmp->hex, value, result_type, label) == FAILED)
+          return FAILED;
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_IMM8_GBR_R0:
+      {
+        int index, value, result_type;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_immediate(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_r0_gbr(&index) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (_sh2_emit_low8(s_instruction_tmp->hex, value, result_type, label) == FAILED)
+          return FAILED;
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_IMM8:
+      {
+        int index, value, result_type;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_immediate(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (_sh2_emit_low8(s_instruction_tmp->hex, value, result_type, label) == FAILED)
+          return FAILED;
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_DISP8_PC_RN:
+    case SH2_MODE_DISP8_PC_R0:
+      {
+        int index, value, result_type, rn, scale, encoded;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_disp_named_reg(&index, &value, &result_type, label, "PC") == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (s_instruction_tmp->type == SH2_MODE_DISP8_PC_R0 && rn != 0)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+
+        scale = ((s_instruction_tmp->hex & 0xFF00) == 0x9000) ? 2 : 4;
+        if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+          _output_assembled_instruction(s_instruction_tmp, "k%d d%d @%d %s ", g_active_file_info_last->line_current, ((s_instruction_tmp->hex | (rn << 8)) >> 8) & 0xFF, scale, label);
+          return SUCCEEDED;
+        }
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        encoded = _sh2_encode_disp8(value, scale);
+        if (encoded < 0)
+          return FAILED;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | encoded);
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_DISP8_GBR_R0:
+      {
+        int index, value, result_type, rn, scale, encoded;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_disp_named_reg(&index, &value, &result_type, label, "GBR") == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (rn != 0)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+
+        scale = ((s_instruction_tmp->hex & 0xFF00) == 0xC500) ? 2 : (((s_instruction_tmp->hex & 0xFF00) == 0xC600) ? 4 : 1);
+        if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+          return FAILED;
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        encoded = _sh2_encode_disp8(value, scale);
+        if (encoded < 0)
+          return FAILED;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | encoded);
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_R0_DISP8_GBR:
+      {
+        int index, value, result_type, rn, scale, encoded;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (rn != 0)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_disp_named_reg(&index, &value, &result_type, label, "GBR") == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+
+        scale = ((s_instruction_tmp->hex & 0xFF00) == 0xC100) ? 2 : (((s_instruction_tmp->hex & 0xFF00) == 0xC200) ? 4 : 1);
+        if (result_type == INPUT_NUMBER_ADDRESS_LABEL)
+          return FAILED;
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        encoded = _sh2_encode_disp8(value, scale);
+        if (encoded < 0)
+          return FAILED;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | encoded);
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_DISP4_RM_R0:
+    case SH2_MODE_DISP4_RM_RN:
+      {
+        int index, value, result_type, rm, rn, scale, encoded;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_disp_gpr(&index, &value, &result_type, label, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (s_instruction_tmp->type == SH2_MODE_DISP4_RM_R0 && rn != 0)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        scale = (s_instruction_tmp->type == SH2_MODE_DISP4_RM_RN) ? 4 : (((s_instruction_tmp->hex & 0xFF00) == 0x8500) ? 2 : 1);
+        encoded = _sh2_encode_disp4(value, scale);
+        if (encoded < 0)
+          return FAILED;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4) | encoded);
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_R0_DISP4_RN:
+    case SH2_MODE_RM_DISP4_RN:
+      {
+        int index, value, result_type, rm, rn, scale, encoded;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rm) == FAILED)
+          break;
+        if (s_instruction_tmp->type == SH2_MODE_R0_DISP4_RN && rm != 0)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_disp_gpr(&index, &value, &result_type, label, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        scale = (s_instruction_tmp->type == SH2_MODE_RM_DISP4_RN) ? 4 : (((s_instruction_tmp->hex & 0xFF00) == 0x8100) ? 2 : 1);
+        encoded = _sh2_encode_disp4(value, scale);
+        if (encoded < 0)
+          return FAILED;
+        if (s_instruction_tmp->type == SH2_MODE_R0_DISP4_RN)
+          _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 4) | encoded);
+        else
+          _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4) | encoded);
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_AT_RM_RN:
+    case SH2_MODE_AT_RM_INC_RN:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->type == SH2_MODE_AT_RM_RN) {
+          if (_sh2_parse_at_gpr(&index, &rm) == FAILED)
+            break;
+        }
+        else {
+          if (_sh2_parse_at_gpr_plus(&index, &rm) == FAILED)
+            break;
+        }
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_RM_AT_RN:
+    case SH2_MODE_RM_AT_DEC_RN:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (s_instruction_tmp->type == SH2_MODE_RM_AT_RN) {
+          if (_sh2_parse_at_gpr(&index, &rn) == FAILED)
+            break;
+        }
+        else {
+          if (_sh2_parse_at_minus_gpr(&index, &rn) == FAILED)
+            break;
+        }
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_AT_R0_RM_RN:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_r0_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_RM_AT_R0_RN:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_r0_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_DISP8_BRANCH:
+      {
+        int index, value, result_type;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+          _output_assembled_instruction(s_instruction_tmp, "k%d d%d l%s ", g_active_file_info_last->line_current, (s_instruction_tmp->hex >> 8) & 0xFF, label);
+          return SUCCEEDED;
+        }
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        if (value < -128 || value > 255) {
+          print_error(ERROR_NUM, "Out of 8-bit branch displacement range.\n");
+          return FAILED;
+        }
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (value & 0xFF));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_DISP12_BRANCH:
+      {
+        int index, value, result_type;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_sh2_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+          _output_assembled_instruction(s_instruction_tmp, "k%d m%d %s ", g_active_file_info_last->line_current, (s_instruction_tmp->hex >> 12) & 0x0F, label);
+          return SUCCEEDED;
+        }
+        if (result_type != SUCCEEDED)
+          return FAILED;
+        if (value < -2048 || value > 4095) {
+          print_error(ERROR_NUM, "Out of 12-bit branch displacement range.\n");
+          return FAILED;
+        }
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (value & 0x0FFF));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_AT_RM_BRANCH:
+      {
+        int index, rm;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rm << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_RM_REG:
+      {
+        int index, rm, reg;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_gpr(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_system_register(&index, &reg) == FAILED)
+          break;
+        if (reg != _sh2_expected_register(s_instruction_tmp->hex))
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rm << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_AT_RM_INC_REG:
+      {
+        int index, rm, reg;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_gpr_plus(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_system_register(&index, &reg) == FAILED)
+          break;
+        if (reg != _sh2_expected_register(s_instruction_tmp->hex))
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rm << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_REG_RN:
+      {
+        int index, rn, reg;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_system_register(&index, &reg) == FAILED)
+          break;
+        if (reg != _sh2_expected_register(s_instruction_tmp->hex))
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_REG_AT_DEC_RN:
+      {
+        int index, rn, reg;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_system_register(&index, &reg) == FAILED)
+          break;
+        if (reg != _sh2_expected_register(s_instruction_tmp->hex))
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_minus_gpr(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8));
+        return SUCCEEDED;
+      }
+
+    case SH2_MODE_MAC:
+      {
+        int index, rm, rn;
+
+        index = s_parser_source_index;
+        if (_sh2_parse_at_gpr_plus(&index, &rm) == FAILED)
+          break;
+        if (_sh2_parse_comma(&index) == FAILED)
+          break;
+        if (_sh2_parse_at_gpr_plus(&index, &rn) == FAILED)
+          break;
+        if (_sh2_finish(index) == FAILED)
+          break;
+        _output_assembled_instruction(s_instruction_tmp, "y%d ", s_instruction_tmp->hex | (rn << 8) | (rm << 4));
+        return SUCCEEDED;
+      }
+
+      /*************************************************************************************************/
+      /* </SH-2> */
+      /*************************************************************************************************/
+
+#endif
 
 #if defined(GB)
 
