@@ -97,6 +97,11 @@ make
 move w-cx4.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.sh2 MAKEFILE
+make
+move w-sh2.exe binaries\
+make clean
+
 cd wlalink
 copy makefile.msdos MAKEFILE
 make clean

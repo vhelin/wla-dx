@@ -1,0 +1,20 @@
+.MEMORYMAP
+  DEFAULTSLOT 0
+  SLOTSIZE $100000
+  SLOT 0 $000000
+.ENDME
+
+.ROMBANKMAP
+  BANKSTOTAL 1
+  BANKSIZE $100000
+  BANKS 1
+.ENDRO
+
+.BANK 0 SLOT 0
+.ORG 0
+
+Start:
+  bra Target
+  bsr Target
+Target:
+  nop

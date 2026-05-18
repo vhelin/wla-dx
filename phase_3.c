@@ -257,8 +257,6 @@ int phase_3(void) {
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
-#if defined(SUPERFX) || defined(CX4)
-
       case '*':
         if (g_section_status == ON) {
           err = fscanf(g_file_out_ptr, "%*s ");
@@ -286,8 +284,6 @@ int phase_3(void) {
         print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
                 get_file_name(file_name_id), line_number);
         return FAILED;
-
-#endif
 
       case '+':
         if (g_section_status == ON) {
@@ -1028,8 +1024,6 @@ int phase_3(void) {
       address += 2;
       continue;
 
-#if defined(SUPERFX) || defined(CX4)
-
     case '*':
       err = fscanf(g_file_out_ptr, "%*s ");
       if (err < 0)
@@ -1043,8 +1037,6 @@ int phase_3(void) {
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address++;
       continue;
-
-#endif
 
     case '+':
       {
@@ -1099,7 +1091,6 @@ int phase_3(void) {
         continue;
       }
 
-#if defined(SPC700)
     case 'n':
       err = fscanf(g_file_out_ptr, "%*d %*s ");
       if (err < 0)
@@ -1113,7 +1104,27 @@ int phase_3(void) {
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
       continue;
-#endif
+
+    case 'l':
+      err = fscanf(g_file_out_ptr, "%*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address++;
+      continue;
+
+    case 'm':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address += 2;
+      continue;
+
+    case '@':
+      err = fscanf(g_file_out_ptr, "%*d %*s ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address++;
+      continue;
 
     case 'D':
       err = fscanf(g_file_out_ptr, "%*d %*d %*d %d ", &inz);

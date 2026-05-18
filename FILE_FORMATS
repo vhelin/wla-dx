@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 object file format "WLAm"
+WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file format "WLAm"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAm" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
+        "WLAm" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -32,7 +32,8 @@ header:
   1     extr bits (bit 0 - 65ce02 indicator (1 == 65ce02)
                    bit 1 - sms checksum was already written (1 == yes)
                    bit 2 - use a special range for sms checksum calculation (1 == yes)
-                   bit 3 - sega mega drive checksum (1 == compute))
+                   bit 3 - sega mega drive checksum (1 == compute)
+                   bit 4 - SH-2 indicator (1 == SH-2))
   4     special range for sms checksum calculation (int)
   4     base address for SMS ROM header (int)
 
@@ -91,8 +92,12 @@ outside references:
   ...
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
-              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit, 7 = bits, 8 = 9-bit short)
-  1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess)
+              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit, 7 = bits,
+              8 = 9-bit short, 9 = relative 16-bit wrap around, 10 = direct 8-bit max bits,
+              11 = CX4 10-bit, 12 = SH-2 relative 8-bit, 13 = SH-2 relative 12-bit,
+              14 = SH-2 PC-relative 8-bit)
+  1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess,
+                         SH-2 relative 12-bit high opcode nibble or PC-relative scale when applicable)
   4     file id (int)
   1     bits starting position (0-7, only present if result type == 7)
   1     bits to define (1-32, only present if result type == 7)
@@ -222,7 +227,7 @@ section:
 
 
 
-WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 library file format "WLAJ"
+WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file format "WLAJ"
 
 
 bytes   description
@@ -230,10 +235,11 @@ bytes   description
 header:
 
   4     format information,
-        "WLAJ" - WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
+        "WLAJ" - WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
-                   bit 2 - 65ce02 indicator (1 == 65ce02))
+                   bit 2 - 65ce02 indicator (1 == 65ce02)
+                   bit 3 - SH-2 indicator (1 == SH-2))
   
 source file name list:
 
@@ -269,8 +275,12 @@ outside references:
   ...
   n     label (0 terminated)
   1     type (0 = direct 16-bit, 1 = relative 8-bit, 2 = direct 8-bit, 3 = direct 24-bit,
-              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit, 7 = bits, 8 = 9-bit short)
-  1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess)
+              4 = relative 16-bit, 5 = direct 13-bit, 6 = direct 32-bit, 7 = bits,
+              8 = 9-bit short, 9 = relative 16-bit wrap around, 10 = direct 8-bit max bits,
+              11 = CX4 10-bit, 12 = SH-2 relative 8-bit, 13 = SH-2 relative 12-bit,
+              14 = SH-2 PC-relative 8-bit)
+  1     special case ID (0 == not a special case, 1 == Z80/GB-Z80 RST, 2 == 8008 RST, 3 == 8080 RST, 4 == flip endianess,
+                         SH-2 relative 12-bit high opcode nibble or PC-relative scale when applicable)
   4     section (1+ = section id) (int)
   4     file id (int)
   1     bits starting position (0-7, only present if result type == 7)

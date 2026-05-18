@@ -67,7 +67,8 @@ static char *_get_snes_rom_mode(int mode) {
 
 int check_headers(void) {
 
-  int count = 0, misc_bits, e;
+  int count = 0, misc_bits, e, files_count = 0, sh2_files_count = 0;
+  char *first_sh2_file = NULL, *first_non_sh2_file = NULL;
   struct object_file *o;
   unsigned char *t;
   
@@ -91,6 +92,11 @@ int check_headers(void) {
         o->cpu_65ce02 = YES;
       else
         o->cpu_65ce02 = NO;
+
+      if ((extr_bits & 16) != 0)
+        o->cpu_sh2 = YES;
+      else
+        o->cpu_sh2 = NO;
       
       if (((more_bits >> 7) & 1) != 0)
         o->little_endian = NO;
@@ -217,6 +223,11 @@ int check_headers(void) {
       else
         o->cpu_65ce02 = NO;
 
+      if ((misc_bits & 8) != 0)
+        o->cpu_sh2 = YES;
+      else
+        o->cpu_sh2 = NO;
+
       if ((misc_bits & 2) != 0)
         o->cpu_65816 = YES;
       else
@@ -228,7 +239,21 @@ int check_headers(void) {
         o->little_endian = YES;
     }
     
+    files_count++;
+    if (o->cpu_sh2 == YES) {
+      sh2_files_count++;
+      if (first_sh2_file == NULL)
+        first_sh2_file = o->name;
+    }
+    else if (first_non_sh2_file == NULL)
+      first_non_sh2_file = o->name;
+
     o = o->next;
+  }
+
+  if (sh2_files_count != 0 && sh2_files_count != files_count) {
+    print_text(NO, "CHECK_HEADERS: Cannot mix SH-2 file \"%s\" with non-SH-2 file \"%s\".\n", first_sh2_file, first_non_sh2_file);
+    return FAILED;
   }
 
   if (count == 0) {

@@ -180,3 +180,14 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(HUC6280_table ALL DEPENDS ${CMAKE_BINARY_DIR}/thuc6280.c)
 
+# --- WLA_TARGET=SH2
+add_executable (gen_SH2 ${CFILES})
+set_target_properties (gen_SH2 PROPERTIES COMPILE_DEFINITIONS "SH2")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tsh2.c
+	COMMAND gen_SH2
+	DEPENDS gen_SH2
+	)
+ADD_CUSTOM_TARGET(SH2_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tsh2.c)
+

@@ -17,6 +17,12 @@ definitions you could ever need and more.
 definitions and helper macros for the 68000 side, Z80 side, VDP, Sega CD main
 CPU, Sega CD sub CPU, J-Cart and common serial EEPROM wiring.
 
+``include/sega32x`` contains Sega 32X register definitions and helper macros for
+the Mega Drive 68000 side and the 32X SH-2 side. ``68k.inc`` describes the
+68000-visible adapter registers at ``$A15100`` and friends, ``sh2.inc`` describes
+the SH-2-visible Mars registers and SH-2 internal register constants, and
+``macros.inc`` contains shared video/color constants.
+
 
 ``tests/gb-z80/lib``
 --------------------
@@ -36,3 +42,7 @@ and video game consoles.
 The Mega Drive/Genesis maps include the normal 68000 and Z80 maps, SSF banking,
 serial EEPROM cartridges, J-Cart cartridges, lock-on cartridges, and Sega CD
 main/sub CPU boot program layouts.
+
+The Sega 32X maps include ``md32x68k.i`` for 68000-side boot/hot-start code and
+``sh232x.i`` for SH-2-side cartridge ROM, SDRAM, Mars registers, palette, and
+framebuffer windows.

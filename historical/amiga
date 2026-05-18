@@ -19,6 +19,7 @@ sc define AMIGA=1 define I8080=1 i8080.c
 sc define AMIGA=1 define W65816=1 i65816.c
 sc define AMIGA=1 define SPC700=1 ispc700.c
 sc define AMIGA=1 define HUC6280=1 ihuc6280.c
+sc define AMIGA=1 define SH2=1 ish2.c
 sc define AMIGA=1 define SUPERFX=1 isuperfx.c
 sc define AMIGA=1 define CX4=1 icx4.c
 
@@ -99,6 +100,11 @@ sc define AMIGA=1 define HUC6280=1 main.c
 slink FROM LIB:c.o main.o /ihuc6280.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
 instruction_table_generator /thuc6280.c
 delete instruction_table_generator main.o /ihuc6280.o
+
+sc define AMIGA=1 define SH2=1 main.c
+slink FROM LIB:c.o main.o /ish2.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
+instruction_table_generator /tsh2.c
+delete instruction_table_generator main.o /ish2.o
 
 sc define AMIGA=1 define SUPERFX=1 main.c
 slink FROM LIB:c.o main.o /isuperfx.o TO instruction_table_generator LIB LIB:scm.lib LIB:sc.lib LIB:amiga.lib
@@ -498,6 +504,28 @@ copy makefiles/scoptions.000 to scoptions
 smake clean
 smake
 copy wla to binaries/68000/wla-huc6280
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; WLA-SH2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+copy makefiles/smake.sh2 to smakefile
+copy makefiles/scoptions.020 to scoptions
+smake clean
+smake
+copy wla to binaries/68020/wla-sh2
+
+copy makefiles/smake.sh2 to smakefile
+copy makefiles/scoptions.040 to scoptions
+smake clean
+smake
+copy wla to binaries/68040/wla-sh2
+
+copy makefiles/smake.sh2 to smakefile
+copy makefiles/scoptions.000 to scoptions
+smake clean
+smake
+copy wla to binaries/68000/wla-sh2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; WLALINK
