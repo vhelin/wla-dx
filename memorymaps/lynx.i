@@ -1,0 +1,8 @@
+;
+; Atari Lynx flat 65C02 memory map
+;
+
+.MEMORYMAP
+DEFAULTSLOT 0
+SLOT 0 START $0000 SIZE $10000 NAME "RAM"
+.ENDME

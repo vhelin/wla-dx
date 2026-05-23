@@ -48,6 +48,16 @@ int g_smsforcechecksum = 0, g_smsforcechecksum_defined = 0, g_smschecksumsize = 
 static int s_smsreservedspace_defined = 0;
 #endif
 
+#if defined(MCS6502)
+unsigned char g_inesheader[16];
+int g_inesheader_defined = NO;
+#endif
+
+#if defined(WDC65C02)
+unsigned char g_lynxheader[64];
+int g_lynxheader_defined = NO;
+#endif
+
 #if defined(MC68000)
 char g_smdheader_systemtype[17] = "SEGA MEGA DRIVE ";
 char g_smdheader_copyright[17] = "                ";
@@ -1017,6 +1027,14 @@ static struct structure* _get_structure(char *name) {
 
 
 int directive_define_def_equ(void);
+
+#if defined(MCS6502)
+int directive_inesheader(void);
+#endif
+
+#if defined(WDC65C02)
+int directive_lynxheader(void);
+#endif
 
 #if defined(MC68000)
 int directive_ngheader(void);
@@ -12746,6 +12764,580 @@ int directive_break(void) {
 }
 
 
+#if defined(MCS6502)
+
+static int _inesheader_read_number(char *field_name, int min, int max, int *value) {
+
+  int q;
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED || g_parsed_int < min || g_parsed_int > max) {
+    print_error(ERROR_DIR, "%s needs a value between %d and %d, got %d.\n", field_name, min, max, g_parsed_int);
+    return FAILED;
+  }
+
+  *value = g_parsed_int;
+
+  return SUCCEEDED;
+}
+
+
+static int _inesheader_read_keyword(char *field_name, char *option_a, char *option_b, char *option_c, char *option_d, int *value) {
+
+  int token_result;
+
+  token_result = get_next_token();
+  if (token_result == FAILED)
+    return FAILED;
+
+  if (option_a != NULL && strcaselesscmp(g_tmp, option_a) == 0)
+    *value = 0;
+  else if (option_b != NULL && strcaselesscmp(g_tmp, option_b) == 0)
+    *value = 1;
+  else if (option_c != NULL && strcaselesscmp(g_tmp, option_c) == 0)
+    *value = 2;
+  else if (option_d != NULL && strcaselesscmp(g_tmp, option_d) == 0)
+    *value = 3;
+  else {
+    print_error(ERROR_DIR, "%s has an unknown option \"%s\".\n", field_name, g_tmp);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+int directive_inesheader(void) {
+
+  int token_result, q;
+  int prg_rom_size, prg_rom_size_defined, chr_rom_size, mapper, mirroring;
+  int battery, trainer, four_screen, vs_unisystem, playchoice10;
+  int nes2, submapper, prg_ram_size, prg_ram_size_defined, tv_system, flags10;
+  int nes2_prg_ram, nes2_prg_nvram, nes2_chr_ram, nes2_chr_nvram;
+  int nes2_timing, nes2_vs_hardware, nes2_vs_ppu, nes2_misc_roms, nes2_expansion_device;
+  int nes2_field_used, i;
+
+  if (g_inesheader_defined == YES) {
+    print_error(ERROR_DIR, ".INESHEADER can be defined only once.\n");
+    return FAILED;
+  }
+
+  no_library_files(".INESHEADER");
+
+  prg_rom_size = 0;
+  prg_rom_size_defined = NO;
+  chr_rom_size = 0;
+  mapper = 0;
+  mirroring = 0;
+  battery = NO;
+  trainer = NO;
+  four_screen = NO;
+  vs_unisystem = NO;
+  playchoice10 = NO;
+  nes2 = NO;
+  submapper = 0;
+  prg_ram_size = 0;
+  prg_ram_size_defined = NO;
+  tv_system = 0;
+  flags10 = 0;
+  nes2_prg_ram = 0;
+  nes2_prg_nvram = 0;
+  nes2_chr_ram = 0;
+  nes2_chr_nvram = 0;
+  nes2_timing = 0;
+  nes2_vs_hardware = 0;
+  nes2_vs_ppu = 0;
+  nes2_misc_roms = 0;
+  nes2_expansion_device = 0;
+  nes2_field_used = NO;
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDINES") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "PRGROMSIZE") == 0) {
+      if (_inesheader_read_number("PRGROMSIZE", 0, 4095, &prg_rom_size) == FAILED)
+        return FAILED;
+      prg_rom_size_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "CHRROMSIZE") == 0) {
+      if (_inesheader_read_number("CHRROMSIZE", 0, 4095, &chr_rom_size) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "MAPPER") == 0) {
+      if (_inesheader_read_number("MAPPER", 0, 4095, &mapper) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "MIRRORING") == 0) {
+      if (_inesheader_read_keyword("MIRRORING", "HORIZONTAL", "VERTICAL", NULL, NULL, &mirroring) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "BATTERY") == 0)
+      battery = YES;
+    else if (strcaselesscmp(g_tmp, "TRAINER") == 0)
+      trainer = YES;
+    else if (strcaselesscmp(g_tmp, "FOURSCREEN") == 0)
+      four_screen = YES;
+    else if (strcaselesscmp(g_tmp, "VSUNISYSTEM") == 0 || strcaselesscmp(g_tmp, "VS") == 0)
+      vs_unisystem = YES;
+    else if (strcaselesscmp(g_tmp, "PLAYCHOICE10") == 0 || strcaselesscmp(g_tmp, "PLAYCHOICE") == 0)
+      playchoice10 = YES;
+    else if (strcaselesscmp(g_tmp, "NES2") == 0)
+      nes2 = YES;
+    else if (strcaselesscmp(g_tmp, "SUBMAPPER") == 0) {
+      if (_inesheader_read_number("SUBMAPPER", 0, 15, &submapper) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "PRGRAMSIZE") == 0) {
+      if (_inesheader_read_number("PRGRAMSIZE", 0, 255, &prg_ram_size) == FAILED)
+        return FAILED;
+      prg_ram_size_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "TVSYSTEM") == 0) {
+      if (_inesheader_read_keyword("TVSYSTEM", "NTSC", "PAL", "DUAL", "DENDY", &tv_system) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "FLAGS10") == 0) {
+      if (_inesheader_read_number("FLAGS10", 0, 255, &flags10) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "PRGRAM") == 0) {
+      if (_inesheader_read_number("PRGRAM", 0, 15, &nes2_prg_ram) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "PRGNVRAM") == 0) {
+      if (_inesheader_read_number("PRGNVRAM", 0, 15, &nes2_prg_nvram) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "CHRRAM") == 0) {
+      if (_inesheader_read_number("CHRRAM", 0, 15, &nes2_chr_ram) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "CHRNVRAM") == 0) {
+      if (_inesheader_read_number("CHRNVRAM", 0, 15, &nes2_chr_nvram) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "CPUPPUTIMING") == 0 || strcaselesscmp(g_tmp, "TIMING") == 0) {
+      if (_inesheader_read_keyword("CPUPPUTIMING", "NTSC", "PAL", "DUAL", "DENDY", &nes2_timing) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "VSHARDWARE") == 0) {
+      if (_inesheader_read_number("VSHARDWARE", 0, 15, &nes2_vs_hardware) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "VSPPUTYPE") == 0) {
+      if (_inesheader_read_number("VSPPUTYPE", 0, 15, &nes2_vs_ppu) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "MISCROMS") == 0) {
+      if (_inesheader_read_number("MISCROMS", 0, 3, &nes2_misc_roms) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "DEFAULTEXPANSIONDEVICE") == 0 || strcaselesscmp(g_tmp, "EXPANSIONDEVICE") == 0) {
+      if (_inesheader_read_number("DEFAULTEXPANSIONDEVICE", 0, 63, &nes2_expansion_device) == FAILED)
+        return FAILED;
+      nes2_field_used = YES;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .INESHEADER data structure.\n");
+    return FAILED;
+  }
+
+  if (prg_rom_size_defined == NO) {
+    print_error(ERROR_DIR, ".INESHEADER requires PRGROMSIZE.\n");
+    return FAILED;
+  }
+  if (nes2 == NO && (mapper > 255 || prg_rom_size > 255 || chr_rom_size > 255)) {
+    print_error(ERROR_DIR, "MAPPER, PRGROMSIZE and CHRROMSIZE must fit in iNES byte fields unless NES2 is used.\n");
+    return FAILED;
+  }
+  if (nes2 == NO && nes2_field_used == YES) {
+    print_error(ERROR_DIR, "NES 2.0-only fields require NES2 inside .INESHEADER.\n");
+    return FAILED;
+  }
+  if (nes2 == NO && tv_system > 1) {
+    print_error(ERROR_DIR, "TVSYSTEM DUAL and TVSYSTEM DENDY require NES2 inside .INESHEADER.\n");
+    return FAILED;
+  }
+  if (nes2 == YES && prg_ram_size_defined == YES) {
+    print_error(ERROR_DIR, "PRGRAMSIZE is an iNES byte-8 field; use PRGRAM and PRGNVRAM with NES2.\n");
+    return FAILED;
+  }
+  if (nes2 == YES && flags10 != 0) {
+    print_error(ERROR_DIR, "FLAGS10 is an iNES flags byte; use NES 2.0 fields with NES2.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < 16; i++)
+    g_inesheader[i] = 0;
+
+  g_inesheader[0] = 'N';
+  g_inesheader[1] = 'E';
+  g_inesheader[2] = 'S';
+  g_inesheader[3] = 0x1A;
+  g_inesheader[4] = prg_rom_size & 0xFF;
+  g_inesheader[5] = chr_rom_size & 0xFF;
+  g_inesheader[6] = ((mapper & 0x0F) << 4) | mirroring | (battery << 1) | (trainer << 2) | (four_screen << 3);
+  g_inesheader[7] = (mapper & 0xF0) | vs_unisystem | (playchoice10 << 1);
+
+  if (nes2 == YES) {
+    g_inesheader[7] |= 0x08;
+    g_inesheader[8] = ((submapper & 0x0F) << 4) | ((mapper >> 8) & 0x0F);
+    g_inesheader[9] = ((chr_rom_size >> 8) << 4) | ((prg_rom_size >> 8) & 0x0F);
+    g_inesheader[10] = ((nes2_prg_nvram & 0x0F) << 4) | (nes2_prg_ram & 0x0F);
+    g_inesheader[11] = ((nes2_chr_nvram & 0x0F) << 4) | (nes2_chr_ram & 0x0F);
+    g_inesheader[12] = nes2_timing & 0x03;
+    if (tv_system != 0)
+      g_inesheader[12] = tv_system & 0x03;
+    g_inesheader[13] = ((nes2_vs_ppu & 0x0F) << 4) | (nes2_vs_hardware & 0x0F);
+    g_inesheader[14] = nes2_misc_roms & 0x03;
+    g_inesheader[15] = nes2_expansion_device & 0x3F;
+  }
+  else {
+    g_inesheader[8] = prg_ram_size & 0xFF;
+    g_inesheader[9] = tv_system == 1 ? 1 : 0;
+    g_inesheader[10] = flags10 & 0xFF;
+  }
+
+  g_inesheader_defined = YES;
+
+  return SUCCEEDED;
+}
+
+#endif
+
+
+#if defined(WDC65C02)
+
+static int _lynxheader_read_number(char *field_name, int min, int max, int *value) {
+
+  int q;
+
+  q = input_number();
+  if (q == FAILED)
+    return FAILED;
+  if (q != SUCCEEDED || g_parsed_int < min || g_parsed_int > max) {
+    print_error(ERROR_DIR, "%s needs a value between %d and %d, got %d.\n", field_name, min, max, g_parsed_int);
+    return FAILED;
+  }
+
+  *value = g_parsed_int;
+
+  return SUCCEEDED;
+}
+
+
+static void _lynxheader_write_word(int offset, int value) {
+
+  g_lynxheader[offset] = value & 0xff;
+  g_lynxheader[offset + 1] = (value >> 8) & 0xff;
+}
+
+
+static int _lynxheader_valid_block_size(int value, int allow_zero) {
+
+  if (allow_zero == YES && value == 0)
+    return YES;
+
+  if (value == 0x100 || value == 0x200 || value == 0x400 || value == 0x800 || value == 0x1000)
+    return YES;
+
+  return NO;
+}
+
+
+static int _lynxheader_read_block_size(char *field_name, int allow_zero, int *value) {
+
+  if (_lynxheader_read_number(field_name, 0, 0x1000, value) == FAILED)
+    return FAILED;
+
+  if (_lynxheader_valid_block_size(*value, allow_zero) == NO) {
+    if (allow_zero == YES)
+      print_error(ERROR_DIR, "%s needs 0, $100, $200, $400, $800 or $1000.\n", field_name);
+    else
+      print_error(ERROR_DIR, "%s needs $100, $200, $400, $800 or $1000.\n", field_name);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _lynxheader_read_string(char *field_name, int offset, int length) {
+
+  int token_result, i;
+
+  token_result = get_next_token();
+  if (token_result == FAILED)
+    return FAILED;
+
+  if (token_result != GET_NEXT_TOKEN_STRING) {
+    print_error(ERROR_DIR, "%s requires a string.\n", field_name);
+    return FAILED;
+  }
+
+  if ((int)strlen(g_tmp) > length - 1) {
+    print_error(ERROR_DIR, "%s requires a string of 0 to %d letters.\n", field_name, length - 1);
+    return FAILED;
+  }
+
+  for (i = 0; i < length; i++)
+    g_lynxheader[offset + i] = 0;
+
+  for (i = 0; g_tmp[i] != 0; i++)
+    g_lynxheader[offset + i] = g_tmp[i];
+
+  return SUCCEEDED;
+}
+
+
+static int _lynxheader_read_rotation(int *value) {
+
+  int token_result;
+
+  token_result = get_next_token();
+  if (token_result == FAILED)
+    return FAILED;
+
+  if (strcaselesscmp(g_tmp, "NONE") == 0 || strcaselesscmp(g_tmp, "NO") == 0 || strcaselesscmp(g_tmp, "NOROTATE") == 0)
+    *value = 0;
+  else if (strcaselesscmp(g_tmp, "LEFT") == 0)
+    *value = 1;
+  else if (strcaselesscmp(g_tmp, "RIGHT") == 0)
+    *value = 2;
+  else {
+    print_error(ERROR_DIR, "ROTATION has an unknown option \"%s\".\n", g_tmp);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _lynxheader_read_audin(int *value) {
+
+  int token_result;
+
+  token_result = get_next_token();
+  if (token_result == FAILED)
+    return FAILED;
+
+  if (strcaselesscmp(g_tmp, "OFF") == 0 || strcaselesscmp(g_tmp, "NO") == 0 || strcaselesscmp(g_tmp, "FALSE") == 0)
+    *value = 0;
+  else if (strcaselesscmp(g_tmp, "ON") == 0 || strcaselesscmp(g_tmp, "YES") == 0 || strcaselesscmp(g_tmp, "TRUE") == 0)
+    *value = 1;
+  else {
+    print_error(ERROR_DIR, "AUDIN has an unknown option \"%s\".\n", g_tmp);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _lynxheader_read_eeprom(int *value) {
+
+  int token_result, flags;
+
+  token_result = get_next_token();
+  if (token_result == FAILED)
+    return FAILED;
+
+  flags = *value & 0xc0;
+
+  if (strcaselesscmp(g_tmp, "NONE") == 0 || strcaselesscmp(g_tmp, "NO") == 0)
+    *value = 0;
+  else if (strcaselesscmp(g_tmp, "93C46") == 0)
+    *value = flags | 1;
+  else if (strcaselesscmp(g_tmp, "93C56") == 0)
+    *value = flags | 2;
+  else if (strcaselesscmp(g_tmp, "93C66") == 0)
+    *value = flags | 3;
+  else if (strcaselesscmp(g_tmp, "93C76") == 0)
+    *value = flags | 4;
+  else if (strcaselesscmp(g_tmp, "93C86") == 0)
+    *value = flags | 5;
+  else if (strcaselesscmp(g_tmp, "93C46_8BIT") == 0)
+    *value = 0x80 | 1;
+  else if (strcaselesscmp(g_tmp, "93C56_8BIT") == 0)
+    *value = 0x80 | 2;
+  else if (strcaselesscmp(g_tmp, "93C66_8BIT") == 0)
+    *value = 0x80 | 3;
+  else if (strcaselesscmp(g_tmp, "93C76_8BIT") == 0)
+    *value = 0x80 | 4;
+  else if (strcaselesscmp(g_tmp, "93C86_8BIT") == 0)
+    *value = 0x80 | 5;
+  else if (strcaselesscmp(g_tmp, "93C46_16BIT") == 0)
+    *value = 1;
+  else if (strcaselesscmp(g_tmp, "93C56_16BIT") == 0)
+    *value = 2;
+  else if (strcaselesscmp(g_tmp, "93C66_16BIT") == 0)
+    *value = 3;
+  else if (strcaselesscmp(g_tmp, "93C76_16BIT") == 0)
+    *value = 4;
+  else if (strcaselesscmp(g_tmp, "93C86_16BIT") == 0)
+    *value = 5;
+  else {
+    print_error(ERROR_DIR, "EEPROM has an unknown option \"%s\".\n", g_tmp);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+int directive_lynxheader(void) {
+
+  int token_result, q, i;
+  int bank0_block_size, bank1_block_size, version, rotation, audin, eeprom, spare0, spare1, spare2;
+  int bank0_block_size_defined;
+
+  if (g_lynxheader_defined == YES) {
+    print_error(ERROR_DIR, ".LYNXHEADER can be defined only once.\n");
+    return FAILED;
+  }
+
+  no_library_files(".LYNXHEADER");
+
+  for (i = 0; i < 64; i++)
+    g_lynxheader[i] = 0;
+
+  g_lynxheader[0] = 'L';
+  g_lynxheader[1] = 'Y';
+  g_lynxheader[2] = 'N';
+  g_lynxheader[3] = 'X';
+
+  bank0_block_size = 0;
+  bank1_block_size = 0;
+  version = 1;
+  rotation = 0;
+  audin = 0;
+  eeprom = 0;
+  spare0 = 0;
+  spare1 = 0;
+  spare2 = 0;
+  bank0_block_size_defined = NO;
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDLYNX") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "BANK0BLOCKSIZE") == 0 || strcaselesscmp(g_tmp, "BANK0PAGESIZE") == 0) {
+      if (_lynxheader_read_block_size("BANK0BLOCKSIZE", NO, &bank0_block_size) == FAILED)
+        return FAILED;
+      bank0_block_size_defined = YES;
+    }
+    else if (strcaselesscmp(g_tmp, "BANK1BLOCKSIZE") == 0 || strcaselesscmp(g_tmp, "BANK1PAGESIZE") == 0) {
+      if (_lynxheader_read_block_size("BANK1BLOCKSIZE", YES, &bank1_block_size) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "VERSION") == 0) {
+      if (_lynxheader_read_number("VERSION", 1, 1, &version) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "NAME") == 0 || strcaselesscmp(g_tmp, "CARTNAME") == 0) {
+      if (_lynxheader_read_string("NAME", 10, 32) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "MANUFACTURER") == 0 || strcaselesscmp(g_tmp, "MANUFACTURERNAME") == 0) {
+      if (_lynxheader_read_string("MANUFACTURER", 42, 16) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "ROTATION") == 0 || strcaselesscmp(g_tmp, "ROTATE") == 0) {
+      if (_lynxheader_read_rotation(&rotation) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "AUDIN") == 0) {
+      if (_lynxheader_read_audin(&audin) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "EEPROM") == 0) {
+      if (_lynxheader_read_eeprom(&eeprom) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "EEPROMVALUE") == 0) {
+      if (_lynxheader_read_number("EEPROMVALUE", 0, 255, &eeprom) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "EEPROMSD") == 0)
+      eeprom |= 0x40;
+    else if (strcaselesscmp(g_tmp, "EEPROM8BIT") == 0)
+      eeprom |= 0x80;
+    else if (strcaselesscmp(g_tmp, "EEPROM16BIT") == 0)
+      eeprom &= ~0x80;
+    else if (strcaselesscmp(g_tmp, "SPARE") == 0) {
+      if (_lynxheader_read_number("SPARE", 0, 255, &spare0) == FAILED)
+        return FAILED;
+      if (_lynxheader_read_number("SPARE", 0, 255, &spare1) == FAILED)
+        return FAILED;
+      if (_lynxheader_read_number("SPARE", 0, 255, &spare2) == FAILED)
+        return FAILED;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .LYNXHEADER data structure.\n");
+    return FAILED;
+  }
+
+  if (bank0_block_size_defined == NO) {
+    print_error(ERROR_DIR, ".LYNXHEADER requires BANK0BLOCKSIZE.\n");
+    return FAILED;
+  }
+
+  _lynxheader_write_word(4, bank0_block_size);
+  _lynxheader_write_word(6, bank1_block_size);
+  _lynxheader_write_word(8, version);
+  g_lynxheader[58] = rotation;
+  g_lynxheader[59] = audin;
+  g_lynxheader[60] = eeprom;
+  g_lynxheader[61] = spare0;
+  g_lynxheader[62] = spare1;
+  g_lynxheader[63] = spare2;
+
+  g_lynxheader_defined = YES;
+
+  return SUCCEEDED;
+}
+
+#endif
+
+
 int directive_endr_continue(void) {
 
   struct repeat_runtime *rr;
@@ -13796,6 +14388,12 @@ int parse_directive(void) {
 
   case 'I':
 
+#if defined(MCS6502)
+    /* INESHEADER */
+    if (strcmp(directive_upper, "INESHEADER") == 0)
+      return directive_inesheader();
+#endif
+
 #if defined(W65816)
     /* INDEX */
     if (strcmp(directive_upper, "INDEX") == 0) {
@@ -13845,6 +14443,12 @@ int parse_directive(void) {
     /* LONG? */
     if (strcmp(directive_upper, "LONG") == 0)
       return directive_dl_long_faraddr();
+
+#if defined(WDC65C02)
+    /* LYNXHEADER */
+    if (strcmp(directive_upper, "LYNXHEADER") == 0)
+      return directive_lynxheader();
+#endif
 
 #if defined(GB)
     /* LICENSEECODENEW */

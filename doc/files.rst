@@ -23,6 +23,12 @@ the Mega Drive 68000 side and the 32X SH-2 side. ``68k.inc`` describes the
 the SH-2-visible Mars registers and SH-2 internal register constants, and
 ``macros.inc`` contains shared video/color constants.
 
+``include/pcengine`` contains PC Engine / TurboGrafx-16 HuC6280 hardware
+register definitions, vector constants and small CPU helper macros.
+
+``include/lynx`` contains Atari Lynx 65C02 hardware base definitions, vector
+constants and small CPU helper macros.
+
 
 ``tests/gb-z80/lib``
 --------------------
@@ -46,3 +52,6 @@ main/sub CPU boot program layouts.
 The Sega 32X maps include ``md32x68k.i`` for 68000-side boot/hot-start code and
 ``sh232x.i`` for SH-2-side cartridge ROM, SDRAM, Mars registers, palette, and
 framebuffer windows.
+
+The PC Engine map is ``pcengine.i``. The Atari Lynx flat 65C02 map is
+``lynx.i``.
