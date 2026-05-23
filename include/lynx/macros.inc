@@ -1,0 +1,15 @@
+;
+; Atari Lynx generic 65C02 helper macros
+;
+
+.MACRO LYNX_DISABLE_INTERRUPTS
+  sei
+.ENDM
+
+.MACRO LYNX_ENABLE_INTERRUPTS
+  cli
+.ENDM
+
+.MACRO LYNX_CLEAR_DECIMAL
+  cld
+.ENDM

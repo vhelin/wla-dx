@@ -22,7 +22,9 @@ Z80 Only the Z80 version applies.
 808 Only the 8080 version applies.
 SPC Only the SPC-700 version applies.
 SFX Only the SuperFX version applies.
+650 Only the 6502 version applies.
 65x Only the 6502, 65C02, 65CE02, 65816 and HUC6280 versions apply.
+65C Only the 65C02 version applies.
 !GB All but the GB-Z80 versions apply.
 === ================================================================
 
@@ -54,6 +56,8 @@ ALL  ``.EMPTYFILL $C9``
 68K  ``.ENDNG``
 68K  ``.ENDNGSOFTDIP``
 68K  ``.ENDNGVECTORS``
+650  ``.ENDINES``
+65C  ``.ENDLYNX``
 658  ``.ENDNATIVEVECTOR``
 658  ``.ENDSNES``
 658  ``.EXHIROM``
@@ -61,9 +65,11 @@ ALL  ``.EXPORT work_x``
 658  ``.FASTROM``
 GB   ``.GBHEADER``
 658  ``.HIROM``
+650  ``.INESHEADER``
 GB   ``.LICENSEECODENEW "1A"``
 GB   ``.LICENSEECODEOLD $1A``
 658  ``.LOROM``
+65C  ``.LYNXHEADER``
 GB8  ``.NAME "NAME OF THE ROM"``
 68K  ``.MCDHEADER``
 68K  ``.MCDSPHEADER``
@@ -1914,6 +1920,63 @@ banking defined in ``.ROMBANKMAP``.
 
 This is not a compulsory directive.
 
+
+``.INESHEADER``
+---------------
+
+Defines a 16-byte iNES or NES 2.0 file header for WLA-6502 NES projects. The
+header is emitted as a bank 0 ``BANKHEADER`` section, so WLALINK writes it
+before the first PRG ROM bank. Do not define another ``BANKHEADER`` section for
+bank 0 in the same project.
+
+``PRGROMSIZE`` is required and is counted in 16KB units. ``CHRROMSIZE`` is
+counted in 8KB units and defaults to 0, which is commonly used for CHR RAM.
+``MAPPER`` defaults to 0, and ``MIRRORING`` accepts ``HORIZONTAL`` or
+``VERTICAL``::
+
+    .INESHEADER
+        PRGROMSIZE 2
+        CHRROMSIZE 1
+        MAPPER 4
+        MIRRORING VERTICAL
+        BATTERY
+    .ENDINES
+
+The following iNES flags are recognized: ``BATTERY``, ``TRAINER``,
+``FOURSCREEN``, ``VS`` / ``VSUNISYSTEM``, ``PLAYCHOICE`` / ``PLAYCHOICE10``,
+``PRGRAMSIZE``, ``TVSYSTEM`` (``NTSC`` or ``PAL``) and ``FLAGS10``.
+
+Use ``NES2`` inside the block to emit a NES 2.0 header. NES 2.0 adds
+``SUBMAPPER``, ``PRGRAM``, ``PRGNVRAM``, ``CHRRAM``, ``CHRNVRAM``,
+``CPUPPUTIMING`` / ``TIMING`` (``NTSC``, ``PAL``, ``DUAL`` or ``DENDY``),
+``VSHARDWARE``, ``VSPPUTYPE``, ``MISCROMS`` and
+``DEFAULTEXPANSIONDEVICE`` / ``EXPANSIONDEVICE``. The RAM fields are the NES
+2.0 shift-count nibbles, not byte counts.
+
+A complete NES 2.0 header using the extended fields could look like this::
+
+    .INESHEADER
+        NES2
+        PRGROMSIZE 512
+        CHRROMSIZE 128
+        MAPPER 268
+        SUBMAPPER 3
+        MIRRORING HORIZONTAL
+        BATTERY
+        VS
+        PRGRAM 7
+        PRGNVRAM 8
+        CHRRAM 6
+        CHRNVRAM 0
+        CPUPPUTIMING DUAL
+        VSHARDWARE 1
+        VSPPUTYPE 3
+        MISCROMS 1
+        EXPANSIONDEVICE 2
+    .ENDINES
+
+This is not a compulsory directive.
+
 ``.IF DEBUG == 2``
 ------------------
 
@@ -2326,6 +2389,43 @@ WLALINK computes 24-bit addresses and bank references. If no
 banking defined in ``.ROMBANKMAP``.
 
 WLA defaults to ``.LOROM``.
+
+This is not a compulsory directive.
+
+
+``.LYNXHEADER``
+---------------
+
+Defines a 64-byte Atari Lynx ``.lnx`` file header for WLA-65C02 projects. The
+header is emitted as a bank 0 ``BANKHEADER`` section, so WLALINK writes it
+before the first cartridge ROM bank. Do not define another ``BANKHEADER``
+section for bank 0 in the same project.
+
+``BANK0BLOCKSIZE`` is required. ``BANK1BLOCKSIZE`` defaults to 0. These values
+are the Lynx header page/block sizes, not byte counts: ``$100`` means 64KB,
+``$200`` means 128KB, ``$400`` means 256KB, ``$800`` means 512KB and ``$1000``
+means 1024KB. ``BANK1BLOCKSIZE`` also accepts 0 for no second bank. ``VERSION``
+defaults to 1, the standard ``.lnx`` version.
+
+``NAME`` / ``CARTNAME`` accepts up to 31 characters and ``MANUFACTURER`` /
+``MANUFACTURERNAME`` accepts up to 15 characters. Both are stored as padded
+C strings in the fixed-size header fields. ``ROTATION`` accepts ``NONE``,
+``LEFT`` or ``RIGHT``. ``AUDIN`` accepts ``OFF`` or ``ON``. ``EEPROM`` accepts
+``NONE``, ``93C46``, ``93C56``, ``93C66``, ``93C76`` or ``93C86``; the
+``_8BIT`` and ``_16BIT`` suffixes can be added to those EEPROM names. Use
+``EEPROMVALUE`` to write a raw EEPROM byte, ``EEPROM8BIT`` / ``EEPROM16BIT``
+to adjust the access-width flag, and ``EEPROMSD`` to set the SD flag. ``SPARE``
+writes the three spare bytes::
+
+    .LYNXHEADER
+        BANK0BLOCKSIZE $400
+        BANK1BLOCKSIZE 0
+        NAME "HELLO LYNX"
+        MANUFACTURER "WLA DX"
+        ROTATION NONE
+        AUDIN OFF
+        EEPROM NONE
+    .ENDLYNX
 
 This is not a compulsory directive.
 

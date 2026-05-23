@@ -1,0 +1,20 @@
+;
+; PC Engine / TurboGrafx-16 generic HuC6280 helper macros
+;
+
+.MACRO PCE_DISABLE_INTERRUPTS
+  sei
+.ENDM
+
+.MACRO PCE_ENABLE_INTERRUPTS
+  cli
+.ENDM
+
+.MACRO PCE_CLEAR_DECIMAL
+  cld
+.ENDM
+
+.MACRO PCE_MAP_IO_PAGE_TO_MPR0
+  lda #PCE_IO_PAGE
+  tam #1
+.ENDM

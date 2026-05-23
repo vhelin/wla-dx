@@ -45,6 +45,16 @@ extern int g_smsromsize, g_smsromsize_defined;
 extern int g_smsforcechecksum, g_smsforcechecksum_defined, g_smschecksumsize, g_smschecksumsize_defined;
 #endif
 
+#if defined(MCS6502)
+extern unsigned char g_inesheader[16];
+extern int g_inesheader_defined;
+#endif
+
+#if defined(WDC65C02)
+extern unsigned char g_lynxheader[64];
+extern int g_lynxheader_defined;
+#endif
+
 #if defined(W65816)
 extern char g_name[32];
 extern char g_snesid[4];
@@ -129,6 +139,88 @@ extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024];
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
 
 static char s_include_directives_name[] = "INCLUDE_DIRECTIVES:";
+
+
+#if defined(MCS6502)
+
+static int _emit_ines_header_section(void) {
+
+  struct section_def *s;
+  int i;
+
+  s = g_sections_first;
+  while (s != NULL) {
+    if (s->name[0] == 'B' && strcmp(s->name, "BANKHEADER") == 0 && s->bank == 0) {
+      print_text(NO, "PHASE_2: .INESHEADER cannot be used with another BANKHEADER section for bank 0.\n");
+      return FAILED;
+    }
+    s = s->next;
+  }
+
+  if (create_a_new_section_structure() == FAILED)
+    return FAILED;
+
+  strcpy(g_sec_tmp->name, "BANKHEADER");
+  g_sec_tmp->status = SECTION_STATUS_HEADER;
+  g_sec_tmp->address = 0;
+  g_sec_tmp->bank = 0;
+  g_sec_tmp->slot = 0;
+  g_sec_tmp->base = -1;
+  g_sec_tmp->size = 16;
+  g_sec_tmp->data = calloc(sizeof(unsigned char) * 16, 1);
+  if (g_sec_tmp->data == NULL) {
+    print_text(NO, "PHASE_2: Out of memory while creating .INESHEADER BANKHEADER section.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < 16; i++)
+    g_sec_tmp->data[i] = g_inesheader[i];
+
+  return SUCCEEDED;
+}
+
+#endif
+
+
+#if defined(WDC65C02)
+
+static int _emit_lynx_header_section(void) {
+
+  struct section_def *s;
+  int i;
+
+  s = g_sections_first;
+  while (s != NULL) {
+    if (s->name[0] == 'B' && strcmp(s->name, "BANKHEADER") == 0 && s->bank == 0) {
+      print_text(NO, "PHASE_2: .LYNXHEADER cannot be used with another BANKHEADER section for bank 0.\n");
+      return FAILED;
+    }
+    s = s->next;
+  }
+
+  if (create_a_new_section_structure() == FAILED)
+    return FAILED;
+
+  strcpy(g_sec_tmp->name, "BANKHEADER");
+  g_sec_tmp->status = SECTION_STATUS_HEADER;
+  g_sec_tmp->address = 0;
+  g_sec_tmp->bank = 0;
+  g_sec_tmp->slot = 0;
+  g_sec_tmp->base = -1;
+  g_sec_tmp->size = 64;
+  g_sec_tmp->data = calloc(sizeof(unsigned char) * 64, 1);
+  if (g_sec_tmp->data == NULL) {
+    print_text(NO, "PHASE_2: Out of memory while creating .LYNXHEADER BANKHEADER section.\n");
+    return FAILED;
+  }
+
+  for (i = 0; i < 64; i++)
+    g_sec_tmp->data[i] = g_lynxheader[i];
+
+  return SUCCEEDED;
+}
+
+#endif
 
 
 #if defined(MC68000)
@@ -241,6 +333,22 @@ int phase_2(void) {
     print_text(NO, "PHASE_2: %s ROMBANKS/ROMBANKMAP wasn't defined.\n", s_include_directives_name);
     return FAILED;
   }
+
+#if defined(MCS6502)
+  /* INESHEADER */
+  if (g_inesheader_defined == YES) {
+    if (_emit_ines_header_section() == FAILED)
+      return FAILED;
+  }
+#endif
+
+#if defined(WDC65C02)
+  /* LYNXHEADER */
+  if (g_lynxheader_defined == YES) {
+    if (_emit_lynx_header_section() == FAILED)
+      return FAILED;
+  }
+#endif
 
 #if defined(Z80)
   /* SMSTAG */
