@@ -4,7 +4,7 @@
                     8080/HUC6280/SH-2/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.7 (18-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
+v10.7 (24-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.
                     [ALL] Listfile creation for library files should now work.
                     [ALL] If an object file contained only .SECTIONs in ROM
@@ -73,6 +73,8 @@ v10.7 (18-May-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MDVECTORS, .MCDHEADER, .MCDSPHEADER, memory maps and
                       include files.
                     [650] Fixed STX and STY parsing.
+                    [650] Added .INESHEADER and .ENDINES.
+                    [65C] Added .LYNXHEADER and .ENDLYNX.
                     [689] Added space-after-the-instruction versions of instructions
                       with zero offset indexing, e.g., "LDA ,X" (old: "LDA,X").
                     [68x] Instructions that take 8-bit immediate values can now take
@@ -1598,7 +1600,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.22 (18-May-2026) When calculating _sizeof_* for labels we now take unused
+v5.22 (24-May-2026) When calculating _sizeof_* for labels we now take unused
                       output bytes into account.
                     Appended .RAMSECTIONs were still affecting the original
                       RAM bank in -v listing.
@@ -1623,6 +1625,8 @@ v5.22 (18-May-2026) When calculating _sizeof_* for labels we now take unused
                     Added -O (BIN, SMD, MD) Mega Drive output ROM file
                       format.
                     Added support for Hitachi SH-2.
+                    Added -g for writing list files where the object
+                      files are.
 
 v5.21 (19-Nov-2023) WLALINK writes now version 3 WLA symbol files.
                     Symbol files created with -S contain now [sections] and

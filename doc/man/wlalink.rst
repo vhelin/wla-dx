@@ -22,6 +22,7 @@ OPTIONS
 
 -b          Program file output
 -d          Discard unreferenced sections
+-g          Write one combined list file per object file (implies ``-i``)
 -i          Write list files (Note: WLA needs ``-i`` as wel)
 -r          ROM file output (default)
 -s          Write also a NO$GMB/NO$SNES symbol file
@@ -106,6 +107,10 @@ If flag ``-i`` is given, :manpage:`wlalink(1)` will write list files. Note that
 you must compile the object and library files with ``-i`` flag as well.
 Otherwise :manpage:`wlalink(1)` has no extra information it needs to build list
 files.
+
+If flag ``-g`` is given, one combined list file is written per object file next
+to that object file, with included files shown at the point where they are
+included. This flag implies ``-i``.
 
 The ``-E`` option writes debug exports for emulators and tools. The format list
 can be comma- or space-separated. The ``MAME`` format writes a debugger command

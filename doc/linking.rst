@@ -182,6 +182,10 @@ files are good for debugging. NOTE: list file data can currently be generated
 only for code inside sections. ``.MACRO`` calls and ``.REPT`` s don't produce
 list file data either.
 
+If flag ``-g`` is given, WLALINK also writes list files, but writes one combined
+list file per object file next to that object file, switching into and out of
+included files as the source is assembled. This flag implies ``-i``.
+
 If flag ``L`` is given after the above options, WLALINK will use the
 directory specified after the flag for including libraries. If WLALINK
 cannot find the library in the specified directory, it will then silently
