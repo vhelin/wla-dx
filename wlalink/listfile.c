@@ -1,5 +1,7 @@
 
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +88,24 @@ static const char *_get_file_name_part(const char *path) {
     return path;
 
   return last_separator + 1;
+}
+
+
+static int _source_basename_is_unique(struct listfileitem **listfileitems_ptr, int count, int start, char *output_file_name, char *source_file_name) {
+
+  const char *source_base;
+  int index;
+
+  source_base = _get_file_name_part(source_file_name);
+  if (source_base[0] == 0)
+    return NO;
+
+  for (index = start; index < count && _strings_equal(listfileitems_ptr[index]->outputfilename, output_file_name) == YES; index++) {
+    if (_strings_equal(listfileitems_ptr[index]->sourcefilename, source_file_name) == NO && strcmp(_get_file_name_part(listfileitems_ptr[index]->sourcefilename), source_base) == 0)
+      return NO;
+  }
+
+  return YES;
 }
 
 
@@ -226,7 +246,9 @@ static int _read_source_file(char *source_file_name, char **source_file_out, int
 
   FILE *file;
   char *source_file;
+  long file_size_long;
   int file_size;
+  size_t bytes_read;
 
   *source_file_out = NULL;
   *file_size_out = 0;
@@ -242,19 +264,45 @@ static int _read_source_file(char *source_file_name, char **source_file_out, int
     return FAILED;
   }
 
-  fseek(file, 0, SEEK_END);
-  file_size = (int)ftell(file);
-  fseek(file, 0, SEEK_SET);
+  if (fseek(file, 0, SEEK_END) != 0) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not seek to the end of source file \"%s\": %s.\n", source_file_name, strerror(errno));
+    fclose(file);
+    return FAILED;
+  }
 
-  source_file = calloc(file_size + 1, 1);
+  file_size_long = ftell(file);
+  if (file_size_long < 0) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not determine size of source file \"%s\": %s.\n", source_file_name, strerror(errno));
+    fclose(file);
+    return FAILED;
+  }
+  if (file_size_long > INT_MAX) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Source file \"%s\" is too large for listfile generation.\n", source_file_name);
+    fclose(file);
+    return FAILED;
+  }
+  file_size = (int)file_size_long;
+
+  if (fseek(file, 0, SEEK_SET) != 0) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not seek to the start of source file \"%s\": %s.\n", source_file_name, strerror(errno));
+    fclose(file);
+    return FAILED;
+  }
+
+  source_file = calloc((size_t)file_size + 1, 1);
   if (source_file == NULL) {
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     fclose(file);
     return FAILED;
   }
 
-  if (fread(source_file, 1, file_size, file) != (size_t)file_size) {
-    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
+  errno = 0;
+  bytes_read = fread(source_file, 1, (size_t)file_size, file);
+  if (bytes_read != (size_t)file_size) {
+    if (ferror(file) != 0)
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\": %s.\n", file_size, source_file_name, strerror(errno));
+    else
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\": unexpected end of file.\n", file_size, source_file_name);
     fclose(file);
     free(source_file);
     return FAILED;
@@ -285,6 +333,62 @@ static void _source_context_free(struct listfile_source_context *context) {
 }
 
 
+static int _source_is_line_break(char c) {
+
+  return c == '\n' || c == '\r';
+}
+
+
+static void _source_buffer_skip_line_break(char *source_file, int file_size, int *position, int *current_linenumber) {
+
+  char line_break;
+
+  line_break = source_file[(*position)++];
+  if (*position < file_size) {
+    char next = source_file[*position];
+    if ((line_break == '\r' && next == '\n') || (line_break == '\n' && next == '\r'))
+      (*position)++;
+  }
+
+  (*current_linenumber)++;
+}
+
+
+static void _source_context_skip_line_break(struct listfile_source_context *context) {
+
+  _source_buffer_skip_line_break(context->source_file, context->file_size, &context->m, &context->current_linenumber);
+}
+
+
+static int _source_line_length_at(struct listfile_source_context *context, int position) {
+
+  int length = 0;
+
+  while (position + length < context->file_size && _source_is_line_break(context->source_file[position + length]) == NO)
+    length++;
+
+  return length;
+}
+
+
+static int _source_next_line_position(struct listfile_source_context *context, int position) {
+
+  while (position < context->file_size && _source_is_line_break(context->source_file[position]) == NO)
+    position++;
+
+  if (position < context->file_size) {
+    char line_break = context->source_file[position++];
+    if (position < context->file_size) {
+      char next = context->source_file[position];
+      if ((line_break == '\r' && next == '\n') || (line_break == '\n' && next == '\r'))
+        position++;
+    }
+  }
+
+  return position;
+}
+
+
 static void _write_source_line_from_context(FILE *f, struct listfile_source_context *context, int chars) {
 
   int o;
@@ -296,11 +400,8 @@ static void _write_source_line_from_context(FILE *f, struct listfile_source_cont
     fprintf(f, " ");
 
   while (context->m < context->file_size) {
-    if (context->source_file[context->m] == 0xA) {
-      context->m++;
-      if (context->m < context->file_size && context->source_file[context->m] == 0xD)
-        context->m++;
-      context->current_linenumber++;
+    if (_source_is_line_break(context->source_file[context->m]) == YES) {
+      _source_context_skip_line_break(context);
       fprintf(f, "\n");
       return;
     }
@@ -319,11 +420,8 @@ static void _write_source_tail_from_context(FILE *f, struct listfile_source_cont
     return;
 
   while (context->m < context->file_size) {
-    if (context->source_file[context->m] == 0xA) {
-      context->m++;
-      if (context->m < context->file_size && context->source_file[context->m] == 0xD)
-        context->m++;
-      context->current_linenumber++;
+    if (_source_is_line_break(context->source_file[context->m]) == YES) {
+      _source_context_skip_line_break(context);
       fprintf(f, "\n");
       return;
     }
@@ -370,65 +468,118 @@ static int _line_contains_text(const char *line, int line_length, const char *te
 }
 
 
-static int _line_contains_text_caseless(const char *line, int line_length, const char *text) {
+static int _line_starts_with_directive(const char *line, int line_length, const char *directive, int allow_without_dot) {
 
-  int text_length, i, j;
+  int directive_length, i = 0, j;
 
-  if (line == NULL || text == NULL)
+  while (i < line_length && isspace((unsigned char)line[i]))
+    i++;
+  if (i < line_length && line[i] == '.') {
+    i++;
+  }
+  else if (allow_without_dot == NO)
     return NO;
 
-  text_length = (int)strlen(text);
-  if (text_length <= 0 || line_length < text_length)
+  directive_length = (int)strlen(directive);
+  if (line_length - i < directive_length)
     return NO;
 
-  for (i = 0; i <= line_length - text_length; i++) {
-    for (j = 0; j < text_length; j++) {
-      if (tolower((unsigned char)line[i + j]) != tolower((unsigned char)text[j]))
-        break;
+  for (j = 0; j < directive_length; j++) {
+    if (tolower((unsigned char)line[i + j]) != tolower((unsigned char)directive[j]))
+      return NO;
+  }
+
+  if (i + directive_length < line_length) {
+    unsigned char next = (unsigned char)line[i + directive_length];
+    if (isalnum(next) || next == '_')
+      return NO;
+  }
+
+  return YES;
+}
+
+
+static int _source_line_is_include_directive(const char *line, int line_length) {
+
+  if (_line_starts_with_directive(line, line_length, "include", YES) == YES)
+    return YES;
+  if (_line_starts_with_directive(line, line_length, "inc", NO) == YES)
+    return YES;
+
+  return NO;
+}
+
+
+static int _source_line_references_file(const char *line, int line_length, char *target_source_file_name, int target_base_is_unique) {
+
+  const char *target_base;
+
+  if (target_source_file_name == NULL)
+    return NO;
+
+  if (_line_contains_text(line, line_length, target_source_file_name) == YES)
+    return YES;
+
+  if (target_base_is_unique == NO)
+    return NO;
+
+  target_base = _get_file_name_part(target_source_file_name);
+  if (_line_contains_text(line, line_length, target_base) == YES)
+    return YES;
+
+  return NO;
+}
+
+
+static int _find_next_include_position(struct listfile_source_context *context, char *target_source_file_name, int target_base_is_unique, int *include_position) {
+
+  int fallback_position = -1, position;
+
+  *include_position = -1;
+  if (context == NULL || context->source_file == NULL || target_source_file_name == NULL)
+    return NO;
+
+  position = context->m;
+  while (position < context->file_size) {
+    const char *line_start = &context->source_file[position];
+    int line_length = _source_line_length_at(context, position);
+
+    if (_source_line_is_include_directive(line_start, line_length) == YES) {
+      if (_source_line_references_file(line_start, line_length, target_source_file_name, target_base_is_unique) == YES) {
+        *include_position = position;
+        return YES;
+      }
+      if (fallback_position < 0)
+        fallback_position = position;
     }
-    if (j == text_length)
-      return YES;
+
+    position = _source_next_line_position(context, position);
+  }
+
+  if (fallback_position >= 0) {
+    *include_position = fallback_position;
+    return YES;
   }
 
   return NO;
 }
 
 
-static int _source_current_line_includes_file(struct listfile_source_context *context, char *target_source_file_name) {
+static int _write_source_until_include(FILE *f, struct listfile_source_context *context, char *target_source_file_name, int target_base_is_unique, int chars) {
 
-  const char *line_start, *target_base;
-  int line_length = 0;
+  int include_position, line_position;
 
-  if (context == NULL || context->source_file == NULL || target_source_file_name == NULL)
+  if (_find_next_include_position(context, target_source_file_name, target_base_is_unique, &include_position) == NO) {
+    while (context != NULL && context->source_file != NULL && context->m < context->file_size)
+      _write_source_line_from_context(f, context, chars);
     return NO;
-
-  line_start = &context->source_file[context->m];
-  while (context->m + line_length < context->file_size && line_start[line_length] != 0xA)
-    line_length++;
-
-  if (_line_contains_text_caseless(line_start, line_length, "include") == NO)
-    return NO;
-
-  if (_line_contains_text(line_start, line_length, target_source_file_name) == YES)
-    return YES;
-
-  target_base = _get_file_name_part(target_source_file_name);
-  if (_line_contains_text(line_start, line_length, target_base) == YES)
-    return YES;
-
-  return NO;
-}
-
-
-static int _write_source_until_include(FILE *f, struct listfile_source_context *context, char *target_source_file_name, int chars) {
+  }
 
   while (context != NULL && context->source_file != NULL && context->m < context->file_size) {
-    if (_source_current_line_includes_file(context, target_source_file_name) == YES) {
-      _write_source_line_from_context(f, context, chars);
-      return YES;
-    }
-
+    line_position = context->m;
     _write_source_line_from_context(f, context, chars);
+    if (line_position == include_position)
+      return YES;
   }
 
   return NO;
@@ -458,10 +609,10 @@ static int _create_interleaved_context(struct listfile_source_context *contexts,
 }
 
 
-static int _switch_interleaved_source(FILE *f, char *target_source_file_name, int chars, struct listfile_source_context *contexts, int max_contexts, int *context_count, struct listfile_source_context **source_stack, int *source_stack_count, struct listfile_source_context **current_context) {
+static int _switch_interleaved_source(FILE *f, char *target_source_file_name, int target_base_is_unique, int chars, struct listfile_source_context *contexts, int max_contexts, int *context_count, struct listfile_source_context **source_stack, int *source_stack_count, struct listfile_source_context **current_context) {
 
   while (*current_context != NULL && _strings_equal((*current_context)->sourcefilename, target_source_file_name) == NO) {
-    if (_write_source_until_include(f, *current_context, target_source_file_name, chars) == YES) {
+    if (_write_source_until_include(f, *current_context, target_source_file_name, target_base_is_unique, chars) == YES) {
       if (*source_stack_count >= max_contexts) {
         print_text(NO, "LISTFILE_WRITE_LISTFILES: Internal source context stack overflow. Please submit a bug report!\n");
         return FAILED;
@@ -656,10 +807,10 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
 
   struct listfile_source_context *source_contexts, *current_context = NULL;
   struct listfile_source_context **source_stack;
-  int context_count = 0, source_stack_count = 0, max_contexts, start;
+  int context_count = 0, group_start, source_stack_count = 0, max_contexts, start;
 
-  start = *j;
-  max_contexts = count - start + 1;
+  group_start = *j;
+  max_contexts = count - group_start + 1;
   source_contexts = calloc(sizeof(struct listfile_source_context) * max_contexts, 1);
   source_stack = calloc(sizeof(struct listfile_source_context *) * max_contexts, 1);
   if (source_contexts == NULL || source_stack == NULL) {
@@ -673,8 +824,9 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
 
   while (*j < count && _strings_equal(listfileitems_ptr[*j]->outputfilename, output_file_name) == YES) {
     struct listfileitem *item = listfileitems_ptr[*j];
+    int target_base_is_unique = _source_basename_is_unique(listfileitems_ptr, count, group_start, output_file_name, item->sourcefilename);
 
-    if (_switch_interleaved_source(f, item->sourcefilename, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context) == FAILED) {
+    if (_switch_interleaved_source(f, item->sourcefilename, target_base_is_unique, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context) == FAILED) {
       int i;
       for (i = 0; i < context_count; i++)
         _source_context_free(&source_contexts[i]);
@@ -1024,11 +1176,8 @@ int listfile_write_listfiles(void) {
           for (o = 0; o < chars; o++)
             fprintf(f, " ");
           while (m < file_size) {
-            if (source_file[m] == 0xA) {
-              m++;
-              if (m < file_size && source_file[m] == 0xD)
-                m++;
-              current_linenumber++;
+            if (_source_is_line_break(source_file[m]) == YES) {
+              _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
               fprintf(f, "\n");
               break;
             }
@@ -1103,11 +1252,8 @@ int listfile_write_listfiles(void) {
               else {
                 /* write the rest of the line */
                 while (m < file_size) {
-                  if (source_file[m] == 0xA) {
-                    m++;
-                    if (m < file_size && source_file[m] == 0xD)
-                      m++;
-                    current_linenumber++;
+                  if (_source_is_line_break(source_file[m]) == YES) {
+                    _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
                     fprintf(f, "\n");
                     break;
                   }
@@ -1136,11 +1282,8 @@ int listfile_write_listfiles(void) {
 
             /* write the rest of the line */
             while (m < file_size) {
-              if (source_file[m] == 0xA) {
-                m++;
-                if (m < file_size && source_file[m] == 0xD)
-                  m++;
-                current_linenumber++;
+              if (_source_is_line_break(source_file[m]) == YES) {
+                _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
                 fprintf(f, "\n");
                 break;
               }
@@ -1160,10 +1303,8 @@ int listfile_write_listfiles(void) {
         for (o = 0; o < chars; o++)
           fprintf(f, " ");
         while (m < file_size) {
-          if (source_file[m] == 0xA) {
-            m++;
-            if (m < file_size && source_file[m] == 0xD)
-              m++;
+          if (_source_is_line_break(source_file[m]) == YES) {
+            _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
             fprintf(f, "\n");
             break;
           }
