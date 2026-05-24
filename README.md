@@ -1,7 +1,7 @@
 WLA DX (Wzonka-Lad Assembler Deluxe)
 ====================================
 
-WLA DX - Yet Another
+WLA DX - Yet Another ANSI C 
 GB-Z80/Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX
 Multi Platform Cross Assembler Package
 
@@ -58,7 +58,7 @@ Compiling
 You need:
 
 * CMake (at least v2.8.12)
-* C compiler
+* ANSI C compiler
 * Sphinx (optional, min. v1.2.0, v1.6.0 recommended) (to generate docs)
 
 1. `git clone https://github.com/vhelin/wla-dx # Clone the repository`
