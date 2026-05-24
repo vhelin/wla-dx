@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   fs = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
-  in = malloc(sizeof(char) * fs);
+  in = malloc(fs);
   if (in == NULL) {
     fprintf(stderr, "Out of memory. Could not allocate %d bytes.\n", fs);
     fclose(fp);
@@ -326,8 +326,8 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
         for (t = strlen(ot->op), x = 0, p = 0; x < t; ) {
           if (ot->op[x] == '?') {
             bu[p] = 0;
-            sprintf(tm, "$%.2x", in[(*i)++]);
-            strcat(bu, tm);
+            snprintf(tm, sizeof(tm), "$%.2x", in[(*i)++]);
+            strcat_s(bu, sizeof(bu), tm);
             p += 3;
             x++;
             a++;
@@ -372,8 +372,8 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             bu[p] = 0;
             q = in[(*i)++];
             q += in[(*i)++] << 8;
-            sprintf(tm, "$%.4x", q);
-            strcat(bu, tm);
+            snprintf(tm, sizeof(tm), "$%.4x", q);
+            strcat_s(bu, sizeof(bu), tm);
             p += 5;
             x++;
             a += 2;
@@ -443,23 +443,23 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
             bu[p] = 0;
             label_pos = oa+(signed char)in[*i]+2;
             if (label_pos >= 0 && label_pos < bank_size && labels[label_pos] != -1) {
-              sprintf(tm, "label_%.2x_%.3d", *b, labels[label_pos]);
+              snprintf(tm, sizeof(tm), "label_%.2x_%.3d", *b, labels[label_pos]);
               (*i)++;
             }
             else {
               if (in[(*i)] < 128)
-                sprintf(tm, "$%.2x", in[(*i)++]);
+                snprintf(tm, sizeof(tm), "$%.2x", in[(*i)++]);
               else {
                 if (p > 0 && bu[p-1] == '+') {
                   bu[p-1] = '-';
-                  sprintf(tm, "$%.2x", 0x100-in[(*i)++]);
+                  snprintf(tm, sizeof(tm), "$%.2x", 0x100-in[(*i)++]);
                 }
                 else
-                  sprintf(tm, "-$%.2x", 0x100-in[(*i)++]);
+                  snprintf(tm, sizeof(tm), "-$%.2x", 0x100-in[(*i)++]);
               }
             }
 
-            strcat(bu, tm);
+            strcat_s(bu, sizeof(bu), tm);
             p += strlen(tm);
             x++;
             a++;
@@ -498,16 +498,16 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
           if (ot->op[x] == '?') {
             bu[p] = 0;
             if (in[(*i)] < 128)
-              sprintf(tm, "$%.2x", in[(*i)++]);
+              snprintf(tm, sizeof(tm), "$%.2x", in[(*i)++]);
             else {
               if (p > 0 && bu[p-1] == '+') {
                 bu[p-1] = '-';
-                sprintf(tm, "$%.2x", 0x100-in[(*i)++]);
+                snprintf(tm, sizeof(tm), "$%.2x", 0x100-in[(*i)++]);
               }
               else
-                sprintf(tm, "-$%.2x", 0x100-in[(*i)++]);
+                snprintf(tm, sizeof(tm), "-$%.2x", 0x100-in[(*i)++]);
             }
-            strcat(bu, tm);
+            strcat_s(bu, sizeof(bu), tm);
             p += strlen(tm);
             x++;
             a++;
@@ -534,7 +534,7 @@ int output_bank_opcodes(int fs, int *b, unsigned char *in, int bank_size, int *i
     }
     else {
       if (address == ON) {
-        sprintf(bu, ".DB $%.2x", in[(*i)++]);
+        snprintf(bu, sizeof(bu), ".DB $%.2x", in[(*i)++]);
         fprintf(stdout, "%s", bu);
         tabs=strlen(bu)/tab_width;
         while (tabs++ < 32/tab_width)
@@ -724,8 +724,7 @@ int parse_flags(int argc, char *argv[]) {
             return FAILED;
         }
         else {
-          strncpy(bu, f, e-f);
-          bu[e-f] = '\0';
+          strncpy_s(bu, sizeof(bu), f, e-f);
           bank_start = parse_int(bu);
           if (bank_start == -1) {
             return FAILED;
