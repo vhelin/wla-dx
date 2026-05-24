@@ -163,7 +163,7 @@ static int _assign_output_names(struct listfileitem **listfileitems_ptr, int cou
   struct listfile_output_name *output_names;
   int item_index, output_name_count = 0;
 
-  output_names = calloc(sizeof(struct listfile_output_name) * count, 1);
+  output_names = calloc((size_t)count, sizeof(struct listfile_output_name));
   if (output_names == NULL) {
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
@@ -807,12 +807,15 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
 
   struct listfile_source_context *source_contexts, *current_context = NULL;
   struct listfile_source_context **source_stack;
-  int context_count = 0, group_start, source_stack_count = 0, max_contexts, start;
+  int context_count = 0, group_end, group_start, source_stack_count = 0, max_contexts, start;
 
   group_start = *j;
-  max_contexts = count - group_start + 1;
-  source_contexts = calloc(sizeof(struct listfile_source_context) * max_contexts, 1);
-  source_stack = calloc(sizeof(struct listfile_source_context *) * max_contexts, 1);
+  group_end = group_start;
+  while (group_end < count && _strings_equal(listfileitems_ptr[group_end]->outputfilename, output_file_name) == YES)
+    group_end++;
+  max_contexts = group_end - group_start + 1;
+  source_contexts = calloc((size_t)max_contexts, sizeof(struct listfile_source_context));
+  source_stack = calloc((size_t)max_contexts, sizeof(struct listfile_source_context *));
   if (source_contexts == NULL || source_stack == NULL) {
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     if (source_contexts != NULL)
@@ -905,21 +908,21 @@ int listfile_write_listfiles(void) {
     return SUCCEEDED;
   }
 
-  listfileitems = calloc(sizeof(struct listfileitem) * listfile_item_count, 1);
+  listfileitems = calloc((size_t)listfile_item_count, sizeof(struct listfileitem));
   if (listfileitems == NULL) {
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
-  listfileitems_ptr = calloc(sizeof(struct listfileitem *) * listfile_item_count, 1);
+  listfileitems_ptr = calloc((size_t)listfile_item_count, sizeof(struct listfileitem *));
   if (listfileitems_ptr == NULL) {
     free(listfileitems);
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
     return FAILED;
   }
 
-  selected_sections = calloc(sizeof(struct section *) * section_count, 1);
-  if (listfileitems == NULL) {
+  selected_sections = calloc((size_t)section_count, sizeof(struct section *));
+  if (selected_sections == NULL && section_count > 0) {
     free(listfileitems);
     free(listfileitems_ptr);
     print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
@@ -1352,10 +1355,22 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   t = *d;
   t++;
   s->listfile_items = READ_T;
-  s->listfile_cmds = calloc(s->listfile_items, 1);
-  s->listfile_ints = calloc(sizeof(int) * s->listfile_items*5, 1);
+  if (s->listfile_items <= 0 || s->listfile_items > INT_MAX / 5) {
+    s->listfile_items = 0;
+    print_text(NO, "LISTFILE_BLOCK_READ: Invalid listfile item count.\n");
+    return FAILED;
+  }
+
+  s->listfile_cmds = calloc((size_t)s->listfile_items, 1);
+  s->listfile_ints = calloc((size_t)s->listfile_items, sizeof(int) * 5);
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
+    if (s->listfile_cmds != NULL)
+      free(s->listfile_cmds);
+    if (s->listfile_ints != NULL)
+      free(s->listfile_ints);
+    s->listfile_cmds = NULL;
+    s->listfile_ints = NULL;
     s->listfile_items = 0;
     print_text(NO, "LISTFILE_BLOCK_READ: Out of memory error.\n");
     return FAILED;
@@ -1408,10 +1423,22 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
   }
 
   /* we have listfile information */
-  obj->listfile_cmds = calloc(obj->listfile_items, 1);
-  obj->listfile_ints = calloc(sizeof(int) * obj->listfile_items*8, 1);
+  if (obj->listfile_items < 0 || obj->listfile_items > INT_MAX / 8) {
+    obj->listfile_items = 0;
+    print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Invalid listfile item count.\n");
+    return FAILED;
+  }
+
+  obj->listfile_cmds = calloc((size_t)obj->listfile_items, 1);
+  obj->listfile_ints = calloc((size_t)obj->listfile_items, sizeof(int) * 8);
 
   if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
+    if (obj->listfile_cmds != NULL)
+      free(obj->listfile_cmds);
+    if (obj->listfile_ints != NULL)
+      free(obj->listfile_ints);
+    obj->listfile_cmds = NULL;
+    obj->listfile_ints = NULL;
     obj->listfile_items = 0;
     print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Out of memory error.\n");
     return FAILED;
