@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22a (18.5.2026)";
+char g_version_string[] = "$VER: wlalink 5.22a (24.5.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -71,6 +71,7 @@ int g_smc_status = 0, g_snes_sramsize = 0, g_allow_duplicate_labels_and_definiti
 int g_output_type = OUTPUT_TYPE_UNDEFINED, g_c64_crt_type = C64_CRT_TYPE_UNDEFINED, g_sort_sections = YES;
 int g_num_sorted_anonymous_labels = 0, g_use_priority_only_writing_sections = NO, g_use_priority_only_writing_ramsections = NO;
 int g_emptyfill = 0, g_paths_in_linkfile_are_relative_to_linkfile = NO, g_romheader_baseaddress = -1;
+int g_listfile_next_to_object = NO;
 
 static int s_screen_dx = DEFAULT_SCREEN_DX, s_screen_dy = DEFAULT_SCREEN_DY, s_line_x = 0, s_line_y = 0, s_pause_text = NO;
 static int s_create_sizeof_definitions = YES, s_listfile_data = NO, s_symbol_mode = SYMBOL_MODE_NONE;
@@ -1141,6 +1142,10 @@ static int _parse_flags(char **flags, int flagc) {
       g_allow_duplicate_labels_and_definitions = YES;
     else if (!strcmp(flags[count], "-i"))
       s_listfile_data = YES;
+    else if (!strcmp(flags[count], "-g")) {
+      s_listfile_data = YES;
+      g_listfile_next_to_object = YES;
+    }
     else if (!strcmp(flags[count], "-nS"))
       g_sort_sections = NO;
     else if (!strcmp(flags[count], "-p"))
@@ -1310,6 +1315,7 @@ int main(int argc, char *argv[]) {
     print_text(YES, "-D  Don't create _sizeof_* definitions\n");
     print_text(YES, "-E  <LIST> Write debug exports (VICE,RGBDS,MESEN,EMULICIOUS,\n");
     print_text(YES, "    CSPECT,NOCASH,MAME,JSON)\n");
+    print_text(YES, "-g  Write one combined list file per object file (implies -i)\n");
     print_text(YES, "-i  Write list files\n");
     print_text(YES, "-L  <DIR> Library directory\n");
     print_text(YES, "-nS Don't sort the sections\n");

@@ -16,11 +16,482 @@ extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_ban
 extern struct slot g_slots[256];
 extern unsigned char *g_rom;
 extern int *g_bankaddress;
+extern int g_listfile_next_to_object;
 extern char g_version_string[];
 
 
 /* read an integer from t */
 #define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
+
+#define LISTFILE_OUTPUT_SOURCE 0
+#define LISTFILE_OUTPUT_OBJECT 1
+
+struct listfile_output_name {
+  int mode;
+  char *sourcefilename;
+  char *outputfilename;
+  struct object_file *owner;
+};
+
+struct listfile_source_context {
+  char *sourcefilename;
+  char *source_file;
+  int file_size;
+  int current_linenumber;
+  int m;
+};
+
+
+static int _strings_equal(const char *a, const char *b) {
+
+  if (a == NULL || b == NULL)
+    return a == b;
+
+  return strcmp(a, b) == 0;
+}
+
+
+static char *_string_duplicate(const char *source) {
+
+  char *copy;
+  int length;
+
+  if (source == NULL)
+    source = "";
+
+  length = (int)strlen(source) + 1;
+  copy = calloc(length, 1);
+  if (copy == NULL)
+    return NULL;
+
+  memcpy(copy, source, length);
+
+  return copy;
+}
+
+
+static const char *_get_file_name_part(const char *path) {
+
+  const char *last_separator = NULL, *current;
+
+  if (path == NULL)
+    return "";
+
+  for (current = path; *current != 0; current++) {
+    if (*current == '/' || *current == '\\')
+      last_separator = current;
+  }
+
+  if (last_separator == NULL)
+    return path;
+
+  return last_separator + 1;
+}
+
+
+static int _replace_extension_with_lst(const char *path, char *output, int output_size) {
+
+  int index, extension_index = -1, length;
+
+  if (path == NULL)
+    path = "";
+
+  if ((int)strlen(path) >= output_size)
+    return FAILED;
+
+  strcpy(output, path);
+  for (index = (int)strlen(output) - 1; index >= 0; index--) {
+    if (output[index] == '/' || output[index] == '\\')
+      break;
+    if (output[index] == '.') {
+      extension_index = index;
+      break;
+    }
+  }
+
+  if (extension_index >= 0)
+    output[extension_index] = 0;
+
+  length = (int)strlen(output);
+  if (length + 4 >= output_size)
+    return FAILED;
+
+  strcpy(&output[length], ".lst");
+
+  return SUCCEEDED;
+}
+
+
+static void _free_output_names(struct listfile_output_name *output_names, int output_name_count) {
+
+  int index;
+
+  if (output_names == NULL)
+    return;
+
+  for (index = 0; index < output_name_count; index++) {
+    if (output_names[index].outputfilename != NULL)
+      free(output_names[index].outputfilename);
+  }
+
+  free(output_names);
+}
+
+
+static int _assign_output_names(struct listfileitem **listfileitems_ptr, int count, struct listfile_output_name **output_names_out, int *output_name_count_out) {
+
+  struct listfile_output_name *output_names;
+  int item_index, output_name_count = 0;
+
+  output_names = calloc(sizeof(struct listfile_output_name) * count, 1);
+  if (output_names == NULL) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    return FAILED;
+  }
+
+  for (item_index = 0; item_index < count; item_index++) {
+    struct listfileitem *item = listfileitems_ptr[item_index];
+    char output_file_name[1024];
+    int mode, name_index, matching_index = -1;
+
+    output_file_name[0] = 0;
+
+    if (g_listfile_next_to_object == YES && item->owner != NULL && item->owner->name != NULL) {
+      mode = LISTFILE_OUTPUT_OBJECT;
+      for (name_index = 0; name_index < output_name_count; name_index++) {
+        if (output_names[name_index].mode == mode && output_names[name_index].owner == item->owner) {
+          matching_index = name_index;
+          break;
+        }
+      }
+
+      if (matching_index < 0) {
+        if (_replace_extension_with_lst(item->owner->name, output_file_name, sizeof(output_file_name)) == FAILED) {
+          print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not build listfile path for object file \"%s\".\n", item->owner->name);
+          _free_output_names(output_names, output_name_count);
+          return FAILED;
+        }
+
+        output_names[output_name_count].mode = mode;
+        output_names[output_name_count].owner = item->owner;
+        output_names[output_name_count].sourcefilename = item->sourcefilename;
+        output_names[output_name_count].outputfilename = _string_duplicate(output_file_name);
+        if (output_names[output_name_count].outputfilename == NULL) {
+          print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+          _free_output_names(output_names, output_name_count);
+          return FAILED;
+        }
+        matching_index = output_name_count++;
+      }
+    }
+    else {
+      mode = LISTFILE_OUTPUT_SOURCE;
+      for (name_index = 0; name_index < output_name_count; name_index++) {
+        if (output_names[name_index].mode == mode && _strings_equal(output_names[name_index].sourcefilename, item->sourcefilename) == YES) {
+          matching_index = name_index;
+          break;
+        }
+      }
+
+      if (matching_index < 0) {
+        if (_replace_extension_with_lst(item->sourcefilename, output_file_name, sizeof(output_file_name)) == FAILED) {
+          print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not build listfile path for source file \"%s\".\n", item->sourcefilename);
+          _free_output_names(output_names, output_name_count);
+          return FAILED;
+        }
+
+        output_names[output_name_count].mode = mode;
+        output_names[output_name_count].sourcefilename = item->sourcefilename;
+        output_names[output_name_count].outputfilename = _string_duplicate(output_file_name);
+        if (output_names[output_name_count].outputfilename == NULL) {
+          print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+          _free_output_names(output_names, output_name_count);
+          return FAILED;
+        }
+        matching_index = output_name_count++;
+      }
+    }
+
+    item->outputfilename = output_names[matching_index].outputfilename;
+  }
+
+  *output_names_out = output_names;
+  *output_name_count_out = output_name_count;
+
+  return SUCCEEDED;
+}
+
+
+static int _read_source_file(char *source_file_name, char **source_file_out, int *file_size_out, int tolerate_missing) {
+
+  FILE *file;
+  char *source_file;
+  int file_size;
+
+  *source_file_out = NULL;
+  *file_size_out = 0;
+
+  file = fopen(source_file_name, "rb");
+  if (file == NULL) {
+    if (tolerate_missing == YES) {
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not open source file \"%s\" for reading; omitting source text.\n", source_file_name);
+      return SUCCEEDED;
+    }
+
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not open source file \"%s\" for reading.\n", source_file_name);
+    return FAILED;
+  }
+
+  fseek(file, 0, SEEK_END);
+  file_size = (int)ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  source_file = calloc(file_size + 1, 1);
+  if (source_file == NULL) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    fclose(file);
+    return FAILED;
+  }
+
+  if (fread(source_file, 1, file_size, file) != (size_t)file_size) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
+    fclose(file);
+    free(source_file);
+    return FAILED;
+  }
+
+  fclose(file);
+
+  *source_file_out = source_file;
+  *file_size_out = file_size;
+
+  return SUCCEEDED;
+}
+
+
+static int _source_context_open(struct listfile_source_context *context, char *source_file_name, int tolerate_missing) {
+
+  memset(context, 0, sizeof(struct listfile_source_context));
+  context->sourcefilename = source_file_name;
+
+  return _read_source_file(source_file_name, &context->source_file, &context->file_size, tolerate_missing);
+}
+
+
+static void _source_context_free(struct listfile_source_context *context) {
+
+  if (context->source_file != NULL)
+    free(context->source_file);
+}
+
+
+static void _write_source_line_from_context(FILE *f, struct listfile_source_context *context, int chars) {
+
+  int o;
+
+  if (context == NULL || context->source_file == NULL)
+    return;
+
+  for (o = 0; o < chars; o++)
+    fprintf(f, " ");
+
+  while (context->m < context->file_size) {
+    if (context->source_file[context->m] == 0xA) {
+      context->m++;
+      if (context->m < context->file_size && context->source_file[context->m] == 0xD)
+        context->m++;
+      context->current_linenumber++;
+      fprintf(f, "\n");
+      return;
+    }
+    else
+      fprintf(f, "%c", context->source_file[context->m++]);
+  }
+
+  context->current_linenumber++;
+  fprintf(f, "\n");
+}
+
+
+static void _write_source_tail_from_context(FILE *f, struct listfile_source_context *context) {
+
+  if (context == NULL || context->source_file == NULL)
+    return;
+
+  while (context->m < context->file_size) {
+    if (context->source_file[context->m] == 0xA) {
+      context->m++;
+      if (context->m < context->file_size && context->source_file[context->m] == 0xD)
+        context->m++;
+      context->current_linenumber++;
+      fprintf(f, "\n");
+      return;
+    }
+    else
+      fprintf(f, "%c", context->source_file[context->m++]);
+  }
+
+  context->current_linenumber++;
+  fprintf(f, "\n");
+}
+
+
+static void _write_source_until_line(FILE *f, struct listfile_source_context *context, int line_number, int chars) {
+
+  while (context != NULL && context->source_file != NULL && context->current_linenumber < line_number - 1 && context->m < context->file_size)
+    _write_source_line_from_context(f, context, chars);
+}
+
+
+static void _write_source_rest(FILE *f, struct listfile_source_context *context, int chars) {
+
+  while (context != NULL && context->source_file != NULL && context->m < context->file_size)
+    _write_source_line_from_context(f, context, chars);
+}
+
+
+static int _line_contains_text(const char *line, int line_length, const char *text) {
+
+  int text_length, i;
+
+  if (line == NULL || text == NULL)
+    return NO;
+
+  text_length = (int)strlen(text);
+  if (text_length <= 0 || line_length < text_length)
+    return NO;
+
+  for (i = 0; i <= line_length - text_length; i++) {
+    if (strncmp(&line[i], text, text_length) == 0)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+static int _line_contains_text_caseless(const char *line, int line_length, const char *text) {
+
+  int text_length, i, j;
+
+  if (line == NULL || text == NULL)
+    return NO;
+
+  text_length = (int)strlen(text);
+  if (text_length <= 0 || line_length < text_length)
+    return NO;
+
+  for (i = 0; i <= line_length - text_length; i++) {
+    for (j = 0; j < text_length; j++) {
+      if (tolower((unsigned char)line[i + j]) != tolower((unsigned char)text[j]))
+        break;
+    }
+    if (j == text_length)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+static int _source_current_line_includes_file(struct listfile_source_context *context, char *target_source_file_name) {
+
+  const char *line_start, *target_base;
+  int line_length = 0;
+
+  if (context == NULL || context->source_file == NULL || target_source_file_name == NULL)
+    return NO;
+
+  line_start = &context->source_file[context->m];
+  while (context->m + line_length < context->file_size && line_start[line_length] != 0xA)
+    line_length++;
+
+  if (_line_contains_text_caseless(line_start, line_length, "include") == NO)
+    return NO;
+
+  if (_line_contains_text(line_start, line_length, target_source_file_name) == YES)
+    return YES;
+
+  target_base = _get_file_name_part(target_source_file_name);
+  if (_line_contains_text(line_start, line_length, target_base) == YES)
+    return YES;
+
+  return NO;
+}
+
+
+static int _write_source_until_include(FILE *f, struct listfile_source_context *context, char *target_source_file_name, int chars) {
+
+  while (context != NULL && context->source_file != NULL && context->m < context->file_size) {
+    if (_source_current_line_includes_file(context, target_source_file_name) == YES) {
+      _write_source_line_from_context(f, context, chars);
+      return YES;
+    }
+
+    _write_source_line_from_context(f, context, chars);
+  }
+
+  return NO;
+}
+
+
+static void _write_source_marker(FILE *f, char *source_file_name) {
+
+  fprintf(f, "\n; --- file: %s ---\n", source_file_name);
+}
+
+
+static int _create_interleaved_context(struct listfile_source_context *contexts, int max_contexts, int *context_count, char *source_file_name, struct listfile_source_context **context) {
+
+  if (*context_count >= max_contexts) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Internal source context stack overflow. Please submit a bug report!\n");
+    return FAILED;
+  }
+
+  *context = &contexts[*context_count];
+  (*context_count)++;
+
+  if (_source_context_open(*context, source_file_name, YES) == FAILED)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _switch_interleaved_source(FILE *f, char *target_source_file_name, int chars, struct listfile_source_context *contexts, int max_contexts, int *context_count, struct listfile_source_context **source_stack, int *source_stack_count, struct listfile_source_context **current_context) {
+
+  while (*current_context != NULL && _strings_equal((*current_context)->sourcefilename, target_source_file_name) == NO) {
+    if (_write_source_until_include(f, *current_context, target_source_file_name, chars) == YES) {
+      if (*source_stack_count >= max_contexts) {
+        print_text(NO, "LISTFILE_WRITE_LISTFILES: Internal source context stack overflow. Please submit a bug report!\n");
+        return FAILED;
+      }
+      source_stack[*source_stack_count] = *current_context;
+      (*source_stack_count)++;
+
+      if (_create_interleaved_context(contexts, max_contexts, context_count, target_source_file_name, current_context) == FAILED)
+        return FAILED;
+      _write_source_marker(f, target_source_file_name);
+      return SUCCEEDED;
+    }
+
+    if (*source_stack_count > 0) {
+      (*source_stack_count)--;
+      *current_context = source_stack[*source_stack_count];
+      _write_source_marker(f, (*current_context)->sourcefilename);
+    }
+    else
+      *current_context = NULL;
+  }
+
+  if (*current_context == NULL) {
+    if (_create_interleaved_context(contexts, max_contexts, context_count, target_source_file_name, current_context) == FAILED)
+      return FAILED;
+    _write_source_marker(f, target_source_file_name);
+  }
+
+  return SUCCEEDED;
+}
 
 
 static int _listfile_write_hex(FILE *f, int data) {
@@ -37,14 +508,36 @@ static int _listfile_write_hex(FILE *f, int data) {
 static int _listfileitem_sort(const void *a, const void *b) {
 
   struct listfileitem *sa, *sb;
+  int comparison;
 
   sa = *((struct listfileitem **)a);
   sb = *((struct listfileitem **)b);
 
-  if (sa->sourcefilename > sb->sourcefilename)
-    return 1;
-  else if (sa->sourcefilename < sb->sourcefilename)
-    return -1;
+  comparison = strcmp(sa->outputfilename, sb->outputfilename);
+  if (comparison != 0)
+    return comparison;
+
+  if (g_listfile_next_to_object == YES) {
+    if (sa->running_id > sb->running_id)
+      return 1;
+    else if (sa->running_id < sb->running_id)
+      return -1;
+
+    comparison = strcmp(sa->sourcefilename, sb->sourcefilename);
+    if (comparison != 0)
+      return comparison;
+
+    if (sa->linenumber > sb->linenumber)
+      return 1;
+    else if (sa->linenumber < sb->linenumber)
+      return -1;
+
+    return 0;
+  }
+
+  comparison = strcmp(sa->sourcefilename, sb->sourcefilename);
+  if (comparison != 0)
+    return comparison;
 
   if (sa->linenumber > sb->linenumber)
     return 1;
@@ -66,13 +559,163 @@ static int _get_pc(int slot, int offset) {
 }
 
 
+static void _write_listfile_item(FILE *f, struct listfileitem *item, struct listfile_source_context *source_context, int chars, char cpu_65816) {
+
+  int is_behind = NO, o, p, wrote_line;
+
+  _write_source_until_line(f, source_context, item->linenumber, chars);
+
+  if (source_context != NULL && source_context->source_file != NULL && source_context->current_linenumber > item->linenumber - 1)
+    is_behind = YES;
+  if (source_context != NULL && source_context->source_file != NULL && source_context->m >= source_context->file_size && source_context->current_linenumber < item->linenumber - 1)
+    is_behind = YES;
+
+  p = 0;
+
+  fprintf(f, "%*d ", 5, item->real_linenumber);
+  p += 6;
+  if (cpu_65816 == YES) {
+    fprintf(f, "%.4X ", item->base);
+    p += 5;
+  }
+  fprintf(f, "%.4X ", item->bank);
+  p += 5;
+  fprintf(f, "%.4X ", item->slot);
+  p += 5;
+  fprintf(f, "%.4X ", _get_pc(item->slot, item->offset));
+  p += 5;
+  fprintf(f, "%.4X   ", item->offset);
+  p += 7;
+
+  wrote_line = NO;
+  for (o = 0; o < item->length; o++) {
+    struct section *s2 = item->section;
+
+    if (s2 != NULL && s2->is_bankheader_section == YES) {
+      _listfile_write_hex(f, item->section->data[item->address + o] >> 4);
+      _listfile_write_hex(f, item->section->data[item->address + o] & 15);
+    }
+    else {
+      if (s2 != NULL && s2->appended_to == YES) {
+        struct section *s3 = s2->appended_to_section;
+        int address_new = item->address - s2->output_address + s3->output_address + s2->appended_to_offset;
+        while (s3->appended_to == YES) {
+          struct section *s4 = s3->appended_to_section;
+          address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
+          s3 = s4;
+        }
+
+        _listfile_write_hex(f, g_rom[address_new + o] >> 4);
+        _listfile_write_hex(f, g_rom[address_new + o] & 15);
+      }
+      else {
+        _listfile_write_hex(f, g_rom[item->address + o] >> 4);
+        _listfile_write_hex(f, g_rom[item->address + o] & 15);
+      }
+    }
+    fprintf(f, " ");
+    p += 3;
+    if ((o % 10) == 9 && o != 0 && o < item->length - 1) {
+      if (wrote_line == NO) {
+        wrote_line = YES;
+        while (p < chars) {
+          fprintf(f, " ");
+          p++;
+        }
+
+        if (is_behind == YES || source_context == NULL || source_context->source_file == NULL)
+          fprintf(f, "\n");
+        else
+          _write_source_tail_from_context(f, source_context);
+      }
+      else
+        fprintf(f, "\n");
+
+      p = 0;
+    }
+  }
+
+  if (is_behind == YES || source_context == NULL || source_context->source_file == NULL)
+    fprintf(f, "\n");
+  else {
+    if (wrote_line == NO) {
+      while (p < chars) {
+        fprintf(f, " ");
+        p++;
+      }
+
+      _write_source_tail_from_context(f, source_context);
+    }
+    else
+      fprintf(f, "\n");
+  }
+}
+
+
+static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileitems_ptr, int count, int *j, char *output_file_name, int chars, char cpu_65816) {
+
+  struct listfile_source_context *source_contexts, *current_context = NULL;
+  struct listfile_source_context **source_stack;
+  int context_count = 0, source_stack_count = 0, max_contexts, start;
+
+  start = *j;
+  max_contexts = count - start + 1;
+  source_contexts = calloc(sizeof(struct listfile_source_context) * max_contexts, 1);
+  source_stack = calloc(sizeof(struct listfile_source_context *) * max_contexts, 1);
+  if (source_contexts == NULL || source_stack == NULL) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
+    if (source_contexts != NULL)
+      free(source_contexts);
+    if (source_stack != NULL)
+      free(source_stack);
+    return FAILED;
+  }
+
+  while (*j < count && _strings_equal(listfileitems_ptr[*j]->outputfilename, output_file_name) == YES) {
+    struct listfileitem *item = listfileitems_ptr[*j];
+
+    if (_switch_interleaved_source(f, item->sourcefilename, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context) == FAILED) {
+      int i;
+      for (i = 0; i < context_count; i++)
+        _source_context_free(&source_contexts[i]);
+      free(source_contexts);
+      free(source_stack);
+      return FAILED;
+    }
+
+    _write_listfile_item(f, item, current_context, chars, cpu_65816);
+    (*j)++;
+  }
+
+  while (current_context != NULL) {
+    _write_source_rest(f, current_context, chars);
+    if (source_stack_count > 0) {
+      source_stack_count--;
+      current_context = source_stack[source_stack_count];
+      _write_source_marker(f, current_context->sourcefilename);
+    }
+    else
+      current_context = NULL;
+  }
+
+  for (start = 0; start < context_count; start++)
+    _source_context_free(&source_contexts[start]);
+  free(source_contexts);
+  free(source_stack);
+
+  return SUCCEEDED;
+}
+
+
 int listfile_write_listfiles(void) {
 
   struct listfileitem *listfileitems, **listfileitems_ptr;
+  struct listfile_output_name *output_names = NULL;
   struct section *s, **selected_sections;
   struct object_file *obj;
   int count, i, j, current_linenumber, m, o, p, source_file_id = -1, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
-  char command, tmp[1024], *source_file, *source_file_name, cpu_65816 = NO;
+  int output_name_count = 0;
+  char command, *source_file, *source_file_name, *output_file_name, cpu_65816 = NO;
 
   /* count the listfile items */
   s = g_sec_first;
@@ -171,6 +814,7 @@ int listfile_write_listfiles(void) {
         /* new line */
         if (s->listfile_ints[j*5 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(s->file_id, source_file_id);
+          listfileitems[count].owner = get_file(s->file_id);
           listfileitems[count].linenumber = s->listfile_ints[j*5 + 0];
           listfileitems[count].length = s->listfile_ints[j*5 + 1];
           listfileitems[count].section = s;
@@ -247,6 +891,7 @@ int listfile_write_listfiles(void) {
         /* new line */
         if (obj->listfile_ints[j*8 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(obj->id, source_file_id);
+          listfileitems[count].owner = obj;
           listfileitems[count].linenumber = obj->listfile_ints[j*8 + 0];
           listfileitems[count].length = obj->listfile_ints[j*8 + 1];
           listfileitems[count].section = NULL;
@@ -288,6 +933,18 @@ int listfile_write_listfiles(void) {
   
   free(selected_sections);
 
+  if (count <= 0) {
+    free(listfileitems);
+    free(listfileitems_ptr);
+    return SUCCEEDED;
+  }
+
+  if (_assign_output_names(listfileitems_ptr, count, &output_names, &output_name_count) == FAILED) {
+    free(listfileitems);
+    free(listfileitems_ptr);
+    return FAILED;
+  }
+
   /* sort the listfileitems (lexical order) */
   qsort(listfileitems_ptr, count, sizeof(struct listfileitem *), _listfileitem_sort);
 
@@ -298,48 +955,15 @@ int listfile_write_listfiles(void) {
   /* write the listfiles */
   j = 0;
   while (j < count) {
-    int file_size;
     FILE *f;
 
-    source_file_name = listfileitems_ptr[j]->sourcefilename;
-    f = fopen(source_file_name, "rb");
-    fseek(f, 0, SEEK_END);
-    file_size = (int)ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    source_file = calloc(file_size, 1);
-    if (source_file == NULL) {
-      print_text(NO, "LISTFILE_WRITE_LISTFILES: Out of memory error.\n");
-      fclose(f);
-      free(listfileitems);
-      free(listfileitems_ptr);
-      return FAILED;
-    }
-
-    if (fread(source_file, 1, file_size, f) != (size_t)file_size) {
-      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not read all %d bytes of \"%s\"!", file_size, source_file_name);
-      fclose(f);
-      free(listfileitems);
-      free(listfileitems_ptr);
-      free(source_file);
-      return FAILED;
-    }
-  
-    fclose(f);
-
-    strcpy(tmp, source_file_name);
-    for (i = (int)(strlen(tmp)-1); i >= 0; i--) {
-      if (tmp[i] == '.')
-        break;
-    }
-    strcpy(&tmp[i], ".lst");
-
-    f = fopen(tmp, "wb");
+    output_file_name = listfileitems_ptr[j]->outputfilename;
+    f = fopen(output_file_name, "wb");
     if (f == NULL) {
-      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", tmp);
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Could not open file \"%s\" for writing.\n", output_file_name);
       free(listfileitems);
       free(listfileitems_ptr);
-      free(source_file);
+      _free_output_names(output_names, output_name_count);
       return FAILED;
     }
 
@@ -361,128 +985,44 @@ int listfile_write_listfiles(void) {
       fprintf(f, ";Line Base Bank Slot PC   Offset Hex\n");
     else
       fprintf(f, ";Line Bank Slot PC   Offset Hex                             Source\n");
+
+    if (g_listfile_next_to_object == YES) {
+      if (_write_interleaved_listfile(f, listfileitems_ptr, count, &j, output_file_name, chars, cpu_65816) == FAILED) {
+        fclose(f);
+        free(listfileitems);
+        free(listfileitems_ptr);
+        _free_output_names(output_names, output_name_count);
+        return FAILED;
+      }
+    }
+    else {
     
-    /* write the lines */
-    current_linenumber = 0;
-    m = 0;
+      while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES) {
+      int file_size;
 
-    while (j < count && strcmp(listfileitems_ptr[j]->sourcefilename, source_file_name) == 0) {
-      int is_behind = NO;
+      source_file_name = listfileitems_ptr[j]->sourcefilename;
+      source_file = NULL;
 
-      /* goto line x */
-      while (current_linenumber < listfileitems_ptr[j]->linenumber-1) {
-        for (o = 0; o < chars; o++)
-          fprintf(f, " ");
-        while (1) {
-          if (source_file[m] == 0xA) {
-            m++;
-            if (m < file_size && source_file[m] == 0xD)
-              m++;
-            current_linenumber++;
-            fprintf(f, "\n");
-            break;
-          }
-          else
-            fprintf(f, "%c", source_file[m++]);
-        }
+      if (_read_source_file(source_file_name, &source_file, &file_size, NO) == FAILED) {
+        fclose(f);
+        free(listfileitems);
+        free(listfileitems_ptr);
+        _free_output_names(output_names, output_name_count);
+        return FAILED;
       }
 
-      if (current_linenumber > listfileitems_ptr[j]->linenumber-1)
-        is_behind = YES;
+      /* write the lines */
+      current_linenumber = 0;
+      m = 0;
 
-      p = 0;
+      while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES &&
+             _strings_equal(listfileitems_ptr[j]->sourcefilename, source_file_name) == YES) {
+        int is_behind = NO;
 
-      fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
-      p += 6;
-      if (cpu_65816 == YES) {
-        fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
-        p += 5;
-      }
-      fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
-      p += 5;
-      fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
-      p += 5;
-      fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
-      p += 5;
-      fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
-      p += 7;
-      
-      /* write the bytes */
-      wrote_line = NO;
-      for (o = 0; o < listfileitems_ptr[j]->length; o++) {
-        struct section *s2 = listfileitems_ptr[j]->section;
-        
-        if (s2 != NULL && s2->is_bankheader_section == YES) {
-          _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
-          _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
-        }
-        else {
-          if (s2 != NULL && s2->appended_to == YES) {
-            /* this loop finds the target of possibly chained appendto secions */
-            struct section *s3 = s2->appended_to_section;
-            int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
-            while (s3->appended_to == YES) {
-              struct section *s4 = s3->appended_to_section;
-              address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
-              s3 = s4;
-            }
-            
-            _listfile_write_hex(f, g_rom[address_new + o] >> 4);
-            _listfile_write_hex(f, g_rom[address_new + o] & 15);
-          }
-          else {
-            _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
-            _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
-          }
-        }
-        fprintf(f, " ");
-        p += 3;
-        if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
-          if (wrote_line == NO) {
-            /* write padding */
-            wrote_line = YES;
-            while (p < chars) {
-              fprintf(f, " ");
-              p++;
-            }
-
-            if (is_behind == YES)
-              fprintf(f, "\n");
-            else {
-              /* write the rest of the line */
-              while (m < file_size) {
-                if (source_file[m] == 0xA) {
-                  m++;
-                  if (m < file_size && source_file[m] == 0xD)
-                    m++;
-                  current_linenumber++;
-                  fprintf(f, "\n");
-                  break;
-                }
-                else
-                  fprintf(f, "%c", source_file[m++]);
-              }
-            }
-          }
-          else
-            fprintf(f, "\n");
-
-          p = 0;
-        }
-      }
-
-      if (is_behind == YES)
-        fprintf(f, "\n");
-      else {
-        /* has the line been written already? */
-        if (wrote_line == NO) {
-          /* write padding */
-          while (p < chars) {
+        /* goto line x */
+        while (source_file != NULL && current_linenumber < listfileitems_ptr[j]->linenumber-1 && m < file_size) {
+          for (o = 0; o < chars; o++)
             fprintf(f, " ");
-            p++;
-          }
-
-          /* write the rest of the line */
           while (m < file_size) {
             if (source_file[m] == 0xA) {
               m++;
@@ -496,36 +1036,151 @@ int listfile_write_listfiles(void) {
               fprintf(f, "%c", source_file[m++]);
           }
         }
-        else
-          fprintf(f, "\n");
-      }
-      
-      j++;
-    }
 
-    /* write the rest of the file */
-    while (m < file_size) {
-      for (o = 0; o < chars; o++)
-        fprintf(f, " ");
-      while (m < file_size) {
-        if (source_file[m] == 0xA) {
-          m++;
-          if (m < file_size && source_file[m] == 0xD)
-            m++;
-          fprintf(f, "\n");
-          break;
+        if (source_file != NULL && current_linenumber > listfileitems_ptr[j]->linenumber-1)
+          is_behind = YES;
+        if (source_file != NULL && m >= file_size && current_linenumber < listfileitems_ptr[j]->linenumber-1)
+          is_behind = YES;
+
+        p = 0;
+
+        fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
+        p += 6;
+        if (cpu_65816 == YES) {
+          fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
+          p += 5;
         }
-        else
-          fprintf(f, "%c", source_file[m++]);
+        fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
+        p += 5;
+        fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
+        p += 5;
+        fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
+        p += 5;
+        fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
+        p += 7;
+
+        /* write the bytes */
+        wrote_line = NO;
+        for (o = 0; o < listfileitems_ptr[j]->length; o++) {
+          struct section *s2 = listfileitems_ptr[j]->section;
+
+          if (s2 != NULL && s2->is_bankheader_section == YES) {
+            _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
+            _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
+          }
+          else {
+            if (s2 != NULL && s2->appended_to == YES) {
+              /* this loop finds the target of possibly chained appendto secions */
+              struct section *s3 = s2->appended_to_section;
+              int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
+              while (s3->appended_to == YES) {
+                struct section *s4 = s3->appended_to_section;
+                address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
+                s3 = s4;
+              }
+
+              _listfile_write_hex(f, g_rom[address_new + o] >> 4);
+              _listfile_write_hex(f, g_rom[address_new + o] & 15);
+            }
+            else {
+              _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
+              _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
+            }
+          }
+          fprintf(f, " ");
+          p += 3;
+          if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
+            if (wrote_line == NO) {
+              /* write padding */
+              wrote_line = YES;
+              while (p < chars) {
+                fprintf(f, " ");
+                p++;
+              }
+
+              if (is_behind == YES || source_file == NULL)
+                fprintf(f, "\n");
+              else {
+                /* write the rest of the line */
+                while (m < file_size) {
+                  if (source_file[m] == 0xA) {
+                    m++;
+                    if (m < file_size && source_file[m] == 0xD)
+                      m++;
+                    current_linenumber++;
+                    fprintf(f, "\n");
+                    break;
+                  }
+                  else
+                    fprintf(f, "%c", source_file[m++]);
+                }
+              }
+            }
+            else
+              fprintf(f, "\n");
+
+            p = 0;
+          }
+        }
+
+        if (is_behind == YES || source_file == NULL)
+          fprintf(f, "\n");
+        else {
+          /* has the line been written already? */
+          if (wrote_line == NO) {
+            /* write padding */
+            while (p < chars) {
+              fprintf(f, " ");
+              p++;
+            }
+
+            /* write the rest of the line */
+            while (m < file_size) {
+              if (source_file[m] == 0xA) {
+                m++;
+                if (m < file_size && source_file[m] == 0xD)
+                  m++;
+                current_linenumber++;
+                fprintf(f, "\n");
+                break;
+              }
+              else
+                fprintf(f, "%c", source_file[m++]);
+            }
+          }
+          else
+            fprintf(f, "\n");
+        }
+
+        j++;
+      }
+
+      /* write the rest of the file */
+      while (source_file != NULL && m < file_size) {
+        for (o = 0; o < chars; o++)
+          fprintf(f, " ");
+        while (m < file_size) {
+          if (source_file[m] == 0xA) {
+            m++;
+            if (m < file_size && source_file[m] == 0xD)
+              m++;
+            fprintf(f, "\n");
+            break;
+          }
+          else
+            fprintf(f, "%c", source_file[m++]);
+        }
+      }
+
+      if (source_file != NULL)
+        free(source_file);
       }
     }
 
     fclose(f);
-
-    if (source_file != NULL)
-      free(source_file);
   }
 
+  _free_output_names(output_names, output_name_count);
   if (listfileitems != NULL)
     free(listfileitems);
   if (listfileitems_ptr != NULL)

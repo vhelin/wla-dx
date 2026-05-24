@@ -2,8 +2,13 @@
 #ifndef __LISTFILE_H
 #define __LISTFILE_H
 
+struct object_file;
+struct section;
+
 struct listfileitem {
   char *sourcefilename;
+  char *outputfilename;
+  struct object_file *owner;
   int  linenumber;
   int  real_linenumber;
   int  address;
