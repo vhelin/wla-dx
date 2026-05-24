@@ -10,12 +10,6 @@ move wlab TO /binaries
 make -f makefile.amiga clean
 /
 
-cd wlad
-make -f makefile.amiga
-move wlad TO /binaries
-make -f makefile.amiga clean
-/
-
 echo **************************
 echo * compiling WLA binaries *
 echo **************************

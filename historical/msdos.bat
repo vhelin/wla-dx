@@ -7,14 +7,6 @@ move wlab.exe ..\binaries
 make clean
 cd ..
 
-cd wlad
-copy makefile.msdos makefile
-make clean
-make
-move wlad.exe ..\binaries
-make clean
-cd ..
-
 copy makefiles\makefile.msdos.gb MAKEFILE
 make clean
 make

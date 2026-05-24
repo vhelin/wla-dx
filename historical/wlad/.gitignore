@@ -1,6 +1,0 @@
-#The makefile should in fact be ignored, because it will be generated automatically
-#from build scripts.
-#I do not know a good regex for this, so
-makefile
-MAKEFILE
-Makefile
