@@ -90,6 +90,24 @@
 #define SYMBOL_MODE_EQU     3
 #define SYMBOL_MODE_MAME    4
 
+#define LISTFILE_OUTPUT_SOURCE 0
+#define LISTFILE_OUTPUT_OBJECT 1
+
+struct listfile_output_name {
+  int mode;
+  char *sourcefilename;
+  char *outputfilename;
+  struct object_file *owner;
+};
+
+struct listfile_source_context {
+  char *sourcefilename;
+  char *source_file;
+  int file_size;
+  int current_linenumber;
+  int m;
+};
+
 struct source_file_name {
   char *name;
   int  id;

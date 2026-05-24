@@ -25,24 +25,6 @@ extern char g_version_string[];
 /* read an integer from t */
 #define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
 
-#define LISTFILE_OUTPUT_SOURCE 0
-#define LISTFILE_OUTPUT_OBJECT 1
-
-struct listfile_output_name {
-  int mode;
-  char *sourcefilename;
-  char *outputfilename;
-  struct object_file *owner;
-};
-
-struct listfile_source_context {
-  char *sourcefilename;
-  char *source_file;
-  int file_size;
-  int current_linenumber;
-  int m;
-};
-
 
 static int _strings_equal(const char *a, const char *b) {
 
@@ -1110,6 +1092,9 @@ int listfile_write_listfiles(void) {
   /* write the listfiles */
   j = 0;
   while (j < count) {
+    char time_buffer[32];
+    struct tm* tm_info;
+    time_t timer;
     FILE *f;
 
     output_file_name = listfileitems_ptr[j]->outputfilename;
@@ -1123,17 +1108,13 @@ int listfile_write_listfiles(void) {
     }
 
     fprintf(f, "; WLALINK (%s) listing file\n", g_version_string);
-    {
-      time_t timer;
-      char time_buffer[32];
-      struct tm* tm_info;
 
-      timer = time(NULL);
-      tm_info = localtime(&timer);
+    timer = time(NULL);
+    tm_info = localtime(&timer);
 
-      strftime(time_buffer, 32, "%Y-%m-%d %H:%M:%S", tm_info);
-      fprintf(f, "; %s\n", time_buffer);
-    }
+    strftime(time_buffer, 32, "%Y-%m-%d %H:%M:%S", tm_info);
+    fprintf(f, "; %s\n", time_buffer);
+
     fprintf(f, "\n");
     
     if (cpu_65816 == YES)
@@ -1151,31 +1132,157 @@ int listfile_write_listfiles(void) {
       }
     }
     else {
-    
       while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES) {
-      int file_size;
+        int file_size;
 
-      source_file_name = listfileitems_ptr[j]->sourcefilename;
-      source_file = NULL;
+        source_file_name = listfileitems_ptr[j]->sourcefilename;
+        source_file = NULL;
 
-      if (_read_source_file(source_file_name, &source_file, &file_size, NO) == FAILED) {
-        fclose(f);
-        free(listfileitems);
-        free(listfileitems_ptr);
-        _free_output_names(output_names, output_name_count);
-        return FAILED;
-      }
+        if (_read_source_file(source_file_name, &source_file, &file_size, NO) == FAILED) {
+          fclose(f);
+          free(listfileitems);
+          free(listfileitems_ptr);
+          _free_output_names(output_names, output_name_count);
+          return FAILED;
+        }
 
-      /* write the lines */
-      current_linenumber = 0;
-      m = 0;
+        /* write the lines */
+        current_linenumber = 0;
+        m = 0;
 
-      while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES &&
-             _strings_equal(listfileitems_ptr[j]->sourcefilename, source_file_name) == YES) {
-        int is_behind = NO;
+        while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES &&
+               _strings_equal(listfileitems_ptr[j]->sourcefilename, source_file_name) == YES) {
+          int is_behind = NO;
 
-        /* goto line x */
-        while (source_file != NULL && current_linenumber < listfileitems_ptr[j]->linenumber-1 && m < file_size) {
+          /* goto line x */
+          while (source_file != NULL && current_linenumber < listfileitems_ptr[j]->linenumber-1 && m < file_size) {
+            for (o = 0; o < chars; o++)
+              fprintf(f, " ");
+            while (m < file_size) {
+              if (_source_is_line_break(source_file[m]) == YES) {
+                _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
+                fprintf(f, "\n");
+                break;
+              }
+              else
+                fprintf(f, "%c", source_file[m++]);
+            }
+          }
+
+          if (source_file != NULL && current_linenumber > listfileitems_ptr[j]->linenumber-1)
+            is_behind = YES;
+          if (source_file != NULL && m >= file_size && current_linenumber < listfileitems_ptr[j]->linenumber-1)
+            is_behind = YES;
+
+          p = 0;
+
+          fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
+          p += 6;
+          if (cpu_65816 == YES) {
+            fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
+            p += 5;
+          }
+          fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
+          p += 5;
+          fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
+          p += 5;
+          fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
+          p += 5;
+          fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
+          p += 7;
+
+          /* write the bytes */
+          wrote_line = NO;
+          for (o = 0; o < listfileitems_ptr[j]->length; o++) {
+            struct section *s2 = listfileitems_ptr[j]->section;
+            
+            if (s2 != NULL && s2->is_bankheader_section == YES) {
+              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
+              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
+            }
+            else {
+              if (s2 != NULL && s2->appended_to == YES) {
+                /* this loop finds the target of possibly chained appendto secions */
+                struct section *s3 = s2->appended_to_section;
+                int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
+                while (s3->appended_to == YES) {
+                  struct section *s4 = s3->appended_to_section;
+                  address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
+                  s3 = s4;
+                }
+                
+                _listfile_write_hex(f, g_rom[address_new + o] >> 4);
+                _listfile_write_hex(f, g_rom[address_new + o] & 15);
+              }
+              else {
+                _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
+                _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
+              }
+            }
+            fprintf(f, " ");
+            p += 3;
+            if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
+              if (wrote_line == NO) {
+                /* write padding */
+                wrote_line = YES;
+                while (p < chars) {
+                  fprintf(f, " ");
+                  p++;
+                }
+
+                if (is_behind == YES || source_file == NULL)
+                  fprintf(f, "\n");
+                else {
+                  /* write the rest of the line */
+                  while (m < file_size) {
+                    if (_source_is_line_break(source_file[m]) == YES) {
+                      _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
+                      fprintf(f, "\n");
+                      break;
+                    }
+                    else
+                      fprintf(f, "%c", source_file[m++]);
+                  }
+                }
+              }
+              else
+                fprintf(f, "\n");
+              
+              p = 0;
+            }
+          }
+          
+          if (is_behind == YES || source_file == NULL)
+            fprintf(f, "\n");
+          else {
+            /* has the line been written already? */
+            if (wrote_line == NO) {
+              /* write padding */
+              while (p < chars) {
+                fprintf(f, " ");
+                p++;
+              }
+
+              /* write the rest of the line */
+              while (m < file_size) {
+                if (_source_is_line_break(source_file[m]) == YES) {
+                  _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
+                  fprintf(f, "\n");
+                  break;
+                }
+                else
+                  fprintf(f, "%c", source_file[m++]);
+              }
+            }
+            else
+              fprintf(f, "\n");
+          }
+
+          j++;
+        }
+
+        /* write the rest of the file */
+        while (source_file != NULL && m < file_size) {
           for (o = 0; o < chars; o++)
             fprintf(f, " ");
           while (m < file_size) {
@@ -1189,135 +1296,8 @@ int listfile_write_listfiles(void) {
           }
         }
 
-        if (source_file != NULL && current_linenumber > listfileitems_ptr[j]->linenumber-1)
-          is_behind = YES;
-        if (source_file != NULL && m >= file_size && current_linenumber < listfileitems_ptr[j]->linenumber-1)
-          is_behind = YES;
-
-        p = 0;
-
-        fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
-        p += 6;
-        if (cpu_65816 == YES) {
-          fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
-          p += 5;
-        }
-        fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
-        p += 5;
-        fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
-        p += 5;
-        fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
-        p += 5;
-        fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
-        p += 7;
-
-        /* write the bytes */
-        wrote_line = NO;
-        for (o = 0; o < listfileitems_ptr[j]->length; o++) {
-          struct section *s2 = listfileitems_ptr[j]->section;
-
-          if (s2 != NULL && s2->is_bankheader_section == YES) {
-            _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
-            _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
-          }
-          else {
-            if (s2 != NULL && s2->appended_to == YES) {
-              /* this loop finds the target of possibly chained appendto secions */
-              struct section *s3 = s2->appended_to_section;
-              int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
-              while (s3->appended_to == YES) {
-                struct section *s4 = s3->appended_to_section;
-                address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
-                s3 = s4;
-              }
-
-              _listfile_write_hex(f, g_rom[address_new + o] >> 4);
-              _listfile_write_hex(f, g_rom[address_new + o] & 15);
-            }
-            else {
-              _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
-              _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
-            }
-          }
-          fprintf(f, " ");
-          p += 3;
-          if ((o % 10) == 9 && o != 0 && o < listfileitems_ptr[j]->length-1) {
-            if (wrote_line == NO) {
-              /* write padding */
-              wrote_line = YES;
-              while (p < chars) {
-                fprintf(f, " ");
-                p++;
-              }
-
-              if (is_behind == YES || source_file == NULL)
-                fprintf(f, "\n");
-              else {
-                /* write the rest of the line */
-                while (m < file_size) {
-                  if (_source_is_line_break(source_file[m]) == YES) {
-                    _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
-                    fprintf(f, "\n");
-                    break;
-                  }
-                  else
-                    fprintf(f, "%c", source_file[m++]);
-                }
-              }
-            }
-            else
-              fprintf(f, "\n");
-
-            p = 0;
-          }
-        }
-
-        if (is_behind == YES || source_file == NULL)
-          fprintf(f, "\n");
-        else {
-          /* has the line been written already? */
-          if (wrote_line == NO) {
-            /* write padding */
-            while (p < chars) {
-              fprintf(f, " ");
-              p++;
-            }
-
-            /* write the rest of the line */
-            while (m < file_size) {
-              if (_source_is_line_break(source_file[m]) == YES) {
-                _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
-                fprintf(f, "\n");
-                break;
-              }
-              else
-                fprintf(f, "%c", source_file[m++]);
-            }
-          }
-          else
-            fprintf(f, "\n");
-        }
-
-        j++;
-      }
-
-      /* write the rest of the file */
-      while (source_file != NULL && m < file_size) {
-        for (o = 0; o < chars; o++)
-          fprintf(f, " ");
-        while (m < file_size) {
-          if (_source_is_line_break(source_file[m]) == YES) {
-            _source_buffer_skip_line_break(source_file, file_size, &m, &current_linenumber);
-            fprintf(f, "\n");
-            break;
-          }
-          else
-            fprintf(f, "%c", source_file[m++]);
-        }
-      }
-
-      if (source_file != NULL)
-        free(source_file);
+        if (source_file != NULL)
+          free(source_file);
       }
     }
 
