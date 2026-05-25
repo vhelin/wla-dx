@@ -291,3 +291,11 @@ BANKS 1
         in a,(F13_NEG($20,$0e)) ; @BT DB 12
         out (F13_RST($30,$04)),a ; @BT D3 34
         .db "<13"               ; @BT END
+
+        .ORGA $1000
+        .db "14>"               ; @BT TEST-14 14 START
+dotted.S:
+        .dw dotted.S             ; @BT 03 10
+dotted.LIL:
+        .dw dotted.LIL           ; @BT 05 10
+        .db "<14"               ; @BT END

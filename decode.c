@@ -52,7 +52,7 @@ static int s_parser_source_index;
 #if defined(EZ80)
 static int s_ez80_adl_prefix;
 
-static int _ez80_get_adl_prefix(void) {
+static int _ez80_get_adl_prefix(int *suffix_position) {
 
   char *dot;
   char suffix[4];
@@ -82,10 +82,20 @@ static int _ez80_get_adl_prefix(void) {
   else
     return 0;
 
+  *suffix_position = (int)(dot - g_tmp);
   *dot = 0;
-  g_ss = (int)(dot - g_tmp);
+  g_ss = *suffix_position;
 
   return i;
+}
+
+static void _ez80_restore_adl_suffix(int suffix_position, int original_ss) {
+
+  if (suffix_position < 0)
+    return;
+
+  g_tmp[suffix_position] = '.';
+  g_ss = original_ss;
 }
 
 static int _ez80_use_24bit_immediate(void) {
@@ -1898,6 +1908,8 @@ int evaluate_token(void) {
 #endif
 #if defined(EZ80)
   int ez80_adl_prefix;
+  int ez80_adl_original_ss;
+  int ez80_adl_suffix_position;
 #endif
 
 #if defined(CX4)
@@ -1908,6 +1920,8 @@ int evaluate_token(void) {
 #if defined(EZ80)
   s_ez80_adl_prefix = 0;
   ez80_adl_prefix = 0;
+  ez80_adl_original_ss = 0;
+  ez80_adl_suffix_position = -1;
 #endif
 
   /* are we in an enum, ramsection, or struct? */
@@ -1971,9 +1985,12 @@ int evaluate_token(void) {
   }
 
 #if defined(EZ80)
-  ez80_adl_prefix = _ez80_get_adl_prefix();
-  if (g_ss == 0)
+  ez80_adl_original_ss = g_ss;
+  ez80_adl_prefix = _ez80_get_adl_prefix(&ez80_adl_suffix_position);
+  if (g_ss == 0) {
+    _ez80_restore_adl_suffix(ez80_adl_suffix_position, ez80_adl_original_ss);
     return EVALUATE_TOKEN_NOT_IDENTIFIED;
+  }
 #endif
 
   /* INSTRUCTION? */
@@ -10689,6 +10706,7 @@ int evaluate_token(void) {
   g_input_number_error_msg = YES;
 #if defined(EZ80)
   s_ez80_adl_prefix = 0;
+  _ez80_restore_adl_suffix(ez80_adl_suffix_position, ez80_adl_original_ss);
 #endif
 
   return EVALUATE_TOKEN_NOT_IDENTIFIED;
