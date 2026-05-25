@@ -13694,9 +13694,9 @@ int parse_directive(void) {
         return FAILED;
       }
 
-      if (strcaselesscmp(g_tmp, "ON") == 0 || strcmp(g_tmp, "1") == 0)
+      if (strcaselesscmp(g_tmp, "ON") == 0)
         g_ez80_adl_mode = 1;
-      else if (strcaselesscmp(g_tmp, "OFF") == 0 || strcmp(g_tmp, "0") == 0)
+      else if (strcaselesscmp(g_tmp, "OFF") == 0)
         g_ez80_adl_mode = 0;
       else {
         print_error(ERROR_DIR, ".ADL expects ON or OFF.\n");
