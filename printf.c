@@ -295,6 +295,41 @@ static size_t _ntoa_long(out_fct_type out, char* buffer, size_t idx, size_t maxl
   return _ntoa_format(out, buffer, idx, maxlen, buf, len, negative, (unsigned int)base, prec, width, flags);
 }
 
+
+/* internal itoa for pointer values without pointer-to-integer casts */
+static size_t _ntoa_pointer(out_fct_type out, char* buffer, size_t idx, size_t maxlen, const void* value, unsigned int width, unsigned int flags)
+{
+  const unsigned char *bytes = (const unsigned char *)&value;
+  const unsigned int endian_value = 1U;
+  const int little_endian = *((const unsigned char *)&endian_value) == 1U ? YES : NO;
+  char buf[PRINTF_NTOA_BUFFER_SIZE];
+  size_t len = 0U;
+  size_t i;
+
+  if (little_endian == YES) {
+    for (i = 0U; i < sizeof(value) && len + 2U <= PRINTF_NTOA_BUFFER_SIZE; i++) {
+      unsigned int digit;
+      unsigned int byte = bytes[i];
+      digit = byte & 0x0FU;
+      buf[len++] = (char)(digit < 10U ? '0' + digit : 'A' + digit - 10U);
+      digit = (byte >> 4U) & 0x0FU;
+      buf[len++] = (char)(digit < 10U ? '0' + digit : 'A' + digit - 10U);
+    }
+  }
+  else {
+    for (i = sizeof(value); i > 0U && len + 2U <= PRINTF_NTOA_BUFFER_SIZE; i--) {
+      unsigned int digit;
+      unsigned int byte = bytes[i - 1U];
+      digit = byte & 0x0FU;
+      buf[len++] = (char)(digit < 10U ? '0' + digit : 'A' + digit - 10U);
+      digit = (byte >> 4U) & 0x0FU;
+      buf[len++] = (char)(digit < 10U ? '0' + digit : 'A' + digit - 10U);
+    }
+  }
+
+  return _out_rev(out, buffer, idx, maxlen, buf, len, width, flags);
+}
+
 #if defined(PRINTF_SUPPORT_FLOAT)
 
 /* internal ftoa for fixed decimal floating point */
@@ -653,7 +688,7 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
         void *value = va_arg(va, void*);
         width = sizeof(void*) * 2U;
         flags |= FLAGS_ZEROPAD | FLAGS_UPPERCASE;
-        idx = _ntoa_long(out, buffer, idx, maxlen, (unsigned long)value, NO, 16U, precision, width, flags);
+        idx = _ntoa_pointer(out, buffer, idx, maxlen, value, width, flags);
         format++;
         break;
       }
