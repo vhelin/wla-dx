@@ -1,6 +1,6 @@
 
 /*
-  wla - part of wla dx gb-z80/z80/z80n/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX/Cx4
+  wla - part of wla dx gb-z80/z80/z80n/ez80/6502/65c02/68000/6800/6801/6809/65816/huc6280/spc-700/8008/8080/SuperFX/Cx4/SH-2
   macro assembler package by ville helin <ville.helin@iki.fi>. this is gpl software.
 */
 
@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (24.5.2026)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.7a (25.5.2026)";
 char s_wla_version[] = "10.7";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;

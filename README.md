@@ -2,7 +2,7 @@ WLA DX (Wzonka-Lad Assembler Deluxe)
 ====================================
 
 WLA DX - Yet Another ANSI C 
-GB-Z80/Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX
+GB-Z80/Cx4/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX
 Multi Platform Cross Assembler Package
 
 Azure Pipelines CI:
@@ -29,6 +29,7 @@ Supported architectures are:
 
 * Z80
 * Z80N
+* eZ80
 * GB (GB-Z80)
 * Cx4
 * 6502

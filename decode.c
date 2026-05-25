@@ -42,8 +42,62 @@ extern int g_use_wdc_standard;
 extern int g_input_number_expects_dot;
 #endif
 
+#if defined(EZ80)
+extern int g_ez80_adl_mode;
+#endif
+
 static struct instruction *s_instruction_tmp;
 static int s_parser_source_index;
+
+#if defined(EZ80)
+static int s_ez80_adl_prefix;
+
+static int _ez80_get_adl_prefix(void) {
+
+  char *dot;
+  char suffix[4];
+  int suffix_length;
+  int i;
+
+  dot = strrchr(g_tmp, '.');
+  if (dot == NULL || dot == g_tmp)
+    return 0;
+
+  suffix_length = (int)strlen(dot + 1);
+  if (!(suffix_length == 1 || suffix_length == 3))
+    return 0;
+
+  for (i = 0; i < suffix_length; i++)
+    suffix[i] = (char)toupper((int)dot[i + 1]);
+  suffix[suffix_length] = 0;
+
+  if (strcmp(suffix, "S") == 0 || strcmp(suffix, "SIS") == 0)
+    i = 0x40;
+  else if (strcmp(suffix, "LIS") == 0)
+    i = 0x49;
+  else if (strcmp(suffix, "SIL") == 0)
+    i = 0x52;
+  else if (strcmp(suffix, "L") == 0 || strcmp(suffix, "LIL") == 0)
+    i = 0x5B;
+  else
+    return 0;
+
+  *dot = 0;
+  g_ss = (int)(dot - g_tmp);
+
+  return i;
+}
+
+static int _ez80_use_24bit_immediate(void) {
+
+  if (s_ez80_adl_prefix == 0x40 || s_ez80_adl_prefix == 0x49)
+    return NO;
+  if (s_ez80_adl_prefix == 0x52 || s_ez80_adl_prefix == 0x5B)
+    return YES;
+
+  return g_ez80_adl_mode;
+}
+#endif
 
 #if defined(SH2)
 static void _sh2_clear_delay_slot(void);
@@ -62,6 +116,13 @@ static void _output_assembled_instruction(struct instruction *instruction, const
 
 #if defined(SH2)
   _sh2_note_assembled_instruction(instruction);
+#endif
+
+#if defined(EZ80)
+  if (s_ez80_adl_prefix != 0) {
+    fprintf(g_file_out_ptr, "d%d ", s_ez80_adl_prefix);
+    s_ez80_adl_prefix = 0;
+  }
 #endif
   
   va_start(ap, format);
@@ -1818,7 +1879,7 @@ static void _sh2_note_assembled_instruction(struct instruction *instruction) {
 int evaluate_token(void) {
 
   int f, x, y, last_stack_id_backup, instruction_i;
-#if defined(Z80) || defined(Z80N) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
+#if defined(Z80) || defined(Z80N) || defined(EZ80) || defined(SPC700) || defined(W65816) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280)
   int e, v, h;
   char labelx[MAX_NAME_LENGTH + 1];
 #endif
@@ -1835,10 +1896,18 @@ int evaluate_token(void) {
 #if defined(SUPERFX)
   int tiny;
 #endif
+#if defined(EZ80)
+  int ez80_adl_prefix;
+#endif
 
 #if defined(CX4)
   int e = 0, q = 0, v = FAILED;
   char labelx[MAX_NAME_LENGTH + 1];
+#endif
+
+#if defined(EZ80)
+  s_ez80_adl_prefix = 0;
+  ez80_adl_prefix = 0;
 #endif
 
   /* are we in an enum, ramsection, or struct? */
@@ -1901,6 +1970,12 @@ int evaluate_token(void) {
     return SUCCEEDED;
   }
 
+#if defined(EZ80)
+  ez80_adl_prefix = _ez80_get_adl_prefix();
+  if (g_ss == 0)
+    return EVALUATE_TOKEN_NOT_IDENTIFIED;
+#endif
+
   /* INSTRUCTION? */
   instruction_i = g_instruction_p[(unsigned char)g_tmp[0]];
   s_instruction_tmp = &g_instructions_table[instruction_i];
@@ -1952,6 +2027,9 @@ int evaluate_token(void) {
 
     /* beginning of the instruction matches what we have in the source code */
     s_parser_source_index = g_source_index;
+  #if defined(EZ80)
+    s_ez80_adl_prefix = ez80_adl_prefix;
+  #endif
 
     /* remember the last stack calculation created -> if we create new stack calculations in the
        following switch() and need to roll back after that we'll delete all stack calculations created
@@ -2699,12 +2777,12 @@ int evaluate_token(void) {
       
 #endif
  
-#if defined(Z80) || defined(Z80N)
+#if defined(Z80) || defined(Z80N) || defined(EZ80)
 
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
-      /* <Z80/Z80N> */
+      /* <Z80/Z80N/eZ80> */
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -2788,6 +2866,15 @@ int evaluate_token(void) {
           g_source_index = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+#if defined(EZ80)
+          if (z == SUCCEEDED && _ez80_use_24bit_immediate() == YES) {
+            if (g_parsed_int > 16777215 || g_parsed_int < -8388608) {
+              print_error(ERROR_NUM, "Out of 24-bit range.\n");
+              return FAILED;
+            }
+          }
+          else
+#endif
           if (z == SUCCEEDED && (g_parsed_int > 65535 || g_parsed_int < -32768)) {
             print_error(ERROR_NUM, "Out of 16-bit range.\n");
             return FAILED;
@@ -2795,12 +2882,25 @@ int evaluate_token(void) {
           
           for (x++; x < INSTRUCTION_STRING_LENGTH_MAX; s_parser_source_index++, x++) {
             if (IS_THE_MATCH_COMPLETE(x)) {
+#if defined(EZ80)
+              if (_ez80_use_24bit_immediate() == YES) {
+                if (z == SUCCEEDED)
+                  _output_assembled_instruction(s_instruction_tmp, "d%d z%d ", s_instruction_tmp->hex, g_parsed_int);
+                else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                  _output_assembled_instruction(s_instruction_tmp, "k%d d%d q%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+                else
+                  _output_assembled_instruction(s_instruction_tmp, "d%d T%d ", s_instruction_tmp->hex, g_latest_stack);
+              }
+              else
+#endif
+              {
               if (z == SUCCEEDED)
                 _output_assembled_instruction(s_instruction_tmp, "d%d y%d ", s_instruction_tmp->hex, g_parsed_int);
               else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                 _output_assembled_instruction(s_instruction_tmp, "k%d d%d r%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
               else
                 _output_assembled_instruction(s_instruction_tmp, "d%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+              }
               
               g_source_index = s_parser_source_index;
               return SUCCEEDED;
@@ -2949,12 +3049,30 @@ int evaluate_token(void) {
                 }
               }
               else {
+#if defined(EZ80)
+                if (_ez80_use_24bit_immediate() == YES) {
+                  if (z == SUCCEEDED) {
+                    if (g_parsed_int > 16777215 || g_parsed_int < -8388608) {
+                      print_error(ERROR_NUM, "Out of 24-bit range.\n");
+                      return FAILED;
+                    }
+                    _output_assembled_instruction(s_instruction_tmp, "y%d z%d ", s_instruction_tmp->hex, g_parsed_int);
+                  }
+                  else if (z == INPUT_NUMBER_ADDRESS_LABEL)
+                    _output_assembled_instruction(s_instruction_tmp, "k%d y%d q%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
+                  else
+                    _output_assembled_instruction(s_instruction_tmp, "y%d T%d ", s_instruction_tmp->hex, g_latest_stack);
+                }
+                else
+#endif
+                {
                 if (z == SUCCEEDED)
                   _output_assembled_instruction(s_instruction_tmp, "y%d y%d ", s_instruction_tmp->hex, g_parsed_int);
                 else if (z == INPUT_NUMBER_ADDRESS_LABEL)
                   _output_assembled_instruction(s_instruction_tmp, "k%d y%d r%s ", g_active_file_info_last->line_current, s_instruction_tmp->hex, g_label);
                 else
                   _output_assembled_instruction(s_instruction_tmp, "y%d C%d ", s_instruction_tmp->hex, g_latest_stack);
+                }
               }
               
               g_source_index = s_parser_source_index;
@@ -3184,7 +3302,7 @@ int evaluate_token(void) {
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
-      /* </Z80/Z80N> */
+      /* </Z80/Z80N/eZ80> */
       /*************************************************************************************************/
       /*************************************************************************************************/
       /*************************************************************************************************/
@@ -10569,6 +10687,9 @@ int evaluate_token(void) {
 
   /* allow error messages from input_numbers() */
   g_input_number_error_msg = YES;
+#if defined(EZ80)
+  s_ez80_adl_prefix = 0;
+#endif
 
   return EVALUATE_TOKEN_NOT_IDENTIFIED;
 }

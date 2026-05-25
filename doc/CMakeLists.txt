@@ -53,6 +53,7 @@ set(DOC_SRCS
     "codetoknow.rst"
     "compiling.rst"
     "errormsg.rst"
+    "ez80-support.rst"
     "extraflags.rst"
     "files.rst"
     "functions.rst"

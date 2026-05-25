@@ -48,6 +48,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(Z80N_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tz80n.c)
 
+# --- WLA_TARGET=EZ80
+add_executable (gen_EZ80 ${CFILES})
+set_target_properties (gen_EZ80 PROPERTIES COMPILE_DEFINITIONS "EZ80")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tez80.c
+	COMMAND gen_EZ80
+	DEPENDS gen_EZ80
+	)
+ADD_CUSTOM_TARGET(EZ80_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tez80.c)
+
 # --- WLA_TARGET=MC68000
 add_executable (gen_MC68000 ${CFILES})
 set_target_properties (gen_MC68000 PROPERTIES COMPILE_DEFINITIONS "MC68000")

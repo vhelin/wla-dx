@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file format "WLAm"
+WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file format "WLAm"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAm" - WLA GB-Z80/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
+        "WLAm" - WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -227,7 +227,7 @@ section:
 
 
 
-WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file format "WLAJ"
+WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file format "WLAJ"
 
 
 bytes   description
@@ -235,7 +235,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAJ" - WLA-GB/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
+        "WLAJ" - WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02)

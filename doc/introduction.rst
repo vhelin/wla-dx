@@ -25,9 +25,9 @@ apply also to 6502, 65C02, 65CE02, 65816, 6800, 6801, 6809, 8008, 8080,
 HUC6280, SPC-700 and SuperFX.
 
 About the names: WLA DX means all the tools covered in this documentation.
-So WLA DX includes WLA GB-Z80/Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/
+So WLA DX includes WLA GB-Z80/Cx4/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/
 6801/6809/8008/8080/HUC6280/SPC-700/SuperFX macro assembler (what a horribly long
-name), WLAB, and WLALINK GB-Z80/Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/
+name), WLAB, and WLALINK GB-Z80/Cx4/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/
 6801/6809/8008/8080/HUC6280/SPC-700/SuperFX linker. We use plain WLA to refer to
 the macro assembler
 in this document.
