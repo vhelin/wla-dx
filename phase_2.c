@@ -256,7 +256,7 @@ static void _md_emit_fixed_string(char *s, int length) {
 
 #if defined(W65816)
 
-void _write_snes_cartridge_information(int start) {
+static void _write_snes_cartridge_information(int start) {
 
   int info_bits;
 

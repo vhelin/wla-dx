@@ -99,7 +99,7 @@ static int _parse_byte_token(const char *token, unsigned char *out) {
 }
 
 
-int _get_next_number(char *in, int *out) {
+static int _get_next_number(char *in, int *out) {
 
   int i = 0, o, n;
 
@@ -266,7 +266,7 @@ static int _looks_like_filename_token(const char *token) {
 }
 
 
-int _read_binary_file(char *filename, int *did_we_read_data, int *file_size) {
+static int _read_binary_file(char *filename, int *did_we_read_data, int *file_size) {
 
   FILE *fb;
   unsigned char *new_data;
@@ -343,7 +343,7 @@ int _read_binary_file(char *filename, int *did_we_read_data, int *file_size) {
 
 
 /* get the next token from the input string and write the results on the result argument */
-int get_token(char **input, char *result) {
+static int _get_token(char **input, char *result) {
 
   int length = 0;
   char *src = *input;
@@ -380,7 +380,7 @@ int get_token(char **input, char *result) {
 
 /* extracts contents of byte tester comments in-place. the result is
    placed on the input string itself, overwriting its contents.  */
-int extract_comments(char *input, size_t size) {
+static int _extract_comments(char *input, size_t size) {
 
   char *current = input, *output = input, *end = NULL;
 
@@ -439,7 +439,7 @@ int extract_comments(char *input, size_t size) {
 }
 
 
-static int main_run(int argc, char *argv[], char **input_names, int input_name_count, char *tmp, char *test_id, char *tag_id) {
+static int _main_run(int argc, char *argv[], char **input_names, int input_name_count, char *tmp, char *test_id, char *tag_id) {
 
   int input_size, file_size, end, byte_count, i, j, length, tag_start, tag_end, wrong_bytes, failures, should_extract_comments = NO, use_address = NO, address = 0, did_we_read_data = NO, bytes_capacity = MAX_BYTES_PER_TEST;
   char *input = NULL, *current = NULL;
@@ -625,9 +625,9 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
 
   /* extract input from comments in file */
   if (should_extract_comments)
-    extract_comments(input, input_size);
+    _extract_comments(input, input_size);
 
-  if (!get_token(&current, tmp)) {
+  if (!_get_token(&current, tmp)) {
     fprintf(stderr, "No binary file name found in input.\n");
     if (f != NULL)
       fclose(f);
@@ -652,7 +652,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     use_address = NO;
     address = 0;
 
-    if (!get_token(&current, test_id)) {
+    if (!_get_token(&current, test_id)) {
       if (g_get_token_overflow == YES)
         failures = 1;
       break;
@@ -667,7 +667,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     }
     if (did_we_read_data == YES)
       continue;
-    if (!get_token(&current, tag_id)) {
+    if (!_get_token(&current, tag_id)) {
       if (g_get_token_overflow == YES)
         failures = 1;
       break;
@@ -682,7 +682,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     if (strcmp(tag_id, "-a") == 0) {
       use_address = YES;
 
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         break;
@@ -694,7 +694,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         break;
       }
 
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         break;
@@ -709,7 +709,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     else if (strcmp(tag_id, "-y") == 0) {
       int got_it = NO;
 
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         break;
@@ -743,7 +743,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
     else if (strcmp(tag_id, "-n") == 0) {
       int got_it = NO;
 
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         break;
@@ -776,7 +776,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
       continue;
     }
     else {
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         break;
@@ -817,7 +817,7 @@ static int main_run(int argc, char *argv[], char **input_names, int input_name_c
         bytes_capacity = new_capacity;
       }
 
-      if (!get_token(&current, tmp)) {
+      if (!_get_token(&current, tmp)) {
         if (g_get_token_overflow == YES)
           failures = 1;
         end = 1;
@@ -967,7 +967,7 @@ int main(int argc, char *argv[]) {
     return_code = 1;
   }
   else
-    return_code = main_run(argc, argv, input_names, input_name_count, tmp, test_id, tag_id);
+    return_code = _main_run(argc, argv, input_names, input_name_count, tmp, test_id, tag_id);
 
   for (i = 0; i < argc; i++) {
     if (input_names[i] != NULL)

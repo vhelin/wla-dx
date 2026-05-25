@@ -207,7 +207,7 @@ int add_stack(struct stack *sta) {
 }
 
 
-static int add_assertion(struct assertion *assertion) {
+static int _add_assertion(struct assertion *assertion) {
 
   assertion->next = NULL;
 
@@ -374,7 +374,7 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
     }
 
     assertion->stack = s;
-    add_assertion(assertion);
+    _add_assertion(assertion);
   }
 
   *tp = t;

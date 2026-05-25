@@ -60,7 +60,7 @@ map_t hashmap_new(void) {
 /*
  * Hashing function for a string
  */
-unsigned int hashmap_hash_int(hashmap_map * m, char* keystring) {
+static unsigned int _hashmap_hash_int(hashmap_map * m, char* keystring) {
 
   unsigned long key = crc32((unsigned char*)(keystring), (unsigned int)strlen(keystring));
 
@@ -84,7 +84,7 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring) {
  * Return the pointer to the element to use for the key, or NULL to request
  * a larger table.
  */
-hashmap_element* hashmap_hash(map_t in, char* key) {
+static hashmap_element* _hashmap_hash(map_t in, char* key) {
 
   int hash;
   hashmap_element *e, *p = NULL;
@@ -97,7 +97,7 @@ hashmap_element* hashmap_hash(map_t in, char* key) {
     return NULL;
 
   /* Find the best index */
-  hash = hashmap_hash_int(m, key);
+  hash = _hashmap_hash_int(m, key);
 
   e = &m->data[hash];
   if (e->in_use == 0)
@@ -121,7 +121,7 @@ hashmap_element* hashmap_hash(map_t in, char* key) {
 /*
  * Doubles the size of the hashmap, and rehashes all the elements
  */
-int hashmap_rehash(map_t in) {
+static int _hashmap_rehash(map_t in) {
 
   int i;
   int old_size;
@@ -184,12 +184,12 @@ int hashmap_put(map_t in, char* key, any_t value) {
   m = (hashmap_map *) in;
 
   /* Find a place to put our value */
-  e = hashmap_hash(in, key);
+  e = _hashmap_hash(in, key);
   while (e == NULL) {
-    if (hashmap_rehash(in) == MAP_OMEM) {
+    if (_hashmap_rehash(in) == MAP_OMEM) {
       return MAP_OMEM;
     }
-    e = hashmap_hash(in, key);
+    e = _hashmap_hash(in, key);
   }
 
   /* Set the data */
@@ -215,7 +215,7 @@ int hashmap_get(map_t in, char* key, any_t *arg) {
   m = (hashmap_map *) in;
 
   /* Find data location */
-  curr = hashmap_hash_int(m, key);
+  curr = _hashmap_hash_int(m, key);
 
   if (arg != NULL)
     *arg = NULL;
@@ -303,7 +303,7 @@ int hashmap_remove(map_t in, char* key) {
   m = (hashmap_map *) in;
 
   /* Find key */
-  curr = hashmap_hash_int(m, key);
+  curr = _hashmap_hash_int(m, key);
 
   e = &m->data[curr];
   if (e->in_use == 0)

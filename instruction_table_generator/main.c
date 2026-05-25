@@ -17,7 +17,7 @@ extern struct instruction g_instructions_table[];
 
 /* this program is used to generate the instruction decoding speedup tables */
 
-int print_table(FILE *f, int *table) {
+static int _print_table(FILE *f, int *table) {
 
   int i;
 
@@ -117,10 +117,10 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(out, "int g_instruction_n[256] = {\n");
-  print_table(out, counts);
+  _print_table(out, counts);
 
   fprintf(out, "int g_instruction_p[256] = {\n");
-  print_table(out, indexes);
+  _print_table(out, indexes);
 
   if (outname)
     fclose(out);
