@@ -15,6 +15,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(GB_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tgb.c)
 
+# --- WLA_TARGET=CX4
+add_executable (gen_CX4 ${CFILES})
+set_target_properties (gen_CX4 PROPERTIES COMPILE_DEFINITIONS "CX4")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tcx4.c
+	COMMAND gen_CX4
+	DEPENDS gen_CX4
+	)
+ADD_CUSTOM_TARGET(CX4_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tcx4.c)
+
 # --- WLA_TARGET=SUPERFX
 add_executable (gen_SUPERFX ${CFILES})
 set_target_properties (gen_SUPERFX PROPERTIES COMPILE_DEFINITIONS "SUPERFX")
