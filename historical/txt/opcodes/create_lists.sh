@@ -30,6 +30,20 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _z80_o
 
+# eZ80
+
+make clean
+export WLA_TARGET=EZ80
+export WLA_NICELIST=NICELIST1
+make
+./op | sort > _ez80_a
+
+make clean
+export WLA_TARGET=EZ80
+export WLA_NICELIST=NICELIST2
+make
+./op | sort > _ez80_o
+
 # 6502
 
 make clean

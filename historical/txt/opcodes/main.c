@@ -16,6 +16,9 @@
 #ifdef Z80N
 #include "../../../iz80n.c"
 #endif
+#ifdef EZ80
+#include "../../../iez80.c"
+#endif
 #ifdef MCS6502
 #include "../../../i6502.c"
 #endif
@@ -65,12 +68,39 @@
 
 /* this program is used to print out the mnemonic tables */
 
+#if defined(EZ80) && (defined(NICELIST1) || defined(NICELIST2))
+static void _ez80_print_suffix_prefixes(void) {
+
+#if defined(NICELIST1)
+  printf("\".L suffix\" $5B\n");
+  printf("\".LIL suffix\" $5B\n");
+  printf("\".LIS suffix\" $49\n");
+  printf("\".S suffix\" $40\n");
+  printf("\".SIL suffix\" $52\n");
+  printf("\".SIS suffix\" $40\n");
+#endif
+
+#if defined(NICELIST2)
+  printf("$40 \".S suffix\"\n");
+  printf("$40 \".SIS suffix\"\n");
+  printf("$49 \".LIS suffix\"\n");
+  printf("$52 \".SIL suffix\"\n");
+  printf("$5B \".L suffix\"\n");
+  printf("$5B \".LIL suffix\"\n");
+#endif
+}
+#endif
+
 
 int main(int argc, char *argv[]) {
 
   int i, l, n;
 #if defined(SUPERFX) && defined(NICELIST2)
   int printed_something;
+#endif
+
+#if defined(EZ80) && (defined(NICELIST1) || defined(NICELIST2))
+  _ez80_print_suffix_prefixes();
 #endif
 
   i = 0;
@@ -108,7 +138,7 @@ int main(int argc, char *argv[]) {
 #if defined(MC68000)
     printf("  { \"%s\", 0x%X, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type);
 #endif
-#if defined(Z80) || defined(Z80N)
+#if defined(Z80) || defined(Z80N) || defined(EZ80)
     printf("  { \"%s\", 0x%X, %d, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type, g_instructions_table[i].hex_x, g_instructions_table[i].value);
 #endif
 #if defined(W65816)
@@ -190,7 +220,7 @@ int main(int argc, char *argv[]) {
     printf("$%.2X\n", g_instructions_table[i].hex);
 #endif
 
-#if defined(Z80) || defined(Z80N)
+#if defined(Z80) || defined(Z80N) || defined(EZ80)
     if (g_instructions_table[i].type == 8 || g_instructions_table[i].type == 9 || g_instructions_table[i].type == 10) {
       int k;
 
@@ -408,7 +438,7 @@ int main(int argc, char *argv[]) {
       printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#if defined(Z80) || defined(Z80N)
+#if defined(Z80) || defined(Z80N) || defined(EZ80)
     if (g_instructions_table[i].hex & 0xFF00)
       printf("$%.2X%.2X", g_instructions_table[i].hex & 0xFF, (g_instructions_table[i].hex >> 8) & 0xFF);
     else

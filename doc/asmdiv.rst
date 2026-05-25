@@ -9,12 +9,13 @@ Here's the order in which the data is placed into the output:
 4. Group 1 directives.
 
 === ================================================================
-ALL All, GB-Z80, Cx4, Z80, Z80N, 6502, 65C02, 65CE02, 65816,
+ALL All, GB-Z80, Cx4, Z80, Z80N, eZ80, 6502, 65C02, 65CE02, 65816,
     HUC6280, SPC-700, 68000, 6800, 6801, 6809, 8008, 8080 and SuperFX
     versions apply.
 GB  Only the GB-Z80 version applies.
 GB8 Only the GB-Z80 and 65816 versions apply.
 Z80 Only the Z80 version applies.
+EZ8 Only the eZ80 version applies.
 658 Only the 65816 version applies.
 68K Only the 68000 version applies.
 680 Only the 6800, 6801 and 6809 versions apply.
@@ -102,6 +103,7 @@ Group 3:
 658  ``.24BIT``
 65x  ``.8BIT``
 658  ``.ACCU 8``
+EZ8  ``.ADL ON``
 ALL  ``.ADDR 16000, main, 255``
 ALL  ``.ALIGN 4``
 ALL  ``.ARRAYDB NAME MyArray INDICES '0', 0, 1``
@@ -270,6 +272,22 @@ That would be the case, normally, but after ``.24BIT`` it becomes::
 
 If it is not possible to expand the address into ``.24BIT`` range,
 then WLA tries to expand it into 16-bit range.
+
+This is not a compulsory directive.
+
+
+``.ADL ON``
+-----------
+
+For WLA-eZ80, ``.ADL ON`` makes Z80-style 16-bit immediate and address
+operands assemble as 24-bit values where the eZ80 instruction encoding allows
+it. ``.ADL OFF`` returns to the default Z80-compatible 16-bit behavior.
+
+The per-instruction suffixes ``.SIS``, ``.LIS``, ``.SIL`` and ``.LIL`` emit the
+matching eZ80 mode prefix byte. ``.SIS`` and ``.LIS`` force a short immediate
+for that instruction; ``.SIL`` and ``.LIL`` force a long immediate. ``.S`` and
+``.L`` are accepted as short forms for instruction-mode overrides without an
+immediate operand.
 
 This is not a compulsory directive.
 

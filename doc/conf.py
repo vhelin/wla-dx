@@ -112,7 +112,7 @@ man_pages = [
 ]
 
 # Autogenerate man-files for the CPUs
-for cpu in ['gb', 'cx4', '65c02', '65ce02', '6502', '65816', 'huc6280', 'spc700', 'z80', 'z80n', '6800', '6801', '6809', '68000', '8008', '8080', 'superfx']:
+for cpu in ['gb', 'cx4', '65c02', '65ce02', '6502', '65816', 'huc6280', 'spc700', 'z80', 'z80n', 'ez80', '6800', '6801', '6809', '68000', '8008', '8080', 'superfx']:
     man_pages.append(('man/wla-cpu', 'wla-%s' % cpu, \
                       u'WLA assembler for %s' % cpu, [u'vhelin'], 1))
 

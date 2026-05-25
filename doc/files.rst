@@ -29,6 +29,9 @@ register definitions, vector constants and small CPU helper macros.
 ``include/lynx`` contains Atari Lynx 65C02 hardware base definitions, vector
 constants and small CPU helper macros.
 
+``include/agon`` contains Agon MOS helper macros for eZ80 binaries, including
+the standard MOS executable name and header bytes.
+
 
 ``tests/gb-z80/lib``
 --------------------
@@ -53,5 +56,5 @@ The Sega 32X maps include ``md32x68k.i`` for 68000-side boot/hot-start code and
 ``sh232x.i`` for SH-2-side cartridge ROM, SDRAM, Mars registers, palette, and
 framebuffer windows.
 
-The PC Engine map is ``pcengine.i``. The Atari Lynx flat 65C02 map is
-``lynx.i``.
+The Agon MOS flat eZ80 map is ``agon_mos.i``. The PC Engine map is
+``pcengine.i``. The Atari Lynx flat 65C02 map is ``lynx.i``.

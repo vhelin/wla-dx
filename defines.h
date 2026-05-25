@@ -364,6 +364,32 @@
 #endif
 
 /**************************************************************/
+/* ez80                                                       */
+/**************************************************************/
+
+#ifdef EZ80
+
+/* instruction types */
+
+/* 0 - plain text  8b */
+/* 1 - x              */
+/* 2 - ?              */
+/* 3 - plain text 16b */
+/* 4 - x              */
+/* 5 - x          24b */
+/* 6 - ?          16b */
+/* 7 - x x        16b */
+/* 8 - *           8b */
+/* 9 - *          16b */
+/* a - * x        24b */
+
+#define INSTRUCTION_STRING_LENGTH_MAX 18
+#define ARCH_STR "eZ80"
+#define WLA_NAME "ez80"
+
+#endif
+
+/**************************************************************/
 /* 68000                                                      */
 /**************************************************************/
 
@@ -644,10 +670,10 @@ struct instruction {
   unsigned char size;
   unsigned char mode;
 #endif
-#if defined(Z80) || defined(Z80N)
+#if defined(Z80) || defined(Z80N) || defined(EZ80)
   unsigned char hex_x;
 #endif
-#if defined(Z80) || defined(Z80N) || defined(GB) || defined(I8008) || defined(I8080)
+#if defined(Z80) || defined(Z80N) || defined(EZ80) || defined(GB) || defined(I8008) || defined(I8080)
   unsigned char value;
 #endif
 #if defined(MCS6502) || defined(WDC65C02) || defined(CSG65CE02) || defined(HUC6280) || defined(MC6800) || defined(MC6801) || defined(MC6809)

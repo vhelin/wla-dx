@@ -72,4 +72,10 @@ startend:
         .db $15
         .db $16
         .db $17
+
+        .rept 10
+        .db 1, 2, 3
+        .endr
+
+        .db 9
         

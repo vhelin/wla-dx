@@ -15,6 +15,17 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(GB_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tgb.c)
 
+# --- WLA_TARGET=CX4
+add_executable (gen_CX4 ${CFILES})
+set_target_properties (gen_CX4 PROPERTIES COMPILE_DEFINITIONS "CX4")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tcx4.c
+	COMMAND gen_CX4
+	DEPENDS gen_CX4
+	)
+ADD_CUSTOM_TARGET(CX4_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tcx4.c)
+
 # --- WLA_TARGET=SUPERFX
 add_executable (gen_SUPERFX ${CFILES})
 set_target_properties (gen_SUPERFX PROPERTIES COMPILE_DEFINITIONS "SUPERFX")
@@ -47,6 +58,17 @@ add_custom_command(
 	DEPENDS gen_Z80n
 	)
 ADD_CUSTOM_TARGET(Z80N_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tz80n.c)
+
+# --- WLA_TARGET=EZ80
+add_executable (gen_EZ80 ${CFILES})
+set_target_properties (gen_EZ80 PROPERTIES COMPILE_DEFINITIONS "EZ80")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tez80.c
+	COMMAND gen_EZ80
+	DEPENDS gen_EZ80
+	)
+ADD_CUSTOM_TARGET(EZ80_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tez80.c)
 
 # --- WLA_TARGET=MC68000
 add_executable (gen_MC68000 ${CFILES})

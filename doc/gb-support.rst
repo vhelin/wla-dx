@@ -5,7 +5,7 @@ ROM Size
 --------
 
 GB-Z80 version of WLA supports the following ROM bank sizes. There's no such limit
-in the Cx4/Z80/Z80N/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/
+in the Cx4/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/
 HUC6280/SPC-700/SuperFX version of WLA. Supply one of the following values to
 ``.ROMBANKS``.
 

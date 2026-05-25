@@ -9,6 +9,11 @@ make
 start gen
 
 if exist main.o del main.o
+set WLA_TARGET=CX4
+make
+start gen
+
+if exist main.o del main.o
 set WLA_TARGET=SUPERFX
 make 
 start gen
@@ -16,6 +21,16 @@ start gen
 if exist main.o del main.o
 set WLA_TARGET=Z80
 make 
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=Z80N
+make
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=EZ80
+make
 start gen
 
 if exist main.o del main.o
@@ -49,6 +64,11 @@ make
 start gen
 
 if exist main.o del main.o
+set WLA_TARGET=MC68000
+make
+start gen
+
+if exist main.o del main.o
 set WLA_TARGET=MC6800
 make 
 start gen
@@ -71,6 +91,11 @@ start gen
 if exist main.o del main.o
 set WLA_TARGET=I8080
 make 
+start gen
+
+if exist main.o del main.o
+set WLA_TARGET=SH2
+make
 start gen
 
 if exist main.o del main.o

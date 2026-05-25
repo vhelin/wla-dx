@@ -221,6 +221,10 @@ int g_xbit_size = 0, g_accu_size = 8, g_index_size = 8;
 int g_accu_set_by_rep_sep = 0, g_index_set_by_rep_sep = 0;
 #endif
 
+#if defined(EZ80)
+int g_ez80_adl_mode = 0;
+#endif
+
 /* vars used when in an enum, ramsection, or struct. */
 /* some variables named "enum_" are used in enums, ramsections, and structs. */
 int g_in_enum = NO, g_in_ramsection = NO, g_in_struct = NO, g_macro_id = 0;
@@ -13679,6 +13683,29 @@ int parse_directive(void) {
     break;
     
   case 'A':
+
+#if defined(EZ80)
+    /* ADL */
+    if (strcmp(directive_upper, "ADL") == 0) {
+      q = get_next_token();
+
+      if (q != SUCCEEDED) {
+        print_error(ERROR_DIR, ".ADL expects ON or OFF.\n");
+        return FAILED;
+      }
+
+      if (strcaselesscmp(g_tmp, "ON") == 0)
+        g_ez80_adl_mode = 1;
+      else if (strcaselesscmp(g_tmp, "OFF") == 0)
+        g_ez80_adl_mode = 0;
+      else {
+        print_error(ERROR_DIR, ".ADL expects ON or OFF.\n");
+        return FAILED;
+      }
+
+      return SUCCEEDED;
+    }
+#endif
 
 #if defined(W65816)
     /* ACCU */
