@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "defines.h"
+#include "parse.h"
 
 
 

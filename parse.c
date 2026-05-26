@@ -729,7 +729,7 @@ static int _try_parse_operand_hint(void) {
 
 
 #if defined(PROFILE_FUNCTIONS)
-int _input_number(void) {
+static int _input_number(void) {
 #else
 int input_number(void) {
 #endif
@@ -1800,7 +1800,7 @@ int skip_next_token(void) {
 }
 
 
-int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *res_type, double *res_value) {
+static int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *res_type, double *res_value) {
 
   char t[MAX_NAME_LENGTH + 1];
   int i, j, k, argument_start;
@@ -2085,7 +2085,7 @@ int _expand_macro_arguments_one_pass(char *in, int *expands, int *move_up, int *
 }
 
 
-int _expand_macro_arguments(char *in, int *expands, int *type, double *value) {
+static int _expand_macro_arguments(char *in, int *expands, int *type, double *value) {
 
   int move_up = 0;
 

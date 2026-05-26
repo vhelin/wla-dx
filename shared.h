@@ -30,7 +30,6 @@
 
 #ifdef PROFILE_FUNCTIONS
 #include <time.h>
-#include <sys/time.h>
 #define PROFILE_MAX_ENTRIES (1024*1024)
 #define PROFILE_GLOBALS() double g_profile_times_ms[PROFILE_MAX_ENTRIES]; \
   char *g_profile_function_names[PROFILE_MAX_ENTRIES]; \
@@ -64,12 +63,12 @@
   } \
 }
 */
-#define PROFILE_VARIABLES() struct timeval time_begin, time_end; \
+#define PROFILE_VARIABLES() clock_t clock_begin, clock_end; \
   static int is_profiling = NO; \
   int output_profiling_data = NO;
-#define PROFILE_START() if (is_profiling == NO) { is_profiling = YES; output_profiling_data = YES; gettimeofday(&time_begin, NULL); }
-#define PROFILE_END(function_name) if (output_profiling_data == YES) { gettimeofday(&time_end, NULL); \
-  g_profile_times_ms[g_profile_entry_id] = (time_end.tv_sec + time_end.tv_usec / 1e6 - time_begin.tv_sec - time_begin.tv_usec / 1e6) * 1000.0; \
+#define PROFILE_START() if (is_profiling == NO) { is_profiling = YES; output_profiling_data = YES; clock_begin = clock(); }
+#define PROFILE_END(function_name) if (output_profiling_data == YES) { clock_end = clock(); \
+  g_profile_times_ms[g_profile_entry_id] = ((double)(clock_end - clock_begin) * 1000.0) / (double)CLOCKS_PER_SEC; \
   if (g_profile_times_ms[g_profile_entry_id] < 0.0) g_profile_times_ms[g_profile_entry_id] = 0.0; \
   g_profile_function_names[g_profile_entry_id++] = function_name; \
   is_profiling = NO; output_profiling_data = NO; }

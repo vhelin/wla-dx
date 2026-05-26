@@ -7,6 +7,7 @@
 #include "defines.h"
 #include "files.h"
 #include "main.h"
+#include "memory.h"
 
 
 

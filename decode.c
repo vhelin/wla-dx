@@ -10,6 +10,7 @@
 
 #include "defines.h"
 
+#include "decode.h"
 #include "stack.h"
 #include "phase_1.h"
 #include "parse.h"
@@ -327,7 +328,7 @@ static int _parse_exg_tfr_registers(void) {
 #if defined(SUPERFX)
 
 /* parse a number [min, max] */
-int _parse_tiny_int(int min, int max) {
+static int _parse_tiny_int(int min, int max) {
 
   int old_i, value, res;
   

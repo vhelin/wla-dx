@@ -34,6 +34,9 @@ set(ARCHS
 option(GDB_DEBUGGING
     "Enable debugging via gdb (Only when CMAKE_BUILD_TYPE is Debug)" ON)
 
+option(STRICT_ANSI_WARNINGS
+    "Enable extra ANSI C89/C90 portability warnings as errors" OFF)
+
 # CMake will automatically define WIN32 for us for Microsoft compilers, how
 # convenient! But we need MSDOS flag as well. Additionally, other compilers
 # don't define it by default. WIN32 does NOT include Cygwin.
@@ -50,7 +53,21 @@ if(UNIX)
 endif()
 
 set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
+
+set(STRICT_ANSI_WARNING_FLAGS
+    -Werror
+    -Wdeclaration-after-statement
+    -Wstrict-prototypes
+    -Wmissing-prototypes
+    -Wold-style-definition
+    -Wmissing-declarations
+    -Werror=implicit-int
+    -Werror=implicit-function-declaration
+    -Wvla
+    -Wlong-long
+    )
 
 if(MSVC)
     # This block handles both standard MSVC and Clang on Windows (clang-cl)
@@ -70,8 +87,14 @@ if(MSVC)
 else()
     # This block handles GCC and Clang on Linux/macOS
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-        set(CMAKE_C_STANDARD) # Empty because we use -ansi
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic-errors -Wall -Wextra -ansi")
+
+        if(STRICT_ANSI_WARNINGS)
+            foreach(FLAG ${STRICT_ANSI_WARNING_FLAGS})
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
+            endforeach()
+        endif()
+
         string(REPLACE "-O2" "-O3" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
         if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 3.8)

@@ -1792,7 +1792,7 @@ void print_error(int type, char *error, ...) {
 
 #if defined(W65816)
 
-void give_snes_rom_mode_defined_error(char *prior) {
+static void _give_snes_rom_mode_defined_error(char *prior) {
 
   if (g_lorom_defined != 0)
     print_error(ERROR_DIR, ".LOROM was defined prior to %s.\n", prior);
@@ -1825,14 +1825,14 @@ void next_line(void) {
 
 
 /* NOTE! this doesn't work is every case, only for small jumps inside the same source file */
-void remember_current_source_file_position(void) {
+static void _remember_current_source_file_position(void) {
 
   s_source_index_old = g_source_index;
   s_line_current_old = g_active_file_info_last->line_current;
 }
 
 
-void roll_back_to_remembered_source_file_position(void) {
+static void _roll_back_to_remembered_source_file_position(void) {
 
   g_source_index = s_source_index_old;
   g_active_file_info_last->line_current = s_line_current_old;
@@ -1840,7 +1840,7 @@ void roll_back_to_remembered_source_file_position(void) {
 
 
 /* used by .RAMSECTIONs only */
-int add_label_sizeof(char *label, int size) {
+static int _add_label_sizeof(char *label, int size) {
 
   char tmpname[MAX_NAME_LENGTH + 8];
   struct label_sizeof *ls;
@@ -1905,7 +1905,7 @@ int add_label_to_enum_or_ramsection(char *name, int size) {
   else {
     /* sizeof pass */
     if (g_in_ramsection == YES) {
-      if (add_label_sizeof(name, size) == FAILED)
+      if (_add_label_sizeof(name, size) == FAILED)
         return FAILED;
     }
     else {
@@ -1949,7 +1949,7 @@ static int _add_paddingof_definition(char *name, int padding) {
 /* add all fields from a struct at the current offset in the enum/ramsection.
    this is used to construct enums or ramsections through temporary structs, even if
    INSTANCEOF isn't used. s_enum_sizeof_pass should be set to YES or NO before calling. */
-int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
+static int _enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
 
   char tmp[MAX_NAME_LENGTH * 2 + 5];
   struct structure_item *si;
@@ -2001,7 +2001,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         if (si->defined_size > 0)
           padding = si->defined_size - si->instance->size;
 
-        if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
+        if (_enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
           return FAILED;
 
         /* there is padding in the INSTANCEOF */
@@ -2051,7 +2051,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
             return FAILED;
           if (add_label_to_enum_or_ramsection(tmp, size) == FAILED)
             return FAILED;
-          if (enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
+          if (_enum_add_struct_fields(tmp, si->instance, 0) == FAILED)
             return FAILED;
           g++;
 
@@ -2102,7 +2102,7 @@ int enum_add_struct_fields(char *basename, struct structure *st, int reverse) {
         else
           snprintf(union_basename, sizeof(union_basename), "%s", basename);
 
-        if (enum_add_struct_fields(union_basename, un, 0) == FAILED)
+        if (_enum_add_struct_fields(union_basename, un, 0) == FAILED)
           return FAILED;
 
         un = un->next;
@@ -2351,12 +2351,12 @@ int parse_enum_token(void) {
     
     s_enum_offset = 0;
     s_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
+    if (_enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
 
     s_enum_offset = 0;
     s_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
+    if (_enum_add_struct_fields("", s_active_struct, (s_enum_ord == -1 ? 1 : 0)) == FAILED)
       return FAILED;
 
     s_active_struct = NULL;
@@ -2373,13 +2373,13 @@ int parse_enum_token(void) {
     s_enum_offset = 0;
     s_last_enum_offset = 0;
     s_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields("", s_active_struct, 0) == FAILED)
+    if (_enum_add_struct_fields("", s_active_struct, 0) == FAILED)
       return FAILED;
 
     s_enum_offset = 0;
     s_last_enum_offset = 0;
     s_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields("", s_active_struct, 0) == FAILED)
+    if (_enum_add_struct_fields("", s_active_struct, 0) == FAILED)
       return FAILED;
 
     if (s_max_enum_offset > s_last_enum_offset)
@@ -2402,13 +2402,13 @@ int parse_enum_token(void) {
     s_enum_offset = 0;
     s_last_enum_offset = 0;
     s_enum_sizeof_pass = NO;
-    if (enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
+    if (_enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
       return FAILED;
 
     s_enum_offset = 0;
     s_last_enum_offset = 0;
     s_enum_sizeof_pass = YES;
-    if (enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
+    if (_enum_add_struct_fields(s_active_struct->name, s_active_struct, 0) == FAILED)
       return FAILED;
     
     /* create the SIZEOF-definition for the entire struct */
@@ -2588,7 +2588,7 @@ int parse_enum_token(void) {
     while (1) {
       /* is the next token SIZE? */
       if (compare_next_token("SIZE") == SUCCEEDED) {
-        remember_current_source_file_position();
+        _remember_current_source_file_position();
 
         skip_next_token();
 
@@ -2597,7 +2597,7 @@ int parse_enum_token(void) {
           return FAILED;
         if (q != SUCCEEDED) {
           /* SIZE was actually a field? roll back */
-          roll_back_to_remembered_source_file_position();
+          _roll_back_to_remembered_source_file_position();
 
           break;
         }
@@ -2615,7 +2615,7 @@ int parse_enum_token(void) {
         }
       }
       else if (compare_next_token("COUNT") == SUCCEEDED) {
-        remember_current_source_file_position();
+        _remember_current_source_file_position();
 
         skip_next_token();
 
@@ -2624,7 +2624,7 @@ int parse_enum_token(void) {
           return FAILED;
         if (q != SUCCEEDED) {
           /* COUNT was actually a field? roll back */
-          roll_back_to_remembered_source_file_position();
+          _roll_back_to_remembered_source_file_position();
 
           break;
         }
@@ -2638,7 +2638,7 @@ int parse_enum_token(void) {
         }
       }
       else if (compare_next_token("STARTFROM") == SUCCEEDED) {
-        remember_current_source_file_position();
+        _remember_current_source_file_position();
         
         skip_next_token();
 
@@ -2648,7 +2648,7 @@ int parse_enum_token(void) {
           return FAILED;
         if (q != SUCCEEDED) {
           /* STARTFROM was actually a field? roll back */
-          roll_back_to_remembered_source_file_position();
+          _roll_back_to_remembered_source_file_position();
 
           break;
         }
@@ -2684,7 +2684,7 @@ int parse_enum_token(void) {
         }
 
         /* test for EOL */
-        remember_current_source_file_position();
+        _remember_current_source_file_position();
 
         q = input_number();
         if (q == INPUT_NUMBER_EOL) {
@@ -2693,7 +2693,7 @@ int parse_enum_token(void) {
         }
         else {
           /* this is not yet the end */
-          roll_back_to_remembered_source_file_position();
+          _roll_back_to_remembered_source_file_position();
         }
       }      
     }
@@ -2788,7 +2788,7 @@ int parse_enum_token(void) {
 }
 
 
-int directive_org(void) {
+static int _directive_org(void) {
 
   int q;
   
@@ -2834,7 +2834,7 @@ int directive_org(void) {
 }
 
 
-int directive_orga(void) {
+static int _directive_orga(void) {
 
   int q, current_slot_address;
   
@@ -2888,7 +2888,7 @@ int directive_orga(void) {
 }
 
 
-int directive_slot(void) {
+static int _directive_slot(void) {
 
   int q;
   
@@ -2936,7 +2936,7 @@ int directive_slot(void) {
 }
 
 
-int directive_bank(void) {
+static int _directive_bank(void) {
 
   int q, bank, slot;
   
@@ -3025,7 +3025,7 @@ int directive_bank(void) {
 }
 
 
-int directive_dbm_dwm_dlm_ddm_filter(void) {
+static int _directive_dbm_dwm_dlm_ddm_filter(void) {
 
   struct macro_static *macro;
 
@@ -3076,7 +3076,7 @@ int directive_dbm_dwm_dlm_ddm_filter(void) {
 }
 
 
-int directive_table(void) {
+static int _directive_table(void) {
 
   char bak[256];
   int result, i;
@@ -3184,7 +3184,7 @@ int directive_table(void) {
 }
 
 
-int directive_row_data(void) {
+static int _directive_row_data(void) {
 
   char bak[256];
   int rows = 0, result, i;
@@ -3345,7 +3345,7 @@ int directive_row_data(void) {
 }
 
 
-int directive_db_byt_byte(void) {
+static int _directive_db_byt_byte(void) {
 
   char bak[256];
   int i, char_index, number_result;
@@ -3404,7 +3404,7 @@ static int _char_to_hex(char e) {
 }
 
 
-int directive_hex(void) {
+static int _directive_hex(void) {
 
   int i, o, nybble_2 = 0, error, number_result, is_block = NO, is_done = NO;
 
@@ -3493,7 +3493,7 @@ int directive_hex(void) {
 }
 
 
-int directive_bits(void) {
+static int _directive_bits(void) {
 
   int bits, q;
 
@@ -3560,7 +3560,7 @@ int directive_bits(void) {
 }
 
 
-int directive_align(void) {
+static int _directive_align(void) {
 
   int q, address, align, remainder;
   struct section_def *s;
@@ -3621,7 +3621,7 @@ int directive_align(void) {
 }
 
 
-int directive_asctable_asciitable(void) {
+static int _directive_asctable_asciitable(void) {
   
   int astart, aend, q, o, token_result;
   char bak[256];
@@ -3754,7 +3754,7 @@ int directive_asctable_asciitable(void) {
 }
 
 
-int directive_asc(void) {
+static int _directive_asc(void) {
 
   int o, map_only_strings = NO;
   char bak[256];
@@ -3818,7 +3818,7 @@ int directive_asc(void) {
 }
 
 
-int directive_dw_word_addr(void) {
+static int _directive_dw_word_addr(void) {
 
   int i, number_result;
   char bak[256];
@@ -3857,7 +3857,7 @@ int directive_dw_word_addr(void) {
 }
 
 
-int directive_dl_long_faraddr(void) {
+static int _directive_dl_long_faraddr(void) {
 
   int i, number_result;
   char bak[256];
@@ -3896,7 +3896,7 @@ int directive_dl_long_faraddr(void) {
 }
 
 
-int directive_dsl(void) {
+static int _directive_dsl(void) {
 
   int q, parsed_int;
   
@@ -3951,7 +3951,7 @@ int directive_dsl(void) {
 }
 
 
-int directive_dd(void) {
+static int _directive_dd(void) {
 
   int i, number_result;
   char bak[256];
@@ -3992,7 +3992,7 @@ int directive_dd(void) {
 }
 
 
-int directive_dsd(void) {
+static int _directive_dsd(void) {
 
   int q, parsed_int;
   
@@ -4051,7 +4051,7 @@ int directive_dsd(void) {
 
 #if defined(W65816)
 
-int directive_name_w65816(void) {
+static int _directive_name_w65816(void) {
 
   int token_result;
 
@@ -4108,7 +4108,7 @@ int directive_name_w65816(void) {
 
 /* this is used for legacy .DSTRUCT syntax, and only for generating labels in the new
  * .DSTRUCT syntax. */
-int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int generate_labels) {
+static int _parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int generate_labels) {
 
   char tmpname[MAX_NAME_LENGTH*2+10];
   struct structure_item *it;
@@ -4131,7 +4131,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
       if (get_full_label(tmpname, full_label) == FAILED)
         return FAILED;
       if (generate_labels == YES) {
-        if (add_label_sizeof(full_label, it->size) == FAILED)
+        if (_add_label_sizeof(full_label, it->size) == FAILED)
           return FAILED;
       }
     }
@@ -4160,14 +4160,14 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
             if (get_full_label(tmpname, full_label) == FAILED)
               return FAILED;
             if (generate_labels == YES) {
-              if (add_label_sizeof(full_label, us->size) == FAILED)
+              if (_add_label_sizeof(full_label, us->size) == FAILED)
                 return FAILED;
             }
           }
           else
             strcpy(tmpname, iname);
 
-          parse_dstruct_entry(tmpname, us, labels_only, generate_labels);
+          _parse_dstruct_entry(tmpname, us, labels_only, generate_labels);
 
           /* rewind */
           fprintf(g_file_out_ptr, "o%d 0 ", -us->size);
@@ -4186,7 +4186,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
         return FAILED;
 
       if (it->num_instances == 1) {
-        if (parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
+        if (_parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
           return FAILED;
       }
       else {
@@ -4195,7 +4195,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
         snprintf(tmpname, sizeof(tmpname), "%s.%s", iname, it->name);
       
         /* we have "struct.instance" and "struct.1.instance" referencing the same data. */
-        parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp, generate_labels);
+        _parse_dstruct_entry(tmpname, it->instance, &labels_only_tmp, generate_labels);
 
         /* return to start of struct */
         fprintf(g_file_out_ptr, "o%d 0 ", -it->instance->size);
@@ -4214,10 +4214,10 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
             fprintf(g_file_out_ptr, "k%d L%s ", g_active_file_info_last->line_current, tmpname);
 
           if (generate_labels == YES) {
-            if (add_label_sizeof(tmpname, size) == FAILED)
+            if (_add_label_sizeof(tmpname, size) == FAILED)
               return FAILED;
           }
-          if (parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
+          if (_parse_dstruct_entry(tmpname, it->instance, labels_only, generate_labels) == FAILED)
             return FAILED;
         }
       }
@@ -4334,7 +4334,7 @@ int parse_dstruct_entry(char *iname, struct structure *s, int *labels_only, int 
 /* search for "field_name" within a structure. return the corresponding structure_item and
    the offset within the structure it's located at. recurses through instanceof's and
    unions. */
-int find_struct_field(struct structure *s, char *field_name, int *item_size, int *field_offset) {
+static int _find_struct_field(struct structure *s, char *field_name, int *item_size, int *field_offset) {
 
   int offset = 0;
   char prefix[MAX_NAME_LENGTH + 1];
@@ -4365,14 +4365,14 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
             return SUCCEEDED;
           }
           if (after_dot != NULL && strcmp(prefix, us->name) == 0) {
-            if (find_struct_field(us, after_dot, item_size, field_offset) == SUCCEEDED) {
+            if (_find_struct_field(us, after_dot, item_size, field_offset) == SUCCEEDED) {
               *field_offset += offset;
               return SUCCEEDED;
             }
           }
         }
         /* no name */
-        else if (find_struct_field(us, field_name, item_size, field_offset) == SUCCEEDED) {
+        else if (_find_struct_field(us, field_name, item_size, field_offset) == SUCCEEDED) {
           *field_offset += offset;
           return SUCCEEDED;
         }
@@ -4387,7 +4387,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
     /* look for prefix for an ".instanceof" */
     else if (after_dot != NULL && strcmp(prefix, si->name) == 0) {
       if (si->type == STRUCTURE_ITEM_TYPE_INSTANCEOF) {
-        if (find_struct_field(si->instance, after_dot, item_size, field_offset) == SUCCEEDED) {
+        if (_find_struct_field(si->instance, after_dot, item_size, field_offset) == SUCCEEDED) {
           *field_offset += offset;
           return SUCCEEDED;
         }
@@ -4412,7 +4412,7 @@ int find_struct_field(struct structure *s, char *field_name, int *item_size, int
                 return SUCCEEDED;
               }
               /* only prefix matched */
-              if (after_dot[strlen(num_str)] == '.' && find_struct_field(si->instance, after_dot + strlen(num_str) + 1, item_size, field_offset) == SUCCEEDED) {
+              if (after_dot[strlen(num_str)] == '.' && _find_struct_field(si->instance, after_dot + strlen(num_str) + 1, item_size, field_offset) == SUCCEEDED) {
                 *field_offset += offset + (g-1) * size;
                 return SUCCEEDED;
               }
@@ -4453,7 +4453,7 @@ static void _generate_dstruct_padding(struct structure *s, int supplied_size) {
 }
 
 
-int directive_dstruct(void) {
+static int _directive_dstruct(void) {
 
   int q, q2, supplied_size, labels_only, generate_labels = YES;
   char iname[MAX_NAME_LENGTH*2+5];
@@ -4565,7 +4565,7 @@ int directive_dstruct(void) {
     if (supplied_size > 0)
       size = supplied_size;
     
-    if (add_label_sizeof(full_label, size) == FAILED)
+    if (_add_label_sizeof(full_label, size) == FAILED)
       return FAILED;
     if (supplied_size > 0) {
       q = supplied_size - s->size;
@@ -4604,7 +4604,7 @@ int directive_dstruct(void) {
           g_tmp[strlen(g_tmp)-1] = '\0';
         strcpy(field_name, g_tmp);
 
-        if (find_struct_field(s, field_name, &item_size, &field_offset) == FAILED) {
+        if (_find_struct_field(s, field_name, &item_size, &field_offset) == FAILED) {
           print_error(ERROR_DIR, ".DSTRUCT: Couldn't find field \"%s\" in structure \"%s\".\n", field_name, s->name);
           return FAILED;
         }
@@ -4640,7 +4640,7 @@ int directive_dstruct(void) {
     if (iname[0] != '\0') {
       if (generate_labels == YES) {
         labels_only = YES;
-        if (parse_dstruct_entry(iname, s, &labels_only, YES) == FAILED)
+        if (_parse_dstruct_entry(iname, s, &labels_only, YES) == FAILED)
           return FAILED;
       }
     }
@@ -4670,7 +4670,7 @@ int directive_dstruct(void) {
   }
   
   labels_only = NO;
-  if (parse_dstruct_entry(iname, s, &labels_only, generate_labels) == FAILED)
+  if (_parse_dstruct_entry(iname, s, &labels_only, generate_labels) == FAILED)
     return FAILED;
   
   /* generate padding */
@@ -4687,7 +4687,7 @@ int directive_dstruct(void) {
 }
 
 
-int directive_dsb_ds(void) {
+static int _directive_dsb_ds(void) {
 
   char bak[256];
   int q, parsed_int;
@@ -4745,7 +4745,7 @@ int directive_dsb_ds(void) {
 }
 
 
-int directive_dsw(void) {
+static int _directive_dsw(void) {
 
   int q, parsed_int;
 
@@ -4800,7 +4800,7 @@ int directive_dsw(void) {
 }
 
 
-int directive_incdir(void) {
+static int _directive_incdir(void) {
   
   int q, o;
   char *c;
@@ -4917,7 +4917,7 @@ void get_dir(char *full_path, char *tmp) {
 }
 
 
-int directive_include(int is_real) {
+static int _directive_include(int is_real) {
 
   int o, include_size = 0, accumulated_name_length = 0, character_c_position = 0, got_once = NO, is_full_path = NO;
   char namespace[MAX_NAME_LENGTH + 1], path[MAX_NAME_LENGTH + 1], accumulated_name[MAX_NAME_LENGTH + 1];
@@ -5074,7 +5074,7 @@ int directive_include(int is_real) {
 }
 
 
-int directive_incbin(void) {
+static int _directive_incbin(void) {
 
   int skip, read, j, o, id, swap, filter_size;
   char tmp[MAX_NAME_LENGTH + 1];
@@ -5136,7 +5136,7 @@ int directive_incbin(void) {
 }
 
 
-int directive_struct(void) {
+static int _directive_struct(void) {
 
   int q;
   
@@ -5173,7 +5173,7 @@ int directive_struct(void) {
     /* we have fixed size for this .STRUCT ? */
     int q;
 
-    remember_current_source_file_position();
+    _remember_current_source_file_position();
     
     skip_next_token();
     
@@ -5182,7 +5182,7 @@ int directive_struct(void) {
       return FAILED;
     if (q != SUCCEEDED) {
       /* SIZE was actually a field in the .STRUCT? roll back */
-      roll_back_to_remembered_source_file_position();
+      _roll_back_to_remembered_source_file_position();
     }
     else {
       if (g_parsed_int < 1) {
@@ -5208,7 +5208,7 @@ int directive_struct(void) {
 }
 
 
-int directive_ramsection(void) {
+static int _directive_ramsection(void) {
 
   int q, orga_given = -1;
   char c1;
@@ -5694,7 +5694,7 @@ int directive_ramsection(void) {
 }
 
 
-int directive_section(void) {
+static int _directive_section(void) {
 
   int l, q, org_given = -1, orga_given = -1;
   char c1;
@@ -6284,7 +6284,7 @@ int directive_section(void) {
 }
 
 
-int directive_fopen(void) {
+static int _directive_fopen(void) {
   
   struct filepointer *f;
   struct string *string;
@@ -6411,7 +6411,7 @@ int directive_fopen(void) {
 }
 
 
-int directive_fclose(void) {
+static int _directive_fclose(void) {
   
   struct filepointer *f, **t;
 
@@ -6447,7 +6447,7 @@ int directive_fclose(void) {
 }
 
 
-int directive_fsize(void) {
+static int _directive_fsize(void) {
   
   struct filepointer *f;
   long l, b;
@@ -6485,7 +6485,7 @@ int directive_fsize(void) {
 }
 
 
-int directive_ftell(void) {
+static int _directive_ftell(void) {
   
   struct filepointer *f;
   long b;
@@ -6525,7 +6525,7 @@ int directive_ftell(void) {
 }
 
 
-int directive_fseek(void) {
+static int _directive_fseek(void) {
   
   struct filepointer *f;
   long position;
@@ -6582,7 +6582,7 @@ int directive_fseek(void) {
 }
 
 
-int directive_fread(void) {
+static int _directive_fread(void) {
   
   struct filepointer *f;
   unsigned char c;
@@ -6619,7 +6619,7 @@ int directive_fread(void) {
 }
 
 
-int directive_block(void) {
+static int _directive_block(void) {
 
   struct block_name *b;
   int token_result;
@@ -6651,7 +6651,7 @@ int directive_block(void) {
 }
 
 
-int directive_shift(void) {
+static int _directive_shift(void) {
 
   struct macro_argument *ma;
   struct macro_runtime *rt;
@@ -6716,7 +6716,7 @@ int directive_shift(void) {
 
 #if defined(GB)
 
-int directive_name_gb(void) {
+static int _directive_name_gb(void) {
 
   int token_result;
 
@@ -6771,7 +6771,7 @@ int directive_name_gb(void) {
 #endif
 
 
-int directive_rombanks(void) {
+static int _directive_rombanks(void) {
 
   int i, q, bank_address;
 
@@ -6853,7 +6853,7 @@ int directive_rombanks(void) {
 }
 
 
-int directive_rombankmap(void) {
+static int _directive_rombankmap(void) {
   
   int b = 0, a = 0, bt = 0, bt_defined = 0, x, bs = 0, bs_defined = 0, o, q, token_result;
 
@@ -7093,7 +7093,7 @@ int directive_rombankmap(void) {
 }
 
 
-int directive_memorymap(void) {
+static int _directive_memorymap(void) {
   
   int slotsize = 0, slotsize_defined = 0, s = 0, q, o, token_result;
 
@@ -7298,7 +7298,7 @@ int directive_memorymap(void) {
 }
 
 
-int directive_unbackground(void) {
+static int _directive_unbackground(void) {
   
   int start, end, q;
 
@@ -7356,7 +7356,7 @@ int directive_unbackground(void) {
 }
 
 
-int directive_background(void) {
+static int _directive_background(void) {
   
   FILE *file_in_ptr;
   int q, background_size;
@@ -7425,7 +7425,7 @@ int directive_background(void) {
 
 #if defined(GB)
 
-int directive_gbheader(void) {
+static int _directive_gbheader(void) {
 
   int q, token_result;
     
@@ -7795,7 +7795,7 @@ static struct array *_create_array(char *name, int size) {
 }
 
 
-int directive_arraydef_arraydefine(void) {
+static int _directive_arraydef_arraydefine(void) {
 
   char name[MAX_NAME_LENGTH + 1], bak[256];
   struct array *arr;
@@ -7884,7 +7884,7 @@ int directive_arraydef_arraydefine(void) {
 }
 
 
-int directive_arrayin(void) {
+static int _directive_arrayin(void) {
 
   struct array *arr;
   int index, value, q;
@@ -7968,7 +7968,7 @@ int directive_arrayin(void) {
 }
 
 
-int directive_arrayout(void) {
+static int _directive_arrayout(void) {
 
   struct array *arr;
   int index, q;
@@ -8026,7 +8026,7 @@ int directive_arrayout(void) {
 }
 
 
-int directive_arraydb_arraydw_arraydl_arraydd(void) {
+static int _directive_arraydb_arraydw_arraydl_arraydd(void) {
 
   struct array *arr;
   int index = 0, q, i = 0, data_size;
@@ -8420,7 +8420,7 @@ static int _directive_function_with_name(char *function_name, int opening_parent
 }
 
 
-int directive_function(void) {
+static int _directive_function(void) {
 
   if (get_next_plain_string() == FAILED)
     return FAILED;
@@ -8500,7 +8500,7 @@ int directive_define_def_equ(void) {
 }
 
 
-int directive_undef_undefine(void) {
+static int _directive_undef_undefine(void) {
 
   char bak[256];
   int q;
@@ -8565,7 +8565,7 @@ static int _macro_static_is_active(struct macro_static *macro) {
 }
 
 
-int directive_delmacro(void) {
+static int _directive_delmacro(void) {
 
   struct macro_static *macro, *previous;
   char name[MAX_NAME_LENGTH + 1], resolved_name[MAX_NAME_LENGTH + 1];
@@ -8641,7 +8641,7 @@ static void _free_function(struct function *function) {
 }
 
 
-int directive_delfunction(void) {
+static int _directive_delfunction(void) {
 
   struct function *function, *previous;
   char name[MAX_NAME_LENGTH + 1];
@@ -8685,7 +8685,7 @@ int directive_delfunction(void) {
 }
 
 
-int directive_export(void) {
+static int _directive_export(void) {
 
   int q = 0;
 
@@ -8714,7 +8714,7 @@ int directive_export(void) {
 }
 
 
-int directive_enumid(void) {
+static int _directive_enumid(void) {
   
   int q;
   
@@ -8788,7 +8788,7 @@ int directive_enumid(void) {
 }
 
 
-int directive_input(void) {
+static int _directive_input(void) {
   
   char k[256];
   int j, v;
@@ -8887,7 +8887,7 @@ int directive_input(void) {
 }
 
 
-int directive_redefine_redef(void) {
+static int _directive_redefine_redef(void) {
   
   char k[256], label[MAX_NAME_LENGTH+1];
   int j, export, q, size;
@@ -8945,7 +8945,7 @@ int directive_redefine_redef(void) {
 
 #if defined(Z80)
 
-int directive_smsheader(void) {
+static int _directive_smsheader(void) {
   
   int q, token_result;
     
@@ -9168,7 +9168,7 @@ int directive_smsheader(void) {
 }
 
 
-int directive_sdsctag(void) {
+static int _directive_sdsctag(void) {
   
   int q;
 
@@ -9650,7 +9650,7 @@ static void _ngsoftdip_emit_fixed_string(const char *s, int length, int remap_as
 }
 
 
-int directive_smdheader(void) {
+static int _directive_smdheader(void) {
   
   int q, token_result;
     
@@ -10693,7 +10693,7 @@ static int _parse_macro_argument_names(struct macro_static *m, int *count, int i
 }
 
 
-int directive_macro(void) {
+static int _directive_macro(void) {
 
   struct macro_static *m;
   int macro_start_line, q = 0;
@@ -10854,7 +10854,7 @@ static int _find_next_endr(void) {
 }
 
 
-int directive_rept_repeat_while(int is_while) {
+static int _directive_rept_repeat_while(int is_while) {
   
   char c[16], index_name[MAX_NAME_LENGTH + 1];
   int q, start, line, value = 0, counter = 0, step = 1;
@@ -10924,7 +10924,7 @@ int directive_rept_repeat_while(int is_while) {
       }
 
       /* test for EOL */
-      remember_current_source_file_position();
+      _remember_current_source_file_position();
 
       q = input_number();
       if (q == INPUT_NUMBER_EOL) {
@@ -10934,7 +10934,7 @@ int directive_rept_repeat_while(int is_while) {
       }
       else {
         /* this is not yet the end */
-        roll_back_to_remembered_source_file_position();
+        _roll_back_to_remembered_source_file_position();
       }
     }
 
@@ -11001,7 +11001,7 @@ int directive_rept_repeat_while(int is_while) {
 }
 
 
-int directive_endm(void) {
+static int _directive_endm(void) {
 
   struct definition_storage *storage;
   int q;
@@ -11155,7 +11155,7 @@ int directive_endm(void) {
 
 #if defined(W65816)
 
-int directive_snesheader(void) {
+static int _directive_snesheader(void) {
 
   int token_result;
   
@@ -11272,7 +11272,7 @@ int directive_snesheader(void) {
     }
     else if (strcaselesscmp(g_tmp, "HIROM") == 0) {
       if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".HIROM");
+        _give_snes_rom_mode_defined_error(".HIROM");
         return FAILED;
       }
 
@@ -11280,7 +11280,7 @@ int directive_snesheader(void) {
     }
     else if (strcaselesscmp(g_tmp, "EXHIROM") == 0) {
       if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_hirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".EXHIROM");
+        _give_snes_rom_mode_defined_error(".EXHIROM");
         return FAILED;
       }
 
@@ -11288,7 +11288,7 @@ int directive_snesheader(void) {
     }
     else if (strcaselesscmp(g_tmp, "LOROM") == 0) {
       if (g_hirom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".LOROM");
+        _give_snes_rom_mode_defined_error(".LOROM");
         return FAILED;
       }
 
@@ -11297,7 +11297,7 @@ int directive_snesheader(void) {
     /*
       else if (strcaselesscmp(g_tmp, "EXLOROM") == 0) {
       if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0) {
-      give_snes_rom_mode_defined_error(".EXLOROM");
+      _give_snes_rom_mode_defined_error(".EXLOROM");
       return FAILED;
       }
 
@@ -11458,7 +11458,7 @@ int directive_snesheader(void) {
 }
 
 
-int directive_snesnativevector(void) {
+static int _directive_snesnativevector(void) {
   
   int cop_defined = 0, brk_defined = 0, abort_defined = 0, base_address = 0;
   int nmi_defined = 0, unused_defined = 0, irq_defined = 0, q, token_result;
@@ -11684,7 +11684,7 @@ int directive_snesnativevector(void) {
 }
 
 
-int directive_snesemuvector(void) {
+static int _directive_snesemuvector(void) {
   
   int cop_defined = 0, unused_defined = 0, abort_defined = 0, base_address = 0;
   int nmi_defined = 0, reset_defined = 0, irqbrk_defined = 0, q, token_result;
@@ -11912,7 +11912,7 @@ int directive_snesemuvector(void) {
 #endif
 
 
-int directive_print(void) {
+static int _directive_print(void) {
 
   int get_value, value_type, number_result;
 
@@ -11971,7 +11971,7 @@ int directive_print(void) {
 }
 
 
-int directive_printt(void) {
+static int _directive_printt(void) {
   
   int number_result;
     
@@ -11991,7 +11991,7 @@ int directive_printt(void) {
 }
 
 
-int directive_printv(void) {
+static int _directive_printv(void) {
 
   int m = 1, q;
 
@@ -12027,7 +12027,7 @@ int directive_printv(void) {
 }
 
 
-int directive_dbrnd_dwrnd(void) {
+static int _directive_dbrnd_dwrnd(void) {
   
   int o, c, min, max, f, q;
 
@@ -12113,7 +12113,7 @@ int directive_dbrnd_dwrnd(void) {
 }
 
 
-int directive_dwsin_dbsin_dwcos_dbcos(void) {
+static int _directive_dwsin_dbsin_dwcos_dbcos(void) {
   
   double m, a, s, n;
   int p, c, o, f, value;
@@ -12217,7 +12217,7 @@ int directive_dwsin_dbsin_dwcos_dbcos(void) {
 }
 
 
-int directive_stringmaptable(void) {
+static int _directive_stringmaptable(void) {
 
   int parse_result, line_number = 0;
   FILE *table_file;
@@ -12379,7 +12379,7 @@ int directive_stringmaptable(void) {
 }
 
 
-int directive_stringmap(void) {
+static int _directive_stringmap(void) {
 
   int parse_result;
   struct stringmaptable *table;
@@ -12611,7 +12611,7 @@ static int _assertion_create_condition_stack(int condition_start, int condition_
 }
 
 
-int directive_assert(void) {
+static int _directive_assert(void) {
 
   char message[MAX_NAME_LENGTH + 1], label[MAX_NAME_LENGTH + 1];
   int q, action, parsed_int, latest_stack, condition_start, condition_end;
@@ -12688,7 +12688,7 @@ int directive_assert(void) {
 }
 
 
-int directive_rombanksize_banksize(void) {
+static int _directive_rombanksize_banksize(void) {
 
   int q;
   
@@ -12716,7 +12716,7 @@ int directive_rombanksize_banksize(void) {
 }
 
 
-int directive_break(void) {
+static int _directive_break(void) {
 
   int m, line_current = g_active_file_info_last->line_current;
   struct repeat_runtime *rr;
@@ -13342,7 +13342,7 @@ int directive_lynxheader(void) {
 #endif
 
 
-int directive_endr_continue(void) {
+static int _directive_endr_continue(void) {
 
   struct repeat_runtime *rr;
   
@@ -13426,7 +13426,7 @@ int directive_endr_continue(void) {
 }
 
 
-int directive_changefile(void) {
+static int _directive_changefile(void) {
 
   int q;
   
@@ -13524,7 +13524,7 @@ int directive_changefile(void) {
 }
 
 
-int directive_fail(void) {
+static int _directive_fail(void) {
 
   int exit_value = 1, strings = 0, q;
   char s[1024];
@@ -13561,7 +13561,7 @@ int directive_fail(void) {
 }
 
 
-int directive_enum(void) {
+static int _directive_enum(void) {
 
   int q;
   
@@ -13736,19 +13736,19 @@ int parse_directive(void) {
 
     /* ALIGN */
     if (strcmp(directive_upper, "ALIGN") == 0)
-      return directive_align();
+      return _directive_align();
     
     /* ASCTABLE/ASCIITABLE? */
     if (strcmp(directive_upper, "ASCTABLE") == 0 || strcmp(directive_upper, "ASCIITABLE") == 0)
-      return directive_asctable_asciitable();
+      return _directive_asctable_asciitable();
     
     /* ASC/ASCSTR? */
     if (strcmp(directive_upper, "ASC") == 0 || strcmp(directive_upper, "ASCSTR") == 0)
-      return directive_asc();
+      return _directive_asc();
 
     /* ADDR? */
     if (strcmp(directive_upper, "ADDR") == 0)
-      return directive_dw_word_addr();
+      return _directive_dw_word_addr();
     
     /* ASM */
     if (strcmp(directive_upper, "ASM") == 0)
@@ -13756,25 +13756,25 @@ int parse_directive(void) {
 
     /* ARRAYIN? */
     if (strcmp(directive_upper, "ARRAYIN") == 0)
-      return directive_arrayin();
+      return _directive_arrayin();
 
     if (length > 6 && strncmp(directive_upper, "ARRAY", 5) == 0) {
       /* ARRAYDEF/ARRAYDEFINE? */
       if (strcmp(directive_upper, "ARRAYDEF") == 0 || strcmp(directive_upper, "ARRAYDEFINE") == 0)
-        return directive_arraydef_arraydefine();
+        return _directive_arraydef_arraydefine();
 
       /* ARRAYOUT? */
       if (strcmp(directive_upper, "ARRAYOUT") == 0)
-        return directive_arrayout();
+        return _directive_arrayout();
     
       /* ARRAYDB/ARRAYDW/ARRAYDL/ARRAYDD? */
       if (strcmp(directive_upper, "ARRAYDB") == 0 || strcmp(directive_upper, "ARRAYDW") == 0 || strcmp(directive_upper, "ARRAYDL") == 0 || strcmp(directive_upper, "ARRAYDD") == 0)
-        return directive_arraydb_arraydw_arraydl_arraydd();
+        return _directive_arraydb_arraydw_arraydl_arraydd();
     }
     
     /* ASSERT */
     if (strcmp(directive_upper, "ASSERT") == 0)
-      return directive_assert();
+      return _directive_assert();
 
     break;
 
@@ -13790,7 +13790,7 @@ int parse_directive(void) {
     else if (length == 3) {
       /* BYT? */
       if (strcmp(directive_upper, "BYT") == 0)
-        return directive_db_byt_byte();
+        return _directive_db_byt_byte();
     }
     else if (length == 4) {
       /* BASE? */
@@ -13814,15 +13814,15 @@ int parse_directive(void) {
 
       /* BYTE? */
       if (strcmp(directive_upper, "BYTE") == 0)
-        return directive_db_byt_byte();
+        return _directive_db_byt_byte();
 
       /* BANK */
       if (strcmp(directive_upper, "BANK") == 0)
-        return directive_bank();
+        return _directive_bank();
 
       /* BITS? */
       if (strcmp(directive_upper, "BITS") == 0)
-        return directive_bits();
+        return _directive_bits();
     }
     else {
       /* BREAKPOINT? */
@@ -13833,19 +13833,19 @@ int parse_directive(void) {
 
       /* BREAK */
       if (strcmp(directive_upper, "BREAK") == 0)
-        return directive_break();
+        return _directive_break();
 
       /* BLOCK */
       if (strcmp(directive_upper, "BLOCK") == 0)
-        return directive_block();
+        return _directive_block();
       
       /* BACKGROUND */
       if (strcmp(directive_upper, "BACKGROUND") == 0)
-        return directive_background();
+        return _directive_background();
 
       /* BANKSIZE */
       if (strcmp(directive_upper, "BANKSIZE") == 0)
-        return directive_rombanksize_banksize();
+        return _directive_rombanksize_banksize();
     }
     
     break;
@@ -13972,11 +13972,11 @@ int parse_directive(void) {
     
     /* CHANGEFILE (INTERNAL) */
     if (strcmp(directive_upper, "CHANGEFILE") == 0)
-      return directive_changefile();
+      return _directive_changefile();
     
     /* CONTINUE */
     if (strcmp(directive_upper, "CONTINUE") == 0)
-      return directive_endr_continue();
+      return _directive_endr_continue();
 
     break;
     
@@ -13985,23 +13985,23 @@ int parse_directive(void) {
     if (length == 2) {
       /* DB? */
       if (strcmp(directive_upper, "DB") == 0)
-        return directive_db_byt_byte();
+        return _directive_db_byt_byte();
 
       /* DW? */
       if (strcmp(directive_upper, "DW") == 0)
-        return directive_dw_word_addr();
+        return _directive_dw_word_addr();
 
       /* DD? */
       if (strcmp(directive_upper, "DD") == 0)
-        return directive_dd();
+        return _directive_dd();
 
       /* DL? */
       if (strcmp(directive_upper, "DL") == 0)
-        return directive_dl_long_faraddr();
+        return _directive_dl_long_faraddr();
 
       /* DS? */
       if (strcmp(directive_upper, "DS") == 0)
-        return directive_dsb_ds();
+        return _directive_dsb_ds();
     }
     else if (length == 3) {
       /* DEF */
@@ -14010,31 +14010,31 @@ int parse_directive(void) {
 
       /* DSB? */
       if (strcmp(directive_upper, "DSB") == 0)
-        return directive_dsb_ds();
+        return _directive_dsb_ds();
 
       /* DSW? */
       if (strcmp(directive_upper, "DSW") == 0)
-        return directive_dsw();
+        return _directive_dsw();
 
       /* DSL? */
       if (strcmp(directive_upper, "DSL") == 0)
-        return directive_dsl();
+        return _directive_dsl();
 
       /* DSD? */
       if (strcmp(directive_upper, "DSD") == 0)
-        return directive_dsd();
+        return _directive_dsd();
 
       /* DBM/DWM? */
       if (strcmp(directive_upper, "DBM") == 0 || strcmp(directive_upper, "DWM") == 0)
-        return directive_dbm_dwm_dlm_ddm_filter();
+        return _directive_dbm_dwm_dlm_ddm_filter();
       
       /* DLM? */
       if (strcmp(directive_upper, "DLM") == 0)
-        return directive_dbm_dwm_dlm_ddm_filter();
+        return _directive_dbm_dwm_dlm_ddm_filter();
 
       /* DDM? */
       if (strcmp(directive_upper, "DDM") == 0)
-        return directive_dbm_dwm_dlm_ddm_filter();
+        return _directive_dbm_dwm_dlm_ddm_filter();
     }
     else {
       /* DEFINE */
@@ -14043,27 +14043,27 @@ int parse_directive(void) {
 
       /* DELMACRO */
       if (strcmp(directive_upper, "DELMACRO") == 0)
-        return directive_delmacro();
+        return _directive_delmacro();
 
       /* DELFUNCTION */
       if (strcmp(directive_upper, "DELFUNCTION") == 0)
-        return directive_delfunction();
+        return _directive_delfunction();
 
       /* DATA? */
       if (strcmp(directive_upper, "DATA") == 0)
-        return directive_row_data();
+        return _directive_row_data();
 
       /* DSTRUCT */
       if (strcmp(directive_upper, "DSTRUCT") == 0)
-        return directive_dstruct();
+        return _directive_dstruct();
 
       /* DBRND/DWRND */
       if (strcmp(directive_upper, "DBRND") == 0 || strcmp(directive_upper, "DWRND") == 0)
-        return directive_dbrnd_dwrnd();
+        return _directive_dbrnd_dwrnd();
 
       /* DWSIN/DBSIN/DWCOS/DBCOS */
       if (strcmp(directive_upper, "DWSIN") == 0 || strcmp(directive_upper, "DBSIN") == 0 || strcmp(directive_upper, "DWCOS") == 0 || strcmp(directive_upper, "DBCOS") == 0)
-        return directive_dwsin_dbsin_dwcos_dbcos();
+        return _directive_dwsin_dbsin_dwcos_dbcos();
     
 #if defined(GB)
       /* DESTINATIONCODE */
@@ -14200,15 +14200,15 @@ int parse_directive(void) {
 
       /* ENDM */
       if (strcmp(directive_upper, "ENDM") == 0)
-        return directive_endm();
+        return _directive_endm();
     
       /* ENDR */
       if (strcmp(directive_upper, "ENDR") == 0)
-        return directive_endr_continue();
+        return _directive_endr_continue();
 
       /* ENUM */
       if (strcmp(directive_upper, "ENUM") == 0)
-        return directive_enum();
+        return _directive_enum();
     }
     else {    
       /* ENDBITS? */
@@ -14274,11 +14274,11 @@ int parse_directive(void) {
 
       /* ENUMID */
       if (strcmp(directive_upper, "ENUMID") == 0)
-        return directive_enumid();
+        return _directive_enumid();
 
       /* EXPORT */
       if (strcmp(directive_upper, "EXPORT") == 0)
-        return directive_export();
+        return _directive_export();
 
 #if defined(W65816)  
       /* EXHIROM */
@@ -14286,7 +14286,7 @@ int parse_directive(void) {
         no_library_files(".EXHIROM");
 
         if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_hirom_defined != 0) {
-          give_snes_rom_mode_defined_error(".EXHIROM");
+          _give_snes_rom_mode_defined_error(".EXHIROM");
           return FAILED;
         }
 
@@ -14302,7 +14302,7 @@ int parse_directive(void) {
         no_library_files(".EXLOROM");
         
         if (g_hirom_defined != 0 || g_lorom_defined != 0 || g_exhirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".EXLOROM");
+        _give_snes_rom_mode_defined_error(".EXLOROM");
         return FAILED;
         }
         
@@ -14321,43 +14321,43 @@ int parse_directive(void) {
 
     /* FUNCTION */
     if (strcmp(directive_upper, "FUNCTION") == 0)
-      return directive_function();
+      return _directive_function();
 
     /* FILTER? */
     if (strcmp(directive_upper, "FILTER") == 0)
-      return directive_dbm_dwm_dlm_ddm_filter();
+      return _directive_dbm_dwm_dlm_ddm_filter();
 
     /* FARADDR? */
     if (strcmp(directive_upper, "FARADDR") == 0)
-      return directive_dl_long_faraddr();
+      return _directive_dl_long_faraddr();
 
     /* FOPEN */
     if (strcmp(directive_upper, "FOPEN") == 0)
-      return directive_fopen();
+      return _directive_fopen();
 
     /* FCLOSE */
     if (strcmp(directive_upper, "FCLOSE") == 0)
-      return directive_fclose();
+      return _directive_fclose();
 
     /* FSIZE */
     if (strcmp(directive_upper, "FSIZE") == 0)
-      return directive_fsize();
+      return _directive_fsize();
 
     /* FREAD */
     if (strcmp(directive_upper, "FREAD") == 0)
-      return directive_fread();
+      return _directive_fread();
 
     /* FTELL */
     if (strcmp(directive_upper, "FTELL") == 0)
-      return directive_ftell();
+      return _directive_ftell();
 
     /* FSEEK */
     if (strcmp(directive_upper, "FSEEK") == 0)
-      return directive_fseek();
+      return _directive_fseek();
 
     /* FAIL */
     if (strcmp(directive_upper, "FAIL") == 0)
-      return directive_fail();
+      return _directive_fail();
 
 #if defined(W65816)  
     /* FASTROM */
@@ -14383,7 +14383,7 @@ int parse_directive(void) {
 #if defined(GB)
     /* GBHEADER */
     if (strcmp(g_current_directive, "GBHEADER") == 0)
-      return directive_gbheader();
+      return _directive_gbheader();
 #endif
 
     break;
@@ -14392,7 +14392,7 @@ int parse_directive(void) {
 
     /* HEX? */
     if (strcmp(directive_upper, "HEX") == 0)
-      return directive_hex();
+      return _directive_hex();
 
 #if defined(W65816)  
     /* HIROM */
@@ -14400,7 +14400,7 @@ int parse_directive(void) {
       no_library_files(".HIROM");
 
       if (g_lorom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".HIROM");
+        _give_snes_rom_mode_defined_error(".HIROM");
         return FAILED;
       }
 
@@ -14445,23 +14445,23 @@ int parse_directive(void) {
     
     /* INCDIR */
     if (strcmp(directive_upper, "INCDIR") == 0)
-      return directive_incdir();
+      return _directive_incdir();
 
     /* INCLUDE/INC */
     if (strcmp(directive_upper, "INCLUDE") == 0 || strcmp(directive_upper, "INC") == 0)
-      return directive_include(YES);
+      return _directive_include(YES);
 
     /* INDLUDE/IND (INTERNAL) */
     if (strcmp(directive_upper, "INDLUDE") == 0 || strcmp(directive_upper, "IND") == 0)
-      return directive_include(NO);
+      return _directive_include(NO);
 
     /* INCBIN */
     if (strcmp(directive_upper, "INCBIN") == 0)
-      return directive_incbin();
+      return _directive_incbin();
 
     /* INPUT */
     if (strcmp(directive_upper, "INPUT") == 0)
-      return directive_input();
+      return _directive_input();
 
     break;
     
@@ -14469,7 +14469,7 @@ int parse_directive(void) {
 
     /* LONG? */
     if (strcmp(directive_upper, "LONG") == 0)
-      return directive_dl_long_faraddr();
+      return _directive_dl_long_faraddr();
 
 #if defined(WDC65C02)
     /* LYNXHEADER */
@@ -14555,7 +14555,7 @@ int parse_directive(void) {
       no_library_files(".LOROM");
 
       if (g_hirom_defined != 0 || g_exlorom_defined != 0 || g_exhirom_defined != 0) {
-        give_snes_rom_mode_defined_error(".LOROM");
+        _give_snes_rom_mode_defined_error(".LOROM");
         return FAILED;
       }
 
@@ -14572,7 +14572,7 @@ int parse_directive(void) {
 
     /* MACRO */
     if (strcmp(directive_upper, "MACRO") == 0)
-      return directive_macro();
+      return _directive_macro();
 
     /* M */
     if (strcmp(directive_upper, "M") == 0) {
@@ -14585,7 +14585,7 @@ int parse_directive(void) {
 
     /* MEMORYMAP */
     if (strcmp(directive_upper, "MEMORYMAP") == 0)
-      return directive_memorymap();
+      return _directive_memorymap();
 
 #if defined(MC68000)
     /* MDVECTORS */
@@ -14622,7 +14622,7 @@ int parse_directive(void) {
 #if defined(W65816)
     /* NAME */
     if (strcmp(directive_upper, "NAME") == 0)
-      return directive_name_w65816();
+      return _directive_name_w65816();
 
     /* NOWDC */
     if (strcmp(directive_upper, "NOWDC") == 0) {
@@ -14643,7 +14643,7 @@ int parse_directive(void) {
   
     /* NAME */
     if (strcmp(directive_upper, "NAME") == 0)
-      return directive_name_gb();
+      return _directive_name_gb();
 #endif
     
     break;
@@ -14652,11 +14652,11 @@ int parse_directive(void) {
 
     /* ORG */
     if (strcmp(directive_upper, "ORG") == 0)
-      return directive_org();
+      return _directive_org();
 
     /* ORGA */
     if (strcmp(directive_upper, "ORGA") == 0)
-      return directive_orga();
+      return _directive_orga();
 
     /* OUTNAME */
     if (strcmp(directive_upper, "OUTNAME") == 0) {
@@ -14682,15 +14682,15 @@ int parse_directive(void) {
 
     /* PRINT */
     if (strcmp(directive_upper, "PRINT") == 0)
-      return directive_print();
+      return _directive_print();
   
     /* PRINTT */
     if (strcmp(directive_upper, "PRINTT") == 0)
-      return directive_printt();
+      return _directive_printt();
 
     /* PRINTV */
     if (strcmp(directive_upper, "PRINTV") == 0)
-      return directive_printv();
+      return _directive_printv();
 
     break;
     
@@ -14698,27 +14698,27 @@ int parse_directive(void) {
 
     /* REPT/REPEAT */
     if (strcmp(directive_upper, "REPT") == 0 || strcmp(directive_upper, "REPEAT") == 0)
-      return directive_rept_repeat_while(NO);
+      return _directive_rept_repeat_while(NO);
 
     /* REDEFINE/REDEF */
     if (strcmp(directive_upper, "REDEFINE") == 0 || strcmp(directive_upper, "REDEF") == 0)
-      return directive_redefine_redef();
+      return _directive_redefine_redef();
 
     /* ROW? */
     if (strcmp(directive_upper, "ROW") == 0)
-      return directive_row_data();
+      return _directive_row_data();
 
     /* ROMBANKS */
     if (strcmp(directive_upper, "ROMBANKS") == 0)
-      return directive_rombanks();
+      return _directive_rombanks();
 
     /* ROMBANKMAP */
     if (strcmp(directive_upper, "ROMBANKMAP") == 0)
-      return directive_rombankmap();
+      return _directive_rombankmap();
 
     /* RAMSECTION */
     if (strcmp(directive_upper, "RAMSECTION") == 0)
-      return directive_ramsection();
+      return _directive_ramsection();
 
 #if defined(GB)
     /* RAMSIZE */
@@ -14857,7 +14857,7 @@ int parse_directive(void) {
 
     /* ROMBANKSIZE */
     if (strcmp(directive_upper, "ROMBANKSIZE") == 0)
-      return directive_rombanksize_banksize();
+      return _directive_rombanksize_banksize();
 
     break;
     
@@ -14865,19 +14865,19 @@ int parse_directive(void) {
 
     /* SECTION */
     if (strcmp(directive_upper, "SECTION") == 0)
-      return directive_section();
+      return _directive_section();
 
     /* STRUCT */
     if (strcmp(directive_upper, "STRUCT") == 0)
-      return directive_struct();
+      return _directive_struct();
 
     /* SHIFT */
     if (strcmp(directive_upper, "SHIFT") == 0)
-      return directive_shift();
+      return _directive_shift();
 
     /* SLOT */
     if (strcmp(directive_upper, "SLOT") == 0)
-      return directive_slot();
+      return _directive_slot();
 
     /* SYM/SYMBOL */
     if (strcmp(directive_upper, "SYM") == 0 || strcmp(directive_upper, "SYMBOL") == 0) {
@@ -14893,11 +14893,11 @@ int parse_directive(void) {
     
     /* STRINGMAPTABLE */
     if (strcmp(directive_upper, "STRINGMAPTABLE") == 0)
-      return directive_stringmaptable();
+      return _directive_stringmaptable();
     
     /* STRINGMAP */
     if (strcmp(directive_upper, "STRINGMAP") == 0)
-      return directive_stringmap();
+      return _directive_stringmap();
 
     /* SEED */
     if (strcmp(directive_upper, "SEED") == 0) {
@@ -14936,17 +14936,17 @@ int parse_directive(void) {
 
     /* SMSHEADER */
     if (strcmp(g_current_directive, "SMSHEADER") == 0)
-      return directive_smsheader();
+      return _directive_smsheader();
   
     /* SDSCTAG */
     if (strcmp(directive_upper, "SDSCTAG") == 0)
-      return directive_sdsctag();
+      return _directive_sdsctag();
 #endif
 
 #if defined(MC68000)
     /* SMDHEADER */
     if (strcmp(g_current_directive, "SMDHEADER") == 0)
-      return directive_smdheader();
+      return _directive_smdheader();
 #endif
     
 #if defined(W65816)  
@@ -14977,15 +14977,15 @@ int parse_directive(void) {
 
     /* SNESHEADER */
     if (strcmp(directive_upper, "SNESHEADER") == 0)
-      return directive_snesheader();
+      return _directive_snesheader();
 
     /* SNESNATIVEVECTOR */
     if (strcmp(directive_upper, "SNESNATIVEVECTOR") == 0)
-      return directive_snesnativevector();
+      return _directive_snesnativevector();
 
     /* SNESEMUVECTOR */
     if (strcmp(directive_upper, "SNESEMUVECTOR") == 0)
-      return directive_snesemuvector();
+      return _directive_snesemuvector();
 #endif
     
     break;
@@ -14994,7 +14994,7 @@ int parse_directive(void) {
 
     /* TABLE? */
     if (strcmp(directive_upper, "TABLE") == 0)
-      return directive_table();
+      return _directive_table();
 
     break;
 
@@ -15002,11 +15002,11 @@ int parse_directive(void) {
     
     /* UNDEF/UNDEFINE */
     if (strcmp(directive_upper, "UNDEF") == 0 || strcmp(directive_upper, "UNDEFINE") == 0)
-      return directive_undef_undefine();
+      return _directive_undef_undefine();
 
     /* UNBACKGROUND */
     if (strcmp(directive_upper, "UNBACKGROUND") == 0)
-      return directive_unbackground();
+      return _directive_unbackground();
 
     break;
 
@@ -15047,11 +15047,11 @@ int parse_directive(void) {
 
     /* WHILE */
     if (strcmp(directive_upper, "WHILE") == 0)
-      return directive_rept_repeat_while(YES);
+      return _directive_rept_repeat_while(YES);
 
     /* WORD? */
     if (strcmp(directive_upper, "WORD") == 0)
-      return directive_dw_word_addr();
+      return _directive_dw_word_addr();
 
 #if defined(W65816)
     /* WDC */

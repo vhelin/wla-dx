@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "defines.h"
+#include "check.h"
 #include "memory.h"
 #include "files.h"
 #include "main.h"

@@ -282,7 +282,7 @@ int finalize_snes_rom(void) {
 }
 
 
-int compute_snes_exhirom_checksum(void) {
+static int _compute_snes_exhirom_checksum(void) {
 
   int i, j, checksum = 0, inv;
 
@@ -360,7 +360,7 @@ int compute_snes_checksum(void) {
 
   /* ExHiROM jump */
   if (g_snes_rom_mode == SNES_ROM_MODE_EXHIROM && g_romsize >= 0x410000)
-    return compute_snes_exhirom_checksum();
+    return _compute_snes_exhirom_checksum();
   
   if (g_snes_rom_mode == SNES_ROM_MODE_LOROM || g_snes_rom_mode == SNES_ROM_MODE_EXLOROM) {
     if (g_romsize < 0x8000) {
