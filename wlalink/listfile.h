@@ -2,9 +2,6 @@
 #ifndef __LISTFILE_H
 #define __LISTFILE_H
 
-struct object_file;
-struct section;
-
 struct listfileitem {
   char *sourcefilename;
   char *outputfilename;

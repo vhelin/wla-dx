@@ -4150,7 +4150,7 @@ int evaluate_deferred_assertions(void) {
       return FAILED;
 
     if (result == 0.0) {
-      char *message = assertion->message[0] != 0 ? assertion->message : ".ASSERT failed.";
+      const char *message = assertion->message[0] != 0 ? assertion->message : ".ASSERT failed.";
 
       if (assertion->action == ASSERTION_ACTION_LDWARNING) {
         print_text(NO, "%s: %s:%d: WARNING: %s\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, message);

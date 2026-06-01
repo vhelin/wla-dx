@@ -902,7 +902,6 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
           if (code[i] >= '0' && code[i] <= '7')
             number2 = code[i++] - '0';
           else if (c2 == 'S' && toupper((int)code[i]) == 'P') {
-            c2 = 'A';
             number2 = 7;
             i++;
           }
@@ -1920,8 +1919,6 @@ int evaluate_token(void) {
 
 #if defined(EZ80)
   s_ez80_adl_prefix = 0;
-  ez80_adl_prefix = 0;
-  ez80_adl_original_ss = 0;
   ez80_adl_suffix_position = -1;
 #endif
 

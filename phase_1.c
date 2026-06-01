@@ -3580,8 +3580,8 @@ static int _directive_align(void) {
   if (data_stream_parser_parse() == FAILED)
     return FAILED;
 
-  s = data_stream_parser_get_current_section();
-  address = data_stream_parser_get_current_address();
+  s = data_stream_parser_get_section();
+  address = data_stream_parser_get_address();
   
   if (s != NULL) {
     /* check if the section works with .ALIGN */
@@ -6392,6 +6392,8 @@ static int _directive_fopen(void) {
 
   /* open the file */
   o = find_file(f->filename, &(f->f), NO, "rb");
+  if (o == FAILED)
+    return FAILED;
   if (f->f == NULL) {
     if (g_makefile_skip_file_handling == YES) {
       /* lets just use a tmp file for file operations */
@@ -10466,7 +10468,7 @@ int directive_ngsoftdip(void) {
   unsigned char special_buf[6];
   unsigned char options_buf[10];
   char text_buf[8][13];
-  int name_defined = NO, special_defined = NO, options_defined = NO;
+  int name_defined = NO;
   int text_count = 0;
   int q, i, token_result;
   const int text_width = 12;
@@ -10515,7 +10517,6 @@ int directive_ngsoftdip(void) {
         }
         special_buf[i] = (unsigned char)g_parsed_int;
       }
-      special_defined = YES;
     }
     else if (strcaselesscmp(g_tmp, "OPTIONS") == 0) {
       for (i = 0; i < 10; i++) {
@@ -10526,7 +10527,6 @@ int directive_ngsoftdip(void) {
         }
         options_buf[i] = (unsigned char)g_parsed_int;
       }
-      options_defined = YES;
     }
     else if (strcaselesscmp(g_tmp, "TEXT") == 0) {
       q = input_number();
@@ -10562,10 +10562,6 @@ int directive_ngsoftdip(void) {
     print_error(ERROR_DIR, ".NGSOFTDIP requires NAME to be defined.\n");
     return FAILED;
   }
-
-  /* silence unused-variable warnings when validation passes */
-  (void)special_defined;
-  (void)options_defined;
 
   /* emit: 16 bytes name, 6 bytes special, 10 bytes options, 8*12 bytes text */
   _ngsoftdip_emit_fixed_string(name_buf, 16, NO);
@@ -10857,7 +10853,7 @@ static int _find_next_endr(void) {
 static int _directive_rept_repeat_while(int is_while) {
   
   char c[16], index_name[MAX_NAME_LENGTH + 1];
-  int q, start, line, value = 0, counter = 0, step = 1;
+  int q, start, line, value = 0, counter, step = 1;
 
   strcpy(c, g_current_directive);
 
@@ -10939,7 +10935,7 @@ static int _directive_rept_repeat_while(int is_while) {
     }
 
     if (index_name[0] != 0) {
-      if (redefine(index_name, value, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
+      if (redefine(index_name, (double)value, NULL, DEFINITION_TYPE_VALUE, 0) == FAILED)
         return FAILED;
     }
   }

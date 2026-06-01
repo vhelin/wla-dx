@@ -3014,7 +3014,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             if (data_stream_parser_parse() == FAILED)
               return FAILED;
 
-            section = data_stream_parser_get_current_section();
+            section = data_stream_parser_get_section();
 
             /* check that we are not in a place where ORG/ORGA cannot be determined */
             if (section != NULL) {
@@ -3025,7 +3025,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
               }
             }
     
-            si[q].value = data_stream_parser_get_current_address();
+            si[q].value = data_stream_parser_get_address();
 
             if (k == 4) {
               /* orga() */
@@ -4028,7 +4028,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       /* read the labels and their addresses from the internal data stream */
-      struct data_stream_item *dSI = NULL;
+      struct data_stream_item *dSI;
 
       if (data_stream_parser_parse() == FAILED)
         return FAILED;
@@ -5430,25 +5430,25 @@ static struct section_def *s_dsp_s = NULL;
 static struct data_stream_item *s_data_stream_items_first = NULL, *s_data_stream_items_last = NULL;
 
 
-struct section_def *data_stream_parser_get_current_section(void) {
+struct section_def *data_stream_parser_get_section(void) {
 
   return s_dsp_s;
 }
 
 
-int data_stream_parser_get_current_address(void) {
+int data_stream_parser_get_address(void) {
 
   return s_dsp_add;
 }
 
 
-int data_stream_parser_get_current_bank(void) {
+int data_stream_parser_get_bank(void) {
 
   return s_dsp_bank;
 }
 
 
-int data_stream_parser_get_current_base(void) {
+int data_stream_parser_get_base(void) {
 
   return s_dsp_base;
 }

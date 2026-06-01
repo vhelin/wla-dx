@@ -10,8 +10,6 @@
 #define DEBUG_EXPORT_JSON       0x0040
 #define DEBUG_EXPORT_MAME       0x0080
 
-struct debug_model;
-
 int debug_export_parse_flags(const char *formats, int *flags);
 int debug_export_all(struct debug_model *model, int flags, char *outname);
 

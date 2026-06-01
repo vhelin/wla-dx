@@ -224,7 +224,7 @@ static int _add_assertion(struct assertion *assertion) {
 }
 
 
-static int _read_bounded_string(unsigned char **tp, char *out, char *description) {
+static int _read_bounded_string(unsigned char **tp, char *out, const char *description) {
 
   unsigned char *t = *tp;
   int q;
