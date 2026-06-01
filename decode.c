@@ -4112,6 +4112,8 @@ int evaluate_token(void) {
           g_source_index = y;
           if (!(z == SUCCEEDED || z == INPUT_NUMBER_ADDRESS_LABEL || z == INPUT_NUMBER_STACK))
             return FAILED;
+          if (g_operand_hint == HINT_24BIT && g_operand_hint_type == HINT_TYPE_GIVEN)
+            break;
           if ((g_operand_hint == HINT_NONE || (g_operand_hint <= HINT_16BIT && g_operand_hint_type == HINT_TYPE_DEDUCED)) && g_xbit_size > 16 && s_instruction_tmp->skip_xbit == 1)
             break;
           if (g_operand_hint == HINT_24BIT && s_instruction_tmp->skip_xbit == 1)
