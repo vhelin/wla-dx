@@ -10919,18 +10919,18 @@ static int _directive_rept_repeat_while(int is_while) {
         continue;
       }
 
-      /* test for EOL */
-      _remember_current_source_file_position();
-
+      /* the only thing that's allowed here is the end of the line */
       q = input_number();
       if (q == INPUT_NUMBER_EOL) {
         g_parsed_int = counter;
         next_line();
         break;
       }
+      else if (q == FAILED)
+        return FAILED;
       else {
-        /* this is not yet the end */
-        _roll_back_to_remembered_source_file_position();
+        print_error(ERROR_DIR, ".%s got an unexpected token. Expected INDEX, START, STEP or the end of the line.\n", c);
+        return FAILED;
       }
     }
 
