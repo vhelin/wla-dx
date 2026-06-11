@@ -623,7 +623,7 @@
         ld i,hl                         ; @BT ED C7
         ld ix,(hl)                      ; @BT ED 37
         ld ix,(ix+$67)                  ; @BT DD 37 67
-        ld ix,(iy+$74)                  ; @BT FD 37 74
+        ld ix,(iy+$74)                  ; @BT FD 31 74
         ld ix,($5ab9)                   ; @BT DD 2A B9 5A
         ld ix,$5ade                     ; @BT DD 21 DE 5A
         ld ixh,a                        ; @BT DD 67
@@ -657,7 +657,7 @@
         ld (ix+$47),$13                 ; @BT DD 36 47 13
         ld iy,(hl)                      ; @BT ED 31
         ld iy,(ix+$61)                  ; @BT DD 31 61
-        ld iy,(iy+$6e)                  ; @BT FD 31 6E
+        ld iy,(iy+$6e)                  ; @BT FD 37 6E
         ld iy,($5fa3)                   ; @BT FD 2A A3 5F
         ld iy,$5fc8                     ; @BT FD 21 C8 5F
         ld iyh,a                        ; @BT FD 67
@@ -685,8 +685,8 @@
         ld (iy+$63),e                   ; @BT FD 73 63
         ld (iy+$70),h                   ; @BT FD 74 70
         ld (iy+$7d),hl                  ; @BT FD 2F 7D
-        ld (iy+$1a),ix                  ; @BT FD 3F 1A
-        ld (iy+$27),iy                  ; @BT FD 3E 27
+        ld (iy+$1a),ix                  ; @BT FD 3E 1A
+        ld (iy+$27),iy                  ; @BT FD 3F 27
         ld (iy+$34),l                   ; @BT FD 75 34
         ld (iy+$41),$25                 ; @BT FD 36 41 25
         ld ($641e),a                    ; @BT 32 1E 64
@@ -2189,7 +2189,7 @@ T2_L_0064FC db
         ld sp,(T2_D_0059B6)             ; @BT ED 7B B6 59
         ld sp,F2_ID(T2_L_0059DB)        ; @BT 31 DB 59
         ld ix,(ix+F2_ADD(T2_D_000067,T2_L_000000)) ; @BT DD 37 67
-        ld ix,(iy+F2_SUB(T2_L_000074,T2_D_000000)) ; @BT FD 37 74
+        ld ix,(iy+F2_SUB(T2_L_000074,T2_D_000000)) ; @BT FD 31 74
         ld ix,(F2_MIX(T2_L_005AB9,T2_D_005AB9,T2_D_005AB9)) ; @BT DD 2A B9 5A
         ld ix,F2_MIX(T2_D_005ADE,T2_L_000000,T2_L_000000) ; @BT DD 21 DE 5A
         ld ixh,T2_L_00006E              ; @BT DD 26 6E
@@ -2208,7 +2208,7 @@ T2_L_0064FC db
         ld (ix+F2_MIX(T2_D_00003A,T2_L_000000,T2_L_000000)),l ; @BT DD 75 3A
         ld (ix+T2_L_000047),T2_D_000013 ; @BT DD 36 47 13
         ld iy,(ix+F2_ID(T2_L_000061))   ; @BT DD 31 61
-        ld iy,(iy+F2_ADD(T2_D_00006E,T2_L_000000)) ; @BT FD 31 6E
+        ld iy,(iy+F2_ADD(T2_D_00006E,T2_L_000000)) ; @BT FD 37 6E
         ld iy,(F2_SUB(T2_L_005FA3,T2_D_000000)) ; @BT FD 2A A3 5F
         ld iy,F2_MIX(T2_L_005FC8,T2_D_005FC8,T2_D_005FC8) ; @BT FD 21 C8 5F
         ld iyh,F2_MIX(T2_D_000010,T2_L_000000,T2_L_000000) ; @BT FD 26 10
@@ -2222,8 +2222,8 @@ T2_L_0064FC db
         ld (iy+T2_L_000063),e           ; @BT FD 73 63
         ld (iy+T2_D_000070),h           ; @BT FD 74 70
         ld (iy+F2_ID(T2_L_00007D)),hl   ; @BT FD 2F 7D
-        ld (iy+F2_ADD(T2_D_00001A,T2_L_000000)),ix ; @BT FD 3F 1A
-        ld (iy+F2_SUB(T2_L_000027,T2_D_000000)),iy ; @BT FD 3E 27
+        ld (iy+F2_ADD(T2_D_00001A,T2_L_000000)),ix ; @BT FD 3E 1A
+        ld (iy+F2_SUB(T2_L_000027,T2_D_000000)),iy ; @BT FD 3F 27
         ld (iy+F2_MIX(T2_L_000034,T2_D_000034,T2_D_000034)),l ; @BT FD 75 34
         ld (iy+F2_MIX(T2_D_000041,T2_L_000000,T2_L_000000)),T2_L_000025 ; @BT FD 36 41 25
         ld (T2_D_00641E),a              ; @BT 32 1E 64

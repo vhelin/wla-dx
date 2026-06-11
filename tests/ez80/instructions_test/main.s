@@ -117,10 +117,10 @@ BANKS 1
         ld de,(iy+2)            ; @BT FD 17 02
         ld hl,(ix-3)            ; @BT DD 27 FD
         ld (iy-4),hl            ; @BT FD 2F FC
-        ld ix,(iy+5)            ; @BT FD 37 05
+        ld ix,(iy+5)            ; @BT FD 31 05
         ld iy,(ix-6)            ; @BT DD 31 FA
         ld (ix+7),iy            ; @BT DD 3E 07
-        ld (iy-8),ix            ; @BT FD 3F F8
+        ld (iy-8),ix            ; @BT FD 3E F8
         .db "<08"               ; @BT END
 
         .db "09>"               ; @BT TEST-09 09 START
