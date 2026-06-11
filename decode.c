@@ -972,7 +972,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       return FAILED;
     
     i++;
-    if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+    if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
       if (c == 'S')
         *reg1 = 7;
       else
@@ -1034,7 +1034,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
     /* An? */
     if (c == 'A' || c =='S') {
       i++;
-      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+      if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
         if (c == 'S')
           *reg1 = 7;
         else
@@ -1103,7 +1103,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
           return FAILED;
 
         i++;
-        if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+        if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
           if (c == 'S')
             *reg1 = 7;
           else
@@ -1295,7 +1295,7 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
     else if (c == 'A' || c == 'S') {
       /* d16(An) */
       i++;
-      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+      if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
         *mode = B8(00000101);
 
         if (c == 'S')
@@ -1349,7 +1349,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
       return FAILED;
     
     i++;
-    if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+    if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
       if (c == 'S')
         *reg = 7;
       else
@@ -1372,7 +1372,7 @@ static int _mc68000_parse_register(char *code, int *index, int *reg, int *mode) 
 
     if (c == 'A' || c == 'S') {
       i++;
-      if ((code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
+      if ((c != 'S' && code[i] >= '0' && code[i] <= '7') || (c == 'S' && toupper((int)code[i]) == 'P')) {
         if (c == 'S')
           *reg = 7;
         else
