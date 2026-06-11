@@ -4059,7 +4059,7 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
               return FAILED;
             
             s->type = STACK_ITEM_TYPE_VALUE;
-            s->value = g_slots[section->slot].address + section->address;
+            s->value = g_slots[section->slot].address + dSI->address;
           }
           else {
             /* wla cannot resolve freely floating address labels -> only wlalink can do that */
