@@ -26,8 +26,8 @@
 .ORG 0
 
         .db "AB>"               ; @BT TEST-01 AB START
-S3:     move.w S3,d0            ; @BT 30 39 00 00 00 03
-        move.w S6,d1            ; @BT 32 39 00 00 00 10
-        move.w sp,d2            ; @BT 34 0F
-        move.w a7,d3            ; @BT 36 0F
+S3:     move.w S3,d0            ; @BT $30 $39 $00 $00 $00 $03
+        move.w S6,d1            ; @BT $32 $39 $00 $00 $00 $10
+        move.w sp,d2            ; @BT $34 $0F
+        move.w a7,d3            ; @BT $36 $0F
         .db "<AB"               ; @BT END
