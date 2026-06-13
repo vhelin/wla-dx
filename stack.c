@@ -1475,7 +1475,7 @@ static int _parse_function_left_mid_right(char *in, struct stack_item *si, int *
     print_error(ERROR_NUM, "%s() start index %d is outside string \"%s\"!\n", name, start, tmp);
     return FAILED;
   }
-  if (start + length > string_length) {
+  if (length > string_length - start) {
     print_error(ERROR_NUM, "%s() length %d runs outside string \"%s\"!\n", name, length, tmp);
     return FAILED;
   }
