@@ -1,6 +1,6 @@
 
 CC = $(WLAVALGRIND) wla-8080
-CFLAGS = -M
+CFLAGS = -M -MG
 
 SFILES = main.s extras.s
 OFILES = main.o extras.o
