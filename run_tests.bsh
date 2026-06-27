@@ -32,6 +32,7 @@ while arch < archcount
       byte_tester testsfile
     endif
 
+    echo Press ENTER to continue...
     read -p "Press ENTER to continue..."
 
     make clean
