@@ -4,6 +4,8 @@
                     6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
+v10.8 (28-Jun-2026) 
+
 v10.7 (28-Jun-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.
                     [ALL] Listfile creation for library files should now work.
@@ -1600,6 +1602,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 4... WLALINK History
 ------------------------------------------------------------------------------
+
+v5.23 (28-Jun-2026) 
 
 v5.22 (28-Jun-2026) When calculating _sizeof_* for labels we now take unused
                       output bytes into account.

@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.22 (28.6.2026)";
+char g_version_string[] = "$VER: wlalink 5.23a (28.6.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -1265,7 +1265,7 @@ int main(int argc, char *argv[]) {
     i = FAILED;
 
   if (i == FAILED) {
-    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.22";
+    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.23a";
     int length, left, right;
 
     length = (int)strlen(title);
