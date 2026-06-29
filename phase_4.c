@@ -3343,7 +3343,7 @@ int write_library_file(void) {
 
 int show_project_information_object(void) {
 
-  int total_used_ram = 0, total_used_rom = 0, i, printed_something, total_rom_size = 0;
+  int total_used_ram = 0, total_used_rom = 0, total_linker_assigned_rom = 0, i, printed_something, total_rom_size = 0;
   unsigned char *rom_banks_usage_table;
   struct section_def *s;
   float f;
@@ -3365,6 +3365,8 @@ int show_project_information_object(void) {
     if (status == SECTION_STATUS_RAM_FREE || status == SECTION_STATUS_RAM_FORCE ||
         status == SECTION_STATUS_RAM_SEMIFREE || status == SECTION_STATUS_RAM_SEMISUBFREE)
       total_used_ram += s->size;
+    else if (status == SECTION_STATUS_SUPERFREE || status == SECTION_STATUS_SEMISUPERFREE)
+      total_linker_assigned_rom += s->size;
       
     s = s->next;
   }
@@ -3393,7 +3395,7 @@ int show_project_information_object(void) {
         int status = s->status;
 
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE ||
-            status == SECTION_STATUS_SUPERFREE || status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE)
+            status == SECTION_STATUS_SEMISUBFREE)
           used_sections += s->size;
         else if (status == SECTION_STATUS_FORCE) {
           int banksize = g_banks[s->bank];
@@ -3490,8 +3492,7 @@ int show_project_information_object(void) {
 
       if (s->bank == i) {
         if (status == SECTION_STATUS_FREE || status == SECTION_STATUS_FORCE || status == SECTION_STATUS_OVERWRITE ||
-            status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SUPERFREE ||
-            status == SECTION_STATUS_SEMISUBFREE || status == SECTION_STATUS_SEMISUPERFREE) {
+            status == SECTION_STATUS_SEMIFREE || status == SECTION_STATUS_ABSOLUTE || status == SECTION_STATUS_SEMISUBFREE) {
           if (g_verbose_level >= 100) {
             print_text(YES, "    - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
             printed_something = YES;
@@ -3505,6 +3506,18 @@ int show_project_information_object(void) {
     if (printed_something == NO) {
       if (g_verbose_level >= 100)
         print_text(YES, "    - No .SECTIONs found.\n");
+    }
+  }
+
+  if (total_linker_assigned_rom > 0 && g_verbose_level >= 100) {
+    print_text(YES, "ROM .SECTIONs with linker-assigned banks (%d bytes)\n", total_linker_assigned_rom);
+
+    s = g_sections_first;
+    while (s != NULL) {
+      if (s->status == SECTION_STATUS_SUPERFREE || s->status == SECTION_STATUS_SEMISUPERFREE)
+        print_text(YES, "  - .SECTION \"%s\" (%d bytes).\n", s->name, s->size);
+
+      s = s->next;
     }
   }
 
@@ -3578,6 +3591,8 @@ int show_project_information_object(void) {
   
   f = ((float)total_used_rom)/total_rom_size * 100.0f;
   print_text(YES, "ROM: %d bytes (%.2f%%) used.\n", total_used_rom, f);
+  if (total_linker_assigned_rom > 0)
+    print_text(YES, "ROM .SECTIONs with linker-assigned banks: %d bytes.\n", total_linker_assigned_rom);
   
   if (total_used_ram == 0)
     print_text(YES, "RAM: No .RAMSECTIONs were found, no information about RAM.\n");

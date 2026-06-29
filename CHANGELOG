@@ -4,7 +4,7 @@
                     6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.8 (28-Jun-2026) 
+v10.8 (30-Jun-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
 
 v10.7 (28-Jun-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.
