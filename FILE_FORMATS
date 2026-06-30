@@ -3,7 +3,7 @@ NOTE! integers are in big endian format.
 
 
 
-WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file format "WLAm"
+WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file format "WLAn"
 
 
 bytes   description
@@ -11,7 +11,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAm" - WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file version 38 (02-May-2026)
+        "WLAn" - WLA GB-Z80/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 object file version 39 (01-Jul-2026)
   1     empty fill
   1     misc bits (bit 0 - sms checksum (1 == compute)
                    bit 1 - snes rom mode (0 == lorom, 1 == hirom)
@@ -227,7 +227,7 @@ section:
 
 
 
-WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file format "WLAJ"
+WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file format "WLAK"
 
 
 bytes   description
@@ -235,7 +235,7 @@ bytes   description
 header:
 
   4     format information,
-        "WLAJ" - WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file version 29 (02-May-2026)
+        "WLAK" - WLA-GB/Z80/Z80N/eZ80/6502/65C02/65CE02/65816/68000/6800/6801/6809/8008/8080/HuC6280/SH-2/SPC-700/SuperFX/Cx4 library file version 30 (01-Jul-2026)
   1     misc bits (bit 0 - endianess (1 = big endian)
                    bit 1 - 65816 indicator (1 == 65816)
                    bit 2 - 65ce02 indicator (1 == 65ce02)
@@ -390,10 +390,13 @@ bytes   description
   4     number of items
   ...
   1     command ('f' == file name, 'k' == new line)
-  4     data 0 (int)
-  4     data 1 (present only if command == 'k') (int)
-  4     data 2 (present only if command == 'k') (int)
-  4     data 3 (present only if command == 'k') (int)
+  4     file name id (if command == 'f') OR line number (if command == 'k') (int)
+  4     line length (present only if command == 'k') (int)
+  4     skip bytes (present only if command == 'k') (int)
+  4     running id (present only if command == 'k') (int)
+  4     real line number (present only if command == 'k') (int)
+  4     real file name id (present only if command == 'k') (int)
+  4     generated line (0 == no, 1 == yes) (present only if command == 'k') (int)
   ...
 
 
@@ -404,12 +407,15 @@ bytes   description
   4     number of items
   ...
   1     command ('f' == file name, 'k' == new line)
-  4     data 0 (int)
-  4     data 1 (present only if command == 'k') (int)
-  4     data 2 (present only if command == 'k') (int)
-  4     data 3 (present only if command == 'k') (int)
-  4     data 4 (present only if command == 'k') (int)
-  4     data 5 (present only if command == 'k') (int)
-  4     data 6 (present only if command == 'k') (int)
+  4     file name id (if command == 'f') OR line number (if command == 'k') (int)
+  4     line length (present only if command == 'k') (int)
+  4     offset (present only if command == 'k') (int)
+  4     base (present only if command == 'k') (int)
+  4     bank (present only if command == 'k') (int)
+  4     slot (present only if command == 'k') (int)
+  4     running id (present only if command == 'k') (int)
+  4     real line number (present only if command == 'k') (int)
+  4     real file name id (present only if command == 'k') (int)
+  4     generated line (0 == no, 1 == yes) (present only if command == 'k') (int)
   ...
 

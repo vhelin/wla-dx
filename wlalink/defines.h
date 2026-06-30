@@ -93,6 +93,8 @@
 #define LISTFILE_OUTPUT_SOURCE 0
 #define LISTFILE_OUTPUT_OBJECT 1
 
+#define LISTFILE_MACRO_SOURCE_STACK_MAX 256
+
 struct listfile_output_name {
   int mode;
   char *sourcefilename;
@@ -106,6 +108,23 @@ struct listfile_source_context {
   int file_size;
   int current_linenumber;
   int m;
+};
+
+struct listfile_macro_source_context {
+  char *sourcefilename;
+  char *real_sourcefilename;
+  int active;
+  int indent;
+  int source_linenumber;
+  int last_real_linenumber;
+  char *repeat_sourcefilename;
+  char *repeat_real_sourcefilename;
+  int repeat_linenumber;
+  int repeat_real_linenumber;
+  int repeat_indent;
+  char *return_sourcefilenames[LISTFILE_MACRO_SOURCE_STACK_MAX];
+  int return_linenumbers[LISTFILE_MACRO_SOURCE_STACK_MAX];
+  int stack_size;
 };
 
 struct source_file_name {

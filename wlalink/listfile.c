@@ -416,6 +416,255 @@ static void _write_source_tail_from_context(FILE *f, struct listfile_source_cont
 }
 
 
+static void _write_source_line_at(FILE *f, char *source_file, int file_size, int line_number, int chars, int p, int source_prefix) {
+
+  int current_linenumber = 0, position = 0, o;
+
+  if (source_file == NULL || line_number <= 0) {
+    fprintf(f, "\n");
+    return;
+  }
+
+  while (current_linenumber < line_number - 1 && position < file_size) {
+    while (position < file_size && _source_is_line_break(source_file[position]) == NO)
+      position++;
+    if (position < file_size) {
+      char line_break = source_file[position++];
+      if (position < file_size) {
+        char next = source_file[position];
+        if ((line_break == '\r' && next == '\n') || (line_break == '\n' && next == '\r'))
+          position++;
+      }
+    }
+    current_linenumber++;
+  }
+
+  while (p < chars) {
+    fprintf(f, " ");
+    p++;
+  }
+
+  for (o = 0; o < source_prefix; o++)
+    fprintf(f, " ");
+
+  while (position < file_size) {
+    if (_source_is_line_break(source_file[position]) == YES)
+      break;
+    fprintf(f, "%c", source_file[position++]);
+  }
+
+  fprintf(f, "\n");
+}
+
+
+static int _listfile_item_is_macro_generated(struct listfileitem *item) {
+
+  return item->generated;
+}
+
+
+static void _macro_source_context_reset(struct listfile_macro_source_context *context) {
+
+  context->sourcefilename = NULL;
+  context->real_sourcefilename = NULL;
+  context->active = NO;
+  context->indent = 0;
+  context->source_linenumber = 0;
+  context->last_real_linenumber = 0;
+  context->repeat_sourcefilename = NULL;
+  context->repeat_real_sourcefilename = NULL;
+  context->repeat_linenumber = 0;
+  context->repeat_real_linenumber = 0;
+  context->repeat_indent = 0;
+  context->stack_size = 0;
+}
+
+
+static int _source_line_at_is_directive(char *source_file, int file_size, int line_number, const char *directive) {
+
+  int current_linenumber = 0, position = 0, directive_position;
+
+  if (source_file == NULL || line_number <= 0 || directive == NULL)
+    return NO;
+
+  while (current_linenumber < line_number - 1 && position < file_size) {
+    while (position < file_size && _source_is_line_break(source_file[position]) == NO)
+      position++;
+    if (position < file_size)
+      _source_buffer_skip_line_break(source_file, file_size, &position, &current_linenumber);
+  }
+
+  while (position < file_size && isspace((unsigned char)source_file[position]) != 0 && _source_is_line_break(source_file[position]) == NO)
+    position++;
+  if (position < file_size && source_file[position] == '.')
+    position++;
+
+  directive_position = 0;
+  while (directive[directive_position] != 0) {
+    if (position >= file_size || tolower((unsigned char)source_file[position]) != directive[directive_position])
+      return NO;
+    position++;
+    directive_position++;
+  }
+
+  if (position < file_size) {
+    unsigned char next = (unsigned char)source_file[position];
+
+    if (isalnum(next) != 0 || next == '_')
+      return NO;
+  }
+
+  return YES;
+}
+
+
+static int _macro_source_context_prepare(FILE *f, struct listfile_macro_source_context *context, struct listfileitem *item, char *source_file, int file_size, int chars) {
+
+  int repeated = NO, returned = NO;
+
+  if (_listfile_item_is_macro_generated(item) == NO) {
+    _macro_source_context_reset(context);
+    return 0;
+  }
+
+  if (context->active == NO || _strings_equal(context->sourcefilename, item->sourcefilename) == NO) {
+    context->sourcefilename = item->sourcefilename;
+    context->real_sourcefilename = item->real_sourcefilename;
+    context->active = YES;
+    context->indent = 2;
+    context->source_linenumber = item->linenumber + 2;
+    context->last_real_linenumber = item->real_linenumber;
+    context->stack_size = 0;
+    return context->indent;
+  }
+
+  while (context->stack_size > 0 &&
+         _strings_equal(item->real_sourcefilename, context->return_sourcefilenames[context->stack_size - 1]) == YES &&
+         item->real_linenumber >= context->return_linenumbers[context->stack_size - 1]) {
+    returned = YES;
+    context->stack_size--;
+    context->indent -= 2;
+    if (context->indent < 2)
+      context->indent = 2;
+  }
+
+  if (returned == YES)
+    context->real_sourcefilename = item->real_sourcefilename;
+
+  if (returned == YES) {
+    context->repeat_sourcefilename = NULL;
+    context->repeat_real_sourcefilename = NULL;
+    context->repeat_linenumber = 0;
+    context->repeat_real_linenumber = 0;
+    context->repeat_indent = 0;
+
+    if (context->indent == 2 && item->real_linenumber < context->last_real_linenumber) {
+      int source_linenumber = item->linenumber + 2;
+
+      if (source_linenumber <= context->source_linenumber)
+        source_linenumber = context->source_linenumber + 1;
+
+      context->source_linenumber = source_linenumber;
+    }
+  }
+
+  if (context->repeat_linenumber > 0 &&
+      _strings_equal(item->real_sourcefilename, context->repeat_real_sourcefilename) == YES &&
+      item->real_linenumber == context->repeat_real_linenumber) {
+    char *repeat_source_file = source_file;
+    int repeat_file_size = file_size;
+
+    repeated = YES;
+    if (_strings_equal(context->repeat_sourcefilename, item->real_sourcefilename) == NO) {
+      if (_read_source_file(context->repeat_sourcefilename, &repeat_source_file, &repeat_file_size, NO) == FAILED)
+        return 0;
+    }
+    _write_source_line_at(f, repeat_source_file, repeat_file_size, context->repeat_linenumber, chars, 0, context->repeat_indent);
+    if (repeat_source_file != source_file)
+      free(repeat_source_file);
+  }
+
+  if (repeated == NO && returned == NO &&
+      (_strings_equal(item->real_sourcefilename, context->real_sourcefilename) == NO || item->real_linenumber < context->last_real_linenumber)) {
+    int macro_call_linenumber = context->last_real_linenumber + 1;
+    char *macro_call_source_file = source_file;
+    int macro_call_file_size = file_size;
+
+    if (_strings_equal(item->real_sourcefilename, context->real_sourcefilename) == YES &&
+        _source_line_at_is_directive(source_file, file_size, macro_call_linenumber, "endr") == YES) {
+      context->last_real_linenumber = item->real_linenumber;
+      return context->indent;
+    }
+
+    if (_strings_equal(item->real_sourcefilename, context->real_sourcefilename) == YES &&
+        _source_line_at_is_directive(source_file, file_size, macro_call_linenumber, "endm") == YES) {
+      int source_linenumber = item->linenumber + 2;
+
+      if (source_linenumber <= context->source_linenumber)
+        source_linenumber = context->source_linenumber + 1;
+
+      context->indent = 2;
+      context->source_linenumber = source_linenumber;
+      context->last_real_linenumber = item->real_linenumber;
+      context->stack_size = 0;
+      context->repeat_sourcefilename = NULL;
+      context->repeat_real_sourcefilename = NULL;
+      context->repeat_linenumber = 0;
+      context->repeat_real_linenumber = 0;
+      context->repeat_indent = 0;
+      return context->indent;
+    }
+
+    if (_strings_equal(item->real_sourcefilename, context->real_sourcefilename) == NO) {
+      if (_read_source_file(context->real_sourcefilename, &macro_call_source_file, &macro_call_file_size, NO) == FAILED)
+        return 0;
+    }
+    if (_source_line_at_is_directive(macro_call_source_file, macro_call_file_size, macro_call_linenumber, "rept") == YES) {
+      context->repeat_sourcefilename = context->real_sourcefilename;
+      context->repeat_real_sourcefilename = item->real_sourcefilename;
+      context->repeat_real_linenumber = item->real_linenumber;
+      context->repeat_indent = context->indent;
+      macro_call_linenumber++;
+      context->repeat_linenumber = macro_call_linenumber;
+    }
+    else
+      context->repeat_linenumber = 0;
+    _write_source_line_at(f, macro_call_source_file, macro_call_file_size, macro_call_linenumber, chars, 0, context->indent);
+    if (macro_call_source_file != source_file)
+      free(macro_call_source_file);
+
+    if (context->stack_size >= LISTFILE_MACRO_SOURCE_STACK_MAX) {
+      print_text(NO, "LISTFILE_WRITE_LISTFILES: Internal macro source context stack overflow. Please submit a bug report!\n");
+      return -1;
+    }
+    context->return_sourcefilenames[context->stack_size] = context->real_sourcefilename;
+    context->return_linenumbers[context->stack_size] = macro_call_linenumber + 1;
+    context->stack_size++;
+    context->indent += 2;
+    context->real_sourcefilename = item->real_sourcefilename;
+  }
+
+  context->last_real_linenumber = item->real_linenumber;
+
+  return context->indent;
+}
+
+
+static int _listfile_item_source_linenumber(struct listfile_macro_source_context *context, struct listfileitem *item, int current_linenumber) {
+
+  if (_listfile_item_is_macro_generated(item) == NO)
+    return item->linenumber;
+
+  if (context->source_linenumber == 0)
+    context->source_linenumber = item->linenumber + 2;
+
+  if (current_linenumber < context->source_linenumber)
+    return context->source_linenumber + 1;
+
+  return context->source_linenumber;
+}
+
+
 static void _write_source_until_line(FILE *f, struct listfile_source_context *context, int line_number, int chars) {
 
   while (context != NULL && context->source_file != NULL && context->current_linenumber < line_number - 1 && context->m < context->file_size)
@@ -641,7 +890,7 @@ static int _listfile_write_hex(FILE *f, int data) {
 static int _listfileitem_sort(const void *a, const void *b) {
 
   struct listfileitem *sa, *sb;
-  int comparison;
+  int comparison, sa_linenumber, sb_linenumber;
 
   sa = *((struct listfileitem **)a);
   sb = *((struct listfileitem **)b);
@@ -672,9 +921,23 @@ static int _listfileitem_sort(const void *a, const void *b) {
   if (comparison != 0)
     return comparison;
 
-  if (sa->linenumber > sb->linenumber)
+  if (_listfile_item_is_macro_generated(sa) == YES || _listfile_item_is_macro_generated(sb) == YES) {
+    if (sa->running_id > sb->running_id)
+      return 1;
+    else if (sa->running_id < sb->running_id)
+      return -1;
+  }
+
+  sa_linenumber = sa->linenumber;
+  sb_linenumber = sb->linenumber;
+  if (_listfile_item_is_macro_generated(sa) == YES)
+    sa_linenumber += 2;
+  if (_listfile_item_is_macro_generated(sb) == YES)
+    sb_linenumber += 2;
+
+  if (sa_linenumber > sb_linenumber)
     return 1;
-  else if (sa->linenumber < sb->linenumber)
+  else if (sa_linenumber < sb_linenumber)
     return -1;
 
   if (sa->running_id > sb->running_id)
@@ -692,15 +955,17 @@ static int _get_pc(int slot, int offset) {
 }
 
 
-static void _write_listfile_item(FILE *f, struct listfileitem *item, struct listfile_source_context *source_context, int chars, char cpu_65816) {
+static void _write_listfile_item(FILE *f, struct listfileitem *item, struct listfile_source_context *source_context, struct listfile_macro_source_context *macro_context, char *real_source_file, int real_file_size, int chars, int source_prefix, char cpu_65816) {
 
-  int is_behind = NO, o, p, wrote_line;
+  int is_behind = NO, o, p, wrote_line, source_linenumber;
 
-  _write_source_until_line(f, source_context, item->linenumber, chars);
+  source_linenumber = _listfile_item_source_linenumber(macro_context, item, source_context != NULL ? source_context->current_linenumber : 0);
 
-  if (source_context != NULL && source_context->source_file != NULL && source_context->current_linenumber > item->linenumber - 1)
+  _write_source_until_line(f, source_context, source_linenumber, chars);
+
+  if (source_context != NULL && source_context->source_file != NULL && source_context->current_linenumber > source_linenumber - 1)
     is_behind = YES;
-  if (source_context != NULL && source_context->source_file != NULL && source_context->m >= source_context->file_size && source_context->current_linenumber < item->linenumber - 1)
+  if (source_context != NULL && source_context->source_file != NULL && source_context->m >= source_context->file_size && source_context->current_linenumber < source_linenumber - 1)
     is_behind = YES;
 
   p = 0;
@@ -756,7 +1021,11 @@ static void _write_listfile_item(FILE *f, struct listfileitem *item, struct list
           p++;
         }
 
-        if (is_behind == YES || source_context == NULL || source_context->source_file == NULL)
+        if (source_context == NULL || source_context->source_file == NULL)
+          fprintf(f, "\n");
+        else if (_listfile_item_is_macro_generated(item) == YES)
+          _write_source_line_at(f, real_source_file, real_file_size, item->real_linenumber, chars, p, source_prefix);
+        else if (is_behind == YES)
           fprintf(f, "\n");
         else
           _write_source_tail_from_context(f, source_context);
@@ -768,7 +1037,11 @@ static void _write_listfile_item(FILE *f, struct listfileitem *item, struct list
     }
   }
 
-  if (is_behind == YES || source_context == NULL || source_context->source_file == NULL)
+  if (source_context == NULL || source_context->source_file == NULL)
+    fprintf(f, "\n");
+  else if (_listfile_item_is_macro_generated(item) == YES)
+    _write_source_line_at(f, real_source_file, real_file_size, item->real_linenumber, chars, p, source_prefix);
+  else if (is_behind == YES)
     fprintf(f, "\n");
   else {
     if (wrote_line == NO) {
@@ -789,6 +1062,7 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
 
   struct listfile_source_context *source_contexts, *current_context = NULL;
   struct listfile_source_context **source_stack;
+  struct listfile_macro_source_context macro_context;
   int context_count = 0, group_end, group_start, source_stack_count = 0, max_contexts, start;
 
   group_start = *j;
@@ -807,9 +1081,14 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
     return FAILED;
   }
 
+  _macro_source_context_reset(&macro_context);
+
   while (*j < count && _strings_equal(listfileitems_ptr[*j]->outputfilename, output_file_name) == YES) {
     struct listfileitem *item = listfileitems_ptr[*j];
     int target_base_is_unique = _source_basename_is_unique(listfileitems_ptr, count, group_start, output_file_name, item->sourcefilename);
+    char *real_source_file = NULL;
+    int real_file_size = 0;
+    int source_prefix;
 
     if (_switch_interleaved_source(f, item->sourcefilename, target_base_is_unique, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context) == FAILED) {
       int i;
@@ -820,7 +1099,35 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
       return FAILED;
     }
 
-    _write_listfile_item(f, item, current_context, chars, cpu_65816);
+    if (_listfile_item_is_macro_generated(item) == YES && _strings_equal(item->sourcefilename, item->real_sourcefilename) == NO) {
+      if (_read_source_file(item->real_sourcefilename, &real_source_file, &real_file_size, NO) == FAILED) {
+        int i;
+        for (i = 0; i < context_count; i++)
+          _source_context_free(&source_contexts[i]);
+        free(source_contexts);
+        free(source_stack);
+        return FAILED;
+      }
+    }
+    else if (current_context != NULL) {
+      real_source_file = current_context->source_file;
+      real_file_size = current_context->file_size;
+    }
+
+    source_prefix = _macro_source_context_prepare(f, &macro_context, item, real_source_file, real_file_size, chars);
+    if (source_prefix < 0) {
+      int i;
+      if (real_source_file != NULL && (current_context == NULL || real_source_file != current_context->source_file))
+        free(real_source_file);
+      for (i = 0; i < context_count; i++)
+        _source_context_free(&source_contexts[i]);
+      free(source_contexts);
+      free(source_stack);
+      return FAILED;
+    }
+    _write_listfile_item(f, item, current_context, &macro_context, real_source_file, real_file_size, chars, source_prefix, cpu_65816);
+    if (real_source_file != NULL && (current_context == NULL || real_source_file != current_context->source_file))
+      free(real_source_file);
     (*j)++;
   }
 
@@ -949,21 +1256,23 @@ int listfile_write_listfiles(void) {
       command = s->listfile_cmds[j];
       if (command == 'k') {
         /* new line */
-        if (s->listfile_ints[j*5 + 1] > 0) {
+        if (s->listfile_ints[j*7 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(s->file_id, source_file_id);
+          listfileitems[count].real_sourcefilename = get_source_file_name(s->file_id, s->listfile_ints[j*7 + 5]);
           listfileitems[count].owner = get_file(s->file_id);
-          listfileitems[count].linenumber = s->listfile_ints[j*5 + 0];
-          listfileitems[count].length = s->listfile_ints[j*5 + 1];
+          listfileitems[count].linenumber = s->listfile_ints[j*7 + 0];
+          listfileitems[count].length = s->listfile_ints[j*7 + 1];
           listfileitems[count].section = s;
           listfileitems[count].base = s->base;
           listfileitems[count].bank = s->bank;
           listfileitems[count].slot = s->slot;
-          add += s->listfile_ints[j*5 + 2];
+          add += s->listfile_ints[j*7 + 2];
           listfileitems[count].offset = add + s->address;
           listfileitems[count].address = s->output_address + add;
-          add += s->listfile_ints[j*5 + 1];
-          listfileitems[count].running_id = s->listfile_ints[j*5 + 3];
-          listfileitems[count].real_linenumber = s->listfile_ints[j*5 + 4];
+          add += s->listfile_ints[j*7 + 1];
+          listfileitems[count].running_id = s->listfile_ints[j*7 + 3];
+          listfileitems[count].real_linenumber = s->listfile_ints[j*7 + 4];
+          listfileitems[count].generated = s->listfile_ints[j*7 + 6];
 
           /* fix base, bank, slot, and offset for sections that were appended */
           if (s->appended_to == YES) {
@@ -1000,12 +1309,12 @@ int listfile_write_listfiles(void) {
             return FAILED;
           }
 
-          add += s->listfile_ints[j*5 + 2];
+          add += s->listfile_ints[j*7 + 2];
         }
       }
       else if (command == 'f') {
         /* another file */
-        source_file_id = s->listfile_ints[j*5 + 0];
+        source_file_id = s->listfile_ints[j*7 + 0];
         /*
         print_text(NO, "LFI: f FILE_ID %d\n", source_file_id);
         */
@@ -1026,19 +1335,21 @@ int listfile_write_listfiles(void) {
       command = obj->listfile_cmds[j];
       if (command == 'k') {
         /* new line */
-        if (obj->listfile_ints[j*8 + 1] > 0) {
+        if (obj->listfile_ints[j*10 + 1] > 0) {
           listfileitems[count].sourcefilename = get_source_file_name(obj->id, source_file_id);
+          listfileitems[count].real_sourcefilename = get_source_file_name(obj->id, obj->listfile_ints[j*10 + 8]);
           listfileitems[count].owner = obj;
-          listfileitems[count].linenumber = obj->listfile_ints[j*8 + 0];
-          listfileitems[count].length = obj->listfile_ints[j*8 + 1];
+          listfileitems[count].linenumber = obj->listfile_ints[j*10 + 0];
+          listfileitems[count].length = obj->listfile_ints[j*10 + 1];
           listfileitems[count].section = NULL;
-          listfileitems[count].base = obj->listfile_ints[j*8 + 3];
-          listfileitems[count].bank = obj->listfile_ints[j*8 + 4];
-          listfileitems[count].slot = obj->listfile_ints[j*8 + 5];
-          listfileitems[count].offset = obj->listfile_ints[j*8 + 2];
+          listfileitems[count].base = obj->listfile_ints[j*10 + 3];
+          listfileitems[count].bank = obj->listfile_ints[j*10 + 4];
+          listfileitems[count].slot = obj->listfile_ints[j*10 + 5];
+          listfileitems[count].offset = obj->listfile_ints[j*10 + 2];
           listfileitems[count].address = g_bankaddress[listfileitems[count].bank] + listfileitems[count].offset;
-          listfileitems[count].running_id = obj->listfile_ints[j*8 + 6];
-          listfileitems[count].real_linenumber = obj->listfile_ints[j*8 + 7];
+          listfileitems[count].running_id = obj->listfile_ints[j*10 + 6];
+          listfileitems[count].real_linenumber = obj->listfile_ints[j*10 + 7];
+          listfileitems[count].generated = obj->listfile_ints[j*10 + 9];
           count++;
           /*
           print_text(NO, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
@@ -1053,7 +1364,7 @@ int listfile_write_listfiles(void) {
       }
       else if (command == 'f') {
         /* another file */
-        source_file_id = obj->listfile_ints[j*8 + 0];
+        source_file_id = obj->listfile_ints[j*10 + 0];
         /*
         print_text(NO, "LFI: f FILE_ID %d\n", source_file_id);
         */
@@ -1118,7 +1429,7 @@ int listfile_write_listfiles(void) {
     fprintf(f, "\n");
     
     if (cpu_65816 == YES)
-      fprintf(f, ";Line Base Bank Slot PC   Offset Hex\n");
+      fprintf(f, ";Line Base Bank Slot PC   Offset Hex                             Source\n");
     else
       fprintf(f, ";Line Bank Slot PC   Offset Hex                             Source\n");
 
@@ -1134,6 +1445,7 @@ int listfile_write_listfiles(void) {
     else {
       while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES) {
         int file_size;
+        struct listfile_macro_source_context macro_context;
 
         source_file_name = listfileitems_ptr[j]->sourcefilename;
         source_file = NULL;
@@ -1149,13 +1461,45 @@ int listfile_write_listfiles(void) {
         /* write the lines */
         current_linenumber = 0;
         m = 0;
+        _macro_source_context_reset(&macro_context);
 
         while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES &&
                _strings_equal(listfileitems_ptr[j]->sourcefilename, source_file_name) == YES) {
           int is_behind = NO;
+          int source_linenumber;
+          char *real_source_file = source_file;
+          int real_file_size = file_size;
+          int source_prefix;
+
+          if (_listfile_item_is_macro_generated(listfileitems_ptr[j]) == YES && _strings_equal(listfileitems_ptr[j]->sourcefilename, listfileitems_ptr[j]->real_sourcefilename) == NO) {
+            if (_read_source_file(listfileitems_ptr[j]->real_sourcefilename, &real_source_file, &real_file_size, NO) == FAILED) {
+              if (source_file != NULL)
+                free(source_file);
+              fclose(f);
+              free(listfileitems);
+              free(listfileitems_ptr);
+              _free_output_names(output_names, output_name_count);
+              return FAILED;
+            }
+          }
+
+          source_prefix = _macro_source_context_prepare(f, &macro_context, listfileitems_ptr[j], real_source_file, real_file_size, chars);
+          if (source_prefix < 0) {
+            if (real_source_file != NULL && real_source_file != source_file)
+              free(real_source_file);
+            if (source_file != NULL)
+              free(source_file);
+            fclose(f);
+            free(listfileitems);
+            free(listfileitems_ptr);
+            _free_output_names(output_names, output_name_count);
+            return FAILED;
+          }
+
+          source_linenumber = _listfile_item_source_linenumber(&macro_context, listfileitems_ptr[j], current_linenumber);
 
           /* goto line x */
-          while (source_file != NULL && current_linenumber < listfileitems_ptr[j]->linenumber-1 && m < file_size) {
+          while (source_file != NULL && current_linenumber < source_linenumber-1 && m < file_size) {
             for (o = 0; o < chars; o++)
               fprintf(f, " ");
             while (m < file_size) {
@@ -1169,9 +1513,9 @@ int listfile_write_listfiles(void) {
             }
           }
 
-          if (source_file != NULL && current_linenumber > listfileitems_ptr[j]->linenumber-1)
+          if (source_file != NULL && current_linenumber > source_linenumber-1)
             is_behind = YES;
-          if (source_file != NULL && m >= file_size && current_linenumber < listfileitems_ptr[j]->linenumber-1)
+          if (source_file != NULL && m >= file_size && current_linenumber < source_linenumber-1)
             is_behind = YES;
 
           p = 0;
@@ -1230,7 +1574,11 @@ int listfile_write_listfiles(void) {
                   p++;
                 }
 
-                if (is_behind == YES || source_file == NULL)
+                if (source_file == NULL)
+                  fprintf(f, "\n");
+                else if (_listfile_item_is_macro_generated(listfileitems_ptr[j]) == YES)
+                  _write_source_line_at(f, real_source_file, real_file_size, listfileitems_ptr[j]->real_linenumber, chars, p, source_prefix);
+                else if (is_behind == YES)
                   fprintf(f, "\n");
                 else {
                   /* write the rest of the line */
@@ -1252,7 +1600,11 @@ int listfile_write_listfiles(void) {
             }
           }
           
-          if (is_behind == YES || source_file == NULL)
+          if (source_file == NULL)
+            fprintf(f, "\n");
+          else if (_listfile_item_is_macro_generated(listfileitems_ptr[j]) == YES)
+            _write_source_line_at(f, real_source_file, real_file_size, listfileitems_ptr[j]->real_linenumber, chars, p, source_prefix);
+          else if (is_behind == YES)
             fprintf(f, "\n");
           else {
             /* has the line been written already? */
@@ -1277,6 +1629,9 @@ int listfile_write_listfiles(void) {
             else
               fprintf(f, "\n");
           }
+
+          if (real_source_file != NULL && real_source_file != source_file)
+            free(real_source_file);
 
           j++;
         }
@@ -1335,14 +1690,14 @@ int listfile_block_read(unsigned char **d, struct section *s) {
   t = *d;
   t++;
   s->listfile_items = READ_T;
-  if (s->listfile_items <= 0 || s->listfile_items > INT_MAX / 5) {
+  if (s->listfile_items <= 0 || s->listfile_items > INT_MAX / 7) {
     s->listfile_items = 0;
     print_text(NO, "LISTFILE_BLOCK_READ: Invalid listfile item count.\n");
     return FAILED;
   }
 
   s->listfile_cmds = calloc((size_t)s->listfile_items, 1);
-  s->listfile_ints = calloc((size_t)s->listfile_items, sizeof(int) * 5);
+  s->listfile_ints = calloc((size_t)s->listfile_items, sizeof(int) * 7);
 
   if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
     if (s->listfile_cmds != NULL)
@@ -1361,15 +1716,17 @@ int listfile_block_read(unsigned char **d, struct section *s) {
     s->listfile_cmds[i] = *(t++);
     if (s->listfile_cmds[i] == 'k') {
       /* new line */
-      s->listfile_ints[i*5 + 0] = READ_T;
-      s->listfile_ints[i*5 + 1] = READ_T;
-      s->listfile_ints[i*5 + 2] = READ_T;
-      s->listfile_ints[i*5 + 3] = READ_T;
-      s->listfile_ints[i*5 + 4] = READ_T;
+      s->listfile_ints[i*7 + 0] = READ_T;
+      s->listfile_ints[i*7 + 1] = READ_T;
+      s->listfile_ints[i*7 + 2] = READ_T;
+      s->listfile_ints[i*7 + 3] = READ_T;
+      s->listfile_ints[i*7 + 4] = READ_T;
+      s->listfile_ints[i*7 + 5] = READ_T;
+      s->listfile_ints[i*7 + 6] = READ_T;
     }
     else if (s->listfile_cmds[i] == 'f') {
       /* file name */
-      s->listfile_ints[i*5 + 0] = READ_T;
+      s->listfile_ints[i*7 + 0] = READ_T;
     }
     else {
       s->listfile_items = 0;
@@ -1403,14 +1760,14 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
   }
 
   /* we have listfile information */
-  if (obj->listfile_items < 0 || obj->listfile_items > INT_MAX / 8) {
+  if (obj->listfile_items < 0 || obj->listfile_items > INT_MAX / 10) {
     obj->listfile_items = 0;
     print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Invalid listfile item count.\n");
     return FAILED;
   }
 
   obj->listfile_cmds = calloc((size_t)obj->listfile_items, 1);
-  obj->listfile_ints = calloc((size_t)obj->listfile_items, sizeof(int) * 8);
+  obj->listfile_ints = calloc((size_t)obj->listfile_items, sizeof(int) * 10);
 
   if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
     if (obj->listfile_cmds != NULL)
@@ -1429,18 +1786,20 @@ int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
     obj->listfile_cmds[i] = *(t++);
     if (obj->listfile_cmds[i] == 'k') {
       /* new line */
-      obj->listfile_ints[i*8 + 0] = READ_T;
-      obj->listfile_ints[i*8 + 1] = READ_T;
-      obj->listfile_ints[i*8 + 2] = READ_T;
-      obj->listfile_ints[i*8 + 3] = READ_T;
-      obj->listfile_ints[i*8 + 4] = READ_T;
-      obj->listfile_ints[i*8 + 5] = READ_T;
-      obj->listfile_ints[i*8 + 6] = READ_T;
-      obj->listfile_ints[i*8 + 7] = READ_T;
+      obj->listfile_ints[i*10 + 0] = READ_T;
+      obj->listfile_ints[i*10 + 1] = READ_T;
+      obj->listfile_ints[i*10 + 2] = READ_T;
+      obj->listfile_ints[i*10 + 3] = READ_T;
+      obj->listfile_ints[i*10 + 4] = READ_T;
+      obj->listfile_ints[i*10 + 5] = READ_T;
+      obj->listfile_ints[i*10 + 6] = READ_T;
+      obj->listfile_ints[i*10 + 7] = READ_T;
+      obj->listfile_ints[i*10 + 8] = READ_T;
+      obj->listfile_ints[i*10 + 9] = READ_T;
     }
     else if (obj->listfile_cmds[i] == 'f') {
       /* file name */
-      obj->listfile_ints[i*8 + 0] = READ_T;
+      obj->listfile_ints[i*10 + 0] = READ_T;
     }
     else {
       obj->listfile_items = 0;

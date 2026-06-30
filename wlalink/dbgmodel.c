@@ -358,8 +358,8 @@ static int _collect_section_mappings(struct debug_model *model, struct section *
       for (j = 0; j < s->listfile_items; j++) {
         command = s->listfile_cmds[j];
         if (command == 'k') {
-          length = s->listfile_ints[j*5 + 1];
-          skip = s->listfile_ints[j*5 + 2];
+          length = s->listfile_ints[j*7 + 1];
+          skip = s->listfile_ints[j*7 + 2];
           if (length > 0) {
             add += skip;
             offset = s->address + add;
@@ -380,8 +380,8 @@ static int _collect_section_mappings(struct debug_model *model, struct section *
             mapping.bank = bank;
             mapping.base = base;
             mapping.slot = slot;
-            mapping.linenumber = s->listfile_ints[j*5 + 0];
-            mapping.real_linenumber = s->listfile_ints[j*5 + 4];
+            mapping.linenumber = s->listfile_ints[j*7 + 0];
+            mapping.real_linenumber = s->listfile_ints[j*7 + 4];
             mapping.source_name = get_source_file_name(s->file_id, source_id);
             if (_append_mapping(model, count, capacity, &mapping) == FAILED)
               return FAILED;
@@ -391,7 +391,7 @@ static int _collect_section_mappings(struct debug_model *model, struct section *
             add += skip;
         }
         else if (command == 'f')
-          source_id = s->listfile_ints[j*5 + 0];
+          source_id = s->listfile_ints[j*7 + 0];
       }
     }
     s = s->next;
@@ -414,27 +414,27 @@ static int _collect_global_mappings(struct debug_model *model, int *count, int *
     for (j = 0; j < obj->listfile_items; j++) {
       command = obj->listfile_cmds[j];
       if (command == 'k') {
-        if (obj->listfile_ints[j*8 + 1] > 0) {
+        if (obj->listfile_ints[j*10 + 1] > 0) {
           memset(&mapping, 0, sizeof(mapping));
           mapping.file_id = obj->id;
           mapping.source_id = source_id;
           mapping.section = -1;
-          mapping.offset = obj->listfile_ints[j*8 + 2];
-          mapping.length = obj->listfile_ints[j*8 + 1];
-          mapping.base = obj->listfile_ints[j*8 + 3];
-          mapping.bank = obj->listfile_ints[j*8 + 4];
-          mapping.slot = obj->listfile_ints[j*8 + 5];
+          mapping.offset = obj->listfile_ints[j*10 + 2];
+          mapping.length = obj->listfile_ints[j*10 + 1];
+          mapping.base = obj->listfile_ints[j*10 + 3];
+          mapping.bank = obj->listfile_ints[j*10 + 4];
+          mapping.slot = obj->listfile_ints[j*10 + 5];
           mapping.output_address = g_bankaddress[mapping.bank] + mapping.offset;
           mapping.pc_address = g_slots[mapping.slot].address + mapping.offset;
-          mapping.linenumber = obj->listfile_ints[j*8 + 0];
-          mapping.real_linenumber = obj->listfile_ints[j*8 + 7];
+          mapping.linenumber = obj->listfile_ints[j*10 + 0];
+          mapping.real_linenumber = obj->listfile_ints[j*10 + 7];
           mapping.source_name = get_source_file_name(obj->id, source_id);
           if (_append_mapping(model, count, capacity, &mapping) == FAILED)
             return FAILED;
         }
       }
       else if (command == 'f')
-        source_id = obj->listfile_ints[j*8 + 0];
+        source_id = obj->listfile_ints[j*10 + 0];
     }
     obj = obj->next;
   }

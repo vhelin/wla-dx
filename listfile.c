@@ -14,6 +14,7 @@
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
 extern struct section_def *g_sections_first, *g_sections_last, *g_sec_tmp, *g_sec_next;
+extern struct macro_static *g_macros_first;
 extern struct file_name_info *g_file_name_info_first, *g_file_name_info_last, *g_file_name_info_tmp;
 extern unsigned char *g_rom_banks, *g_rom_banks_usage_table;
 extern FILE *g_file_out_ptr;
@@ -35,7 +36,8 @@ int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, global_command = 0, inside_macro = 0, inside_repeat = 0;
   int x, y, dstruct_start = -1, bits_current = 0, base = 0, bank = 0, origin = 0, origin_old = 0, slot = 0, running_id = 0;
-  int real_line_number = 0, err, base_backup = -1;
+  int real_line_number = 0, real_file_name_id = 0, generated = NO, err, base_backup = -1;
+  int macro_file_name_ids[256], macro_stack_size = 0;
   struct section_def *section = NULL;
   char c;
 
@@ -43,7 +45,7 @@ int listfile_collect(void) {
   fseek(g_file_out_ptr, 0, SEEK_SET);
   
   /* allocate the global listfile data */
-  g_global_listfile_ints = calloc(sizeof(int) * g_global_listfile_items * 8, 1);
+  g_global_listfile_ints = calloc(sizeof(int) * g_global_listfile_items * 10, 1);
   g_global_listfile_cmds = calloc(g_global_listfile_items, 1);
   if (g_global_listfile_ints == NULL || g_global_listfile_cmds == NULL) {
     print_text(NO, "LISTFILE_COLLECT: Out of memory error.\n");
@@ -63,9 +65,24 @@ int listfile_collect(void) {
       continue;
 
     case 'i':
-      err = fscanf(g_file_out_ptr, "%*d %*s ");
-      if (err < 0)
+      err = fscanf(g_file_out_ptr, "%d %*s ", &inz);
+      if (err < 1)
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      if (macro_stack_size < 256) {
+        struct macro_static *macro = g_macros_first;
+
+        while (macro != NULL) {
+          if (macro->id == inz)
+            break;
+          macro = macro->next;
+        }
+
+        if (macro != NULL)
+          macro_file_name_ids[macro_stack_size++] = macro->filename_id;
+        else
+          macro_file_name_ids[macro_stack_size++] = file_name_id;
+      }
 
       inside_macro++;
       /* HACK! */
@@ -76,6 +93,8 @@ int listfile_collect(void) {
       if (err < 0)
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
 
+      if (macro_stack_size > 0)
+        macro_stack_size--;
       inside_macro--;
       continue;
 
@@ -127,7 +146,7 @@ int listfile_collect(void) {
       command = 0;
 
       /* allocate the listfile data */
-      section->listfile_ints = calloc(sizeof(int) * section->listfile_items * 5, 1);
+      section->listfile_ints = calloc(sizeof(int) * section->listfile_items * 7, 1);
       section->listfile_cmds = calloc(section->listfile_items, 1);
       if (section->listfile_ints == NULL || section->listfile_cmds == NULL) {
         print_text(NO, "LISTFILE_COLLECT: Out of memory error.\n");
@@ -136,7 +155,7 @@ int listfile_collect(void) {
 
       /* add file name */
       section->listfile_cmds[command] = 'f';
-      section->listfile_ints[command*5 + 0] = file_name_id;
+      section->listfile_ints[command*7 + 0] = file_name_id;
       command++;
 
       continue;
@@ -486,25 +505,25 @@ int listfile_collect(void) {
       
       if (section != NULL) {
         /* terminate the previous line */
-        section->listfile_ints[command*5 + 1] = add;
+        section->listfile_ints[command*7 + 1] = add;
         add = 0;
         skip = 0;
 
         /* add file name */
         section->listfile_cmds[command] = 'f';
-        section->listfile_ints[command*5 + 0] = file_name_id;
+        section->listfile_ints[command*7 + 0] = file_name_id;
         command++;
         running_id++;
       }
       else {
         /* terminate the previous line */
-        g_global_listfile_ints[global_command*8 + 1] = add;
+        g_global_listfile_ints[global_command*10 + 1] = add;
         add = 0;
         skip = 0;
 
         /* add file name */
         g_global_listfile_cmds[global_command] = 'f';
-        g_global_listfile_ints[global_command*8 + 0] = file_name_id;
+        g_global_listfile_ints[global_command*10 + 0] = file_name_id;
         global_command++;
         running_id++;
       }
@@ -512,10 +531,15 @@ int listfile_collect(void) {
 
     case 'k':
       /* all listfile data produced by .MACROs are put where they are called from */
+      real_file_name_id = file_name_id;
+      generated = NO;
       if (inside_macro > 0 || inside_repeat > 0) {
+        generated = YES;
         err = fscanf(g_file_out_ptr, "%d ", &real_line_number);
         if (err < 1)
           return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+        if (inside_macro > 0 && macro_stack_size > 0)
+          real_file_name_id = macro_file_name_ids[macro_stack_size - 1];
       }
       else {
         err = fscanf(g_file_out_ptr, "%d ", &line_number);
@@ -526,36 +550,40 @@ int listfile_collect(void) {
       
       if (section != NULL) {
         /* terminate the previous line */
-        section->listfile_ints[command*5 + 1] = add;
-        section->listfile_ints[command*5 + 2] = skip;
-        section->listfile_ints[command*5 + 3] = running_id;
+        section->listfile_ints[command*7 + 1] = add;
+        section->listfile_ints[command*7 + 2] = skip;
+        section->listfile_ints[command*7 + 3] = running_id;
 
         add = 0;
         skip = 0;
 
         /* add line number - NOTE: this 'k' terminates the list file item on the previous line, thus -1 */
         section->listfile_cmds[command] = 'k';
-        section->listfile_ints[command*5 + 0] = line_number-1;
-        section->listfile_ints[command*5 + 4] = real_line_number-1;
+        section->listfile_ints[command*7 + 0] = line_number-1;
+        section->listfile_ints[command*7 + 4] = real_line_number-1;
+        section->listfile_ints[command*7 + 5] = real_file_name_id;
+        section->listfile_ints[command*7 + 6] = generated;
         command++;
         running_id++;
       }
       else {
         /* terminate the previous line */
-        g_global_listfile_ints[global_command*8 + 1] = add;
-        g_global_listfile_ints[global_command*8 + 2] = origin-add;
-        g_global_listfile_ints[global_command*8 + 3] = base;
-        g_global_listfile_ints[global_command*8 + 4] = bank;
-        g_global_listfile_ints[global_command*8 + 5] = slot;
-        g_global_listfile_ints[global_command*8 + 6] = running_id;
+        g_global_listfile_ints[global_command*10 + 1] = add;
+        g_global_listfile_ints[global_command*10 + 2] = origin-add;
+        g_global_listfile_ints[global_command*10 + 3] = base;
+        g_global_listfile_ints[global_command*10 + 4] = bank;
+        g_global_listfile_ints[global_command*10 + 5] = slot;
+        g_global_listfile_ints[global_command*10 + 6] = running_id;
         
         add = 0;
         skip = 0;
 
         /* add line number - NOTE: this 'k' terminates the list file item on the previous line, thus -1 */
         g_global_listfile_cmds[global_command] = 'k';
-        g_global_listfile_ints[global_command*8 + 0] = line_number-1;
-        g_global_listfile_ints[global_command*8 + 7] = real_line_number-1;
+        g_global_listfile_ints[global_command*10 + 0] = line_number-1;
+        g_global_listfile_ints[global_command*10 + 7] = real_line_number-1;
+        g_global_listfile_ints[global_command*10 + 8] = real_file_name_id;
+        g_global_listfile_ints[global_command*10 + 9] = generated;
         global_command++;
         running_id++;
       }
@@ -623,20 +651,24 @@ int listfile_block_write(FILE *file_out, struct section_def *section) {
     fprintf(file_out, "%c", section->listfile_cmds[i]);
     if (section->listfile_cmds[i] == 'k') {
       /* next line: line number, line length, skip bytes */
-      d = section->listfile_ints[i*5 + 0];
+      d = section->listfile_ints[i*7 + 0];
       WRITEOUT_D;
-      d = section->listfile_ints[i*5 + 1];
+      d = section->listfile_ints[i*7 + 1];
       WRITEOUT_D;
-      d = section->listfile_ints[i*5 + 2];
+      d = section->listfile_ints[i*7 + 2];
       WRITEOUT_D;
-      d = section->listfile_ints[i*5 + 3];
+      d = section->listfile_ints[i*7 + 3];
       WRITEOUT_D;
-      d = section->listfile_ints[i*5 + 4];
+      d = section->listfile_ints[i*7 + 4];
+      WRITEOUT_D;
+      d = section->listfile_ints[i*7 + 5];
+      WRITEOUT_D;
+      d = section->listfile_ints[i*7 + 6];
       WRITEOUT_D;
     }
     else if (section->listfile_cmds[i] == 'f') {
       /* next file: file name id */
-      d = section->listfile_ints[i*5 + 0];
+      d = section->listfile_ints[i*7 + 0];
       WRITEOUT_D;
     }
     else {
@@ -663,26 +695,30 @@ int listfile_globals_write(FILE *file_out) {
     fprintf(file_out, "%c", g_global_listfile_cmds[i]);
     if (g_global_listfile_cmds[i] == 'k') {
       /* next line: line number, line length, offset, base, bank, slot */
-      d = g_global_listfile_ints[i*8 + 0];
+      d = g_global_listfile_ints[i*10 + 0];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 1];
+      d = g_global_listfile_ints[i*10 + 1];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 2];
+      d = g_global_listfile_ints[i*10 + 2];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 3];
+      d = g_global_listfile_ints[i*10 + 3];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 4];
+      d = g_global_listfile_ints[i*10 + 4];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 5];
+      d = g_global_listfile_ints[i*10 + 5];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 6];
+      d = g_global_listfile_ints[i*10 + 6];
       WRITEOUT_D;
-      d = g_global_listfile_ints[i*8 + 7];
+      d = g_global_listfile_ints[i*10 + 7];
+      WRITEOUT_D;
+      d = g_global_listfile_ints[i*10 + 8];
+      WRITEOUT_D;
+      d = g_global_listfile_ints[i*10 + 9];
       WRITEOUT_D;
     }
     else if (g_global_listfile_cmds[i] == 'f') {
       /* next file: file name id */
-      d = g_global_listfile_ints[i*8 + 0];
+      d = g_global_listfile_ints[i*10 + 0];
       WRITEOUT_D;
     }
     else {
