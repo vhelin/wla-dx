@@ -16,7 +16,9 @@ banks 1
 .macro FOURBYTES
   .db 1,2,3,4
 .endm
-        
+
+.incbin "3bytes.i"
+.db 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 .include "3bytes.i"
         
 .macro TWOBYTES

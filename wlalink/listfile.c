@@ -465,9 +465,14 @@ static int _listfile_item_is_macro_generated(struct listfileitem *item) {
 
 static void _macro_source_context_reset(struct listfile_macro_source_context *context) {
 
+  char *visible_sourcefilename = context->visible_sourcefilename;
+  int emit_source_markers = context->emit_source_markers;
+
   context->sourcefilename = NULL;
   context->real_sourcefilename = NULL;
+  context->visible_sourcefilename = visible_sourcefilename;
   context->active = NO;
+  context->emit_source_markers = emit_source_markers;
   context->indent = 0;
   context->source_linenumber = 0;
   context->last_real_linenumber = 0;
@@ -516,6 +521,9 @@ static int _source_line_at_is_directive(char *source_file, int file_size, int li
 
   return YES;
 }
+
+
+static void _write_source_marker_if_changed(FILE *f, struct listfile_macro_source_context *context, char *source_file_name);
 
 
 static int _macro_source_context_prepare(FILE *f, struct listfile_macro_source_context *context, struct listfileitem *item, char *source_file, int file_size, int chars) {
@@ -579,6 +587,7 @@ static int _macro_source_context_prepare(FILE *f, struct listfile_macro_source_c
       if (_read_source_file(context->repeat_sourcefilename, &repeat_source_file, &repeat_file_size, NO) == FAILED)
         return 0;
     }
+    _write_source_marker_if_changed(f, context, context->repeat_sourcefilename);
     _write_source_line_at(f, repeat_source_file, repeat_file_size, context->repeat_linenumber, chars, 0, context->repeat_indent);
     if (repeat_source_file != source_file)
       free(repeat_source_file);
@@ -629,6 +638,7 @@ static int _macro_source_context_prepare(FILE *f, struct listfile_macro_source_c
     }
     else
       context->repeat_linenumber = 0;
+    _write_source_marker_if_changed(f, context, context->real_sourcefilename);
     _write_source_line_at(f, macro_call_source_file, macro_call_file_size, macro_call_linenumber, chars, 0, context->indent);
     if (macro_call_source_file != source_file)
       free(macro_call_source_file);
@@ -819,7 +829,20 @@ static int _write_source_until_include(FILE *f, struct listfile_source_context *
 
 static void _write_source_marker(FILE *f, char *source_file_name) {
 
-  fprintf(f, "\n; --- file: %s ---\n", source_file_name);
+  fprintf(f, "; --- file: %s ---\n", source_file_name);
+}
+
+
+static void _write_source_marker_if_changed(FILE *f, struct listfile_macro_source_context *context, char *source_file_name) {
+
+  if (context == NULL || context->emit_source_markers == NO || source_file_name == NULL)
+    return;
+
+  if (_strings_equal(context->visible_sourcefilename, source_file_name) == YES)
+    return;
+
+  _write_source_marker(f, source_file_name);
+  context->visible_sourcefilename = source_file_name;
 }
 
 
@@ -840,7 +863,7 @@ static int _create_interleaved_context(struct listfile_source_context *contexts,
 }
 
 
-static int _switch_interleaved_source(FILE *f, char *target_source_file_name, int target_base_is_unique, int chars, struct listfile_source_context *contexts, int max_contexts, int *context_count, struct listfile_source_context **source_stack, int *source_stack_count, struct listfile_source_context **current_context) {
+static int _switch_interleaved_source(FILE *f, char *target_source_file_name, int target_base_is_unique, int chars, struct listfile_source_context *contexts, int max_contexts, int *context_count, struct listfile_source_context **source_stack, int *source_stack_count, struct listfile_source_context **current_context, struct listfile_macro_source_context *macro_context) {
 
   while (*current_context != NULL && _strings_equal((*current_context)->sourcefilename, target_source_file_name) == NO) {
     if (_write_source_until_include(f, *current_context, target_source_file_name, target_base_is_unique, chars) == YES) {
@@ -853,14 +876,14 @@ static int _switch_interleaved_source(FILE *f, char *target_source_file_name, in
 
       if (_create_interleaved_context(contexts, max_contexts, context_count, target_source_file_name, current_context) == FAILED)
         return FAILED;
-      _write_source_marker(f, target_source_file_name);
+      _write_source_marker_if_changed(f, macro_context, target_source_file_name);
       return SUCCEEDED;
     }
 
     if (*source_stack_count > 0) {
       (*source_stack_count)--;
       *current_context = source_stack[*source_stack_count];
-      _write_source_marker(f, (*current_context)->sourcefilename);
+      _write_source_marker_if_changed(f, macro_context, (*current_context)->sourcefilename);
     }
     else
       *current_context = NULL;
@@ -869,7 +892,7 @@ static int _switch_interleaved_source(FILE *f, char *target_source_file_name, in
   if (*current_context == NULL) {
     if (_create_interleaved_context(contexts, max_contexts, context_count, target_source_file_name, current_context) == FAILED)
       return FAILED;
-    _write_source_marker(f, target_source_file_name);
+    _write_source_marker_if_changed(f, macro_context, target_source_file_name);
   }
 
   return SUCCEEDED;
@@ -955,6 +978,29 @@ static int _get_pc(int slot, int offset) {
 }
 
 
+static int _write_listfile_item_header(FILE *f, struct listfileitem *item, int byte_offset, char cpu_65816) {
+
+  int p = 0, offset = item->offset + byte_offset;
+
+  fprintf(f, "%*d ", 5, item->real_linenumber);
+  p += 6;
+  if (cpu_65816 == YES) {
+    fprintf(f, "%.4X ", item->base);
+    p += 5;
+  }
+  fprintf(f, "%.4X ", item->bank);
+  p += 5;
+  fprintf(f, "%.4X ", item->slot);
+  p += 5;
+  fprintf(f, "%.4X ", _get_pc(item->slot, offset));
+  p += 5;
+  fprintf(f, "%.4X   ", offset);
+  p += 7;
+
+  return p;
+}
+
+
 static void _write_listfile_item(FILE *f, struct listfileitem *item, struct listfile_source_context *source_context, struct listfile_macro_source_context *macro_context, char *real_source_file, int real_file_size, int chars, int source_prefix, char cpu_65816) {
 
   int is_behind = NO, o, p, wrote_line, source_linenumber;
@@ -968,22 +1014,12 @@ static void _write_listfile_item(FILE *f, struct listfileitem *item, struct list
   if (source_context != NULL && source_context->source_file != NULL && source_context->m >= source_context->file_size && source_context->current_linenumber < source_linenumber - 1)
     is_behind = YES;
 
-  p = 0;
+  if (_listfile_item_is_macro_generated(item) == YES)
+    _write_source_marker_if_changed(f, macro_context, item->real_sourcefilename);
+  else if (source_context != NULL)
+    _write_source_marker_if_changed(f, macro_context, source_context->sourcefilename);
 
-  fprintf(f, "%*d ", 5, item->real_linenumber);
-  p += 6;
-  if (cpu_65816 == YES) {
-    fprintf(f, "%.4X ", item->base);
-    p += 5;
-  }
-  fprintf(f, "%.4X ", item->bank);
-  p += 5;
-  fprintf(f, "%.4X ", item->slot);
-  p += 5;
-  fprintf(f, "%.4X ", _get_pc(item->slot, item->offset));
-  p += 5;
-  fprintf(f, "%.4X   ", item->offset);
-  p += 7;
+  p = _write_listfile_item_header(f, item, 0, cpu_65816);
 
   wrote_line = NO;
   for (o = 0; o < item->length; o++) {
@@ -1033,7 +1069,7 @@ static void _write_listfile_item(FILE *f, struct listfileitem *item, struct list
       else
         fprintf(f, "\n");
 
-      p = 0;
+      p = _write_listfile_item_header(f, item, o + 1, cpu_65816);
     }
   }
 
@@ -1081,7 +1117,20 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
     return FAILED;
   }
 
+  memset(&macro_context, 0, sizeof(macro_context));
   _macro_source_context_reset(&macro_context);
+  macro_context.emit_source_markers = YES;
+
+  if (listfileitems_ptr[group_start]->owner != NULL && listfileitems_ptr[group_start]->owner->source_file_names_list != NULL) {
+    char *root_sourcefilename = listfileitems_ptr[group_start]->owner->source_file_names_list->name;
+
+    if (_create_interleaved_context(source_contexts, max_contexts, &context_count, root_sourcefilename, &current_context) == FAILED) {
+      free(source_contexts);
+      free(source_stack);
+      return FAILED;
+    }
+    _write_source_marker_if_changed(f, &macro_context, root_sourcefilename);
+  }
 
   while (*j < count && _strings_equal(listfileitems_ptr[*j]->outputfilename, output_file_name) == YES) {
     struct listfileitem *item = listfileitems_ptr[*j];
@@ -1090,7 +1139,7 @@ static int _write_interleaved_listfile(FILE *f, struct listfileitem **listfileit
     int real_file_size = 0;
     int source_prefix;
 
-    if (_switch_interleaved_source(f, item->sourcefilename, target_base_is_unique, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context) == FAILED) {
+    if (_switch_interleaved_source(f, item->sourcefilename, target_base_is_unique, chars, source_contexts, max_contexts, &context_count, source_stack, &source_stack_count, &current_context, &macro_context) == FAILED) {
       int i;
       for (i = 0; i < context_count; i++)
         _source_context_free(&source_contexts[i]);
@@ -1461,6 +1510,7 @@ int listfile_write_listfiles(void) {
         /* write the lines */
         current_linenumber = 0;
         m = 0;
+        memset(&macro_context, 0, sizeof(macro_context));
         _macro_source_context_reset(&macro_context);
 
         while (j < count && _strings_equal(listfileitems_ptr[j]->outputfilename, output_file_name) == YES &&
@@ -1518,22 +1568,7 @@ int listfile_write_listfiles(void) {
           if (source_file != NULL && m >= file_size && current_linenumber < source_linenumber-1)
             is_behind = YES;
 
-          p = 0;
-
-          fprintf(f, "%*d ", 5, listfileitems_ptr[j]->real_linenumber);
-          p += 6;
-          if (cpu_65816 == YES) {
-            fprintf(f, "%.4X ", listfileitems_ptr[j]->base);
-            p += 5;
-          }
-          fprintf(f, "%.4X ", listfileitems_ptr[j]->bank);
-          p += 5;
-          fprintf(f, "%.4X ", listfileitems_ptr[j]->slot);
-          p += 5;
-          fprintf(f, "%.4X ", _get_pc(listfileitems_ptr[j]->slot, listfileitems_ptr[j]->offset));
-          p += 5;
-          fprintf(f, "%.4X   ", listfileitems_ptr[j]->offset);
-          p += 7;
+          p = _write_listfile_item_header(f, listfileitems_ptr[j], 0, cpu_65816);
 
           /* write the bytes */
           wrote_line = NO;
@@ -1596,7 +1631,7 @@ int listfile_write_listfiles(void) {
               else
                 fprintf(f, "\n");
               
-              p = 0;
+              p = _write_listfile_item_header(f, listfileitems_ptr[j], o + 1, cpu_65816);
             }
           }
           

@@ -113,7 +113,9 @@ struct listfile_source_context {
 struct listfile_macro_source_context {
   char *sourcefilename;
   char *real_sourcefilename;
+  char *visible_sourcefilename;
   int active;
+  int emit_source_markers;
   int indent;
   int source_linenumber;
   int last_real_linenumber;
