@@ -8,6 +8,7 @@ v10.8 (01-Jul-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] .MACRO calls should now work properly in listfiles.
                     [ALL] WLA assembles now "WLAK" library files and "WLAn"
                       object files.
+                    [ALL] Fixed -c to work again.
 
 v10.7 (28-Jun-2026) [ALL] Prefixed by a hashtag didn't propagate through nested
                       .MACRO calls.

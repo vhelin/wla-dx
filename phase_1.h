@@ -38,6 +38,7 @@ __attribute__((format(printf, 2, 3)))
 [[rscpp::format(printf, 2, 3)]]
 #endif
 void print_error(int type, char *error, ...);
+void print_current_call_stack(void);
 
 void next_line(void);
 void use_dir(char *directory, char *path);

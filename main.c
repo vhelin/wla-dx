@@ -62,9 +62,7 @@ extern struct string *g_fopen_filenames_first, *g_fopen_filenames_last;
 extern struct function *g_functions_first, *g_functions_last;
 extern struct namespace *g_namespaces_first;
 extern struct assertion *g_assertions_first;
-extern struct call_stack_item *g_call_stack_items_first, *g_call_stack_items_last;
-extern struct active_file_info *g_active_file_info_first, *g_active_file_info_last, *g_active_file_info_tmp;
-extern struct macro_runtime *g_macro_stack, *g_macro_runtime_current;
+extern struct call_stack_item *g_call_stack_items_first;
 extern char g_mem_insert_action[MAX_NAME_LENGTH*3 + 1024], g_latest_include_dir[MAX_NAME_LENGTH + 1];
 extern char *g_label_stack[256], *g_tmp, *g_global_listfile_cmds, g_latest_label[MAX_NAME_LENGTH + 1];
 extern char *g_include_in_tmp, *g_tmp_a;
@@ -652,28 +650,8 @@ static void _procedures_at_exit(void) {
 
   /* delayed printing of call stack as errors might output multiple lines of text
      from different places in code */
-  if (g_print_call_stack_on_exit == YES) {
-    if (g_active_file_info_last != NULL) {
-      struct call_stack_item *csi = g_call_stack_items_last;
-
-      /* print the file + line number */
-      print_text(NO, "  at %s:%d", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
-      if (g_macro_runtime_current != NULL)
-        print_text(NO, ":%s()\n", g_macro_runtime_current->macro->name);
-      else
-        print_text(NO, "\n");
-
-      /* print call stack */
-      while (csi != NULL) {
-        print_text(NO, "  <- %s:%d", csi->filename, csi->line_number);
-        if (csi->macro_name[0] != 0)
-          print_text(NO, ":%s()\n", csi->macro_name);
-        else
-          print_text(NO, "\n");
-        csi = csi->prev;
-      }
-    }
-  }
+  if (g_print_call_stack_on_exit == YES)
+    print_current_call_stack();
   
   /* free all the dynamically allocated data structures and close open files */
   if (g_file_out_ptr != NULL) {

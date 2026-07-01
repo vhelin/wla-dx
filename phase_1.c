@@ -1720,6 +1720,32 @@ int verify_name_length(char *name) {
 }
 
 
+void print_current_call_stack(void) {
+
+  struct call_stack_item *csi;
+
+  if (g_active_file_info_last == NULL)
+    return;
+
+  csi = g_call_stack_items_last;
+
+  print_text(NO, "  at %s:%d", get_file_name(g_active_file_info_last->filename_id), g_active_file_info_last->line_current);
+  if (g_macro_runtime_current != NULL)
+    print_text(NO, ":%s()\n", g_macro_runtime_current->macro->name);
+  else
+    print_text(NO, "\n");
+
+  while (csi != NULL) {
+    print_text(NO, "  <- %s:%d", csi->filename, csi->line_number);
+    if (csi->macro_name[0] != 0)
+      print_text(NO, ":%s()\n", csi->macro_name);
+    else
+      print_text(NO, "\n");
+    csi = csi->prev;
+  }
+}
+
+
 void print_error(int type, char *error, ...) {
 
   char error_dir[] = "DIRECTIVE_ERROR:";
@@ -1782,7 +1808,10 @@ void print_error(int type, char *error, ...) {
   print_text_using_args(NO, error, args);
   va_end(args);
 
-  g_print_call_stack_on_exit = YES;
+  if (g_continue_parsing_after_an_error == YES)
+    print_current_call_stack();
+  else
+    g_print_call_stack_on_exit = YES;
   
   fflush(stderr);
 
