@@ -2468,11 +2468,10 @@ type ``\X`` where ``X`` is the number of the argument. Another way to refer
 to the arguments is to use their names given in the definition of the
 macro (see the examples for this).
 
-Remember to use ``.ENDM`` to finish the macro definition. Note that you
-cannot use ``.INCLUDE`` inside a macro. Note that WLA's macros are in fact
-more like procedures than real macros, because WLA doesn't substitute
-macro calls with macro data. Instead WLA jumps to the macro when it
-encounters a macro call at compile time.
+Remember to use ``.ENDM`` to finish the macro definition. Note that WLA's
+macros are in fact more like procedures than real macros, because WLA
+doesn't substitute macro calls with macro data. Instead WLA jumps to the
+macro when it encounters a macro call at compile time.
 
 You can call macros from inside a macro. Note that the preprocessor
 does not expand the macros. WLA traverses through the code according to
