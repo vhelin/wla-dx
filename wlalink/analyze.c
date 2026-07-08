@@ -2194,6 +2194,7 @@ int parse_data_blocks(void) {
           s->address = READ_T;
           s->bank = READ_T;
           s->base = READ_T;
+          s->span_bank = READ_T;
           s->size = READ_T;
           s->alignment = READ_T;
           s->offset = READ_T;

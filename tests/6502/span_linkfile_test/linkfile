@@ -1,0 +1,11 @@
+[objects]
+main.o
+
+[sections]
+bank 0 slot 0 org $1c force span 8 "ForceLinkSpan"
+banks 1 slot 0 window $801c $8024 semisuperfree span 9 "SemiSuperLinkSpan"
+bank 2 slot 0 org $1f semisubfree window $801c $8024 span 10 "SemiSubLinkSpan"
+bank 3 slot 0 org $1c semifree span 11 "SemiFreeLinkSpan"
+bank 4 slot 0 org $1c free window $801c $8024 span 12 "FreeLinkSpan"
+bank 5 slot 0 org $1c superfree window $801c $8024 span 13 "SuperFreeLinkSpan"
+bank 6 slot 0 org $1c overwrite span 14 "OverwriteLinkSpan"

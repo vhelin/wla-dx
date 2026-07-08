@@ -836,6 +836,7 @@ struct section_def {
   int  bank;
   int  base;
   int  slot;
+  int  span_bank;
   int  size;
   int  status; /* see SECTION_STATUS_* */
   int  bitwindow;

@@ -3372,6 +3372,15 @@ as follows::
 
     .SECTION "Init" SIZE 100 ALIGN 4 FREE
 
+If a section needs to continue into another ROM bank when it reaches the end
+of its starting bank, give the target bank with ``SPAN``::
+
+    .SECTION "Init" FORCE SPAN 2
+
+In the example above the section starts in the currently selected bank and any
+bytes past the end of that bank are written from offset ``$0`` in ROM bank 2.
+The section's CPU address keeps advancing inside the slot.
+
 If you need an offset from the alignment, use OFFSET::
 
     .SECTION "Init" SIZE 10 ALIGN 256 OFFSET 32 FREE

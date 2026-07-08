@@ -2588,7 +2588,7 @@ int write_object_file(void) {
   }
 
   /* header */
-  fprintf(final_ptr, "WLAn%c", g_emptyfill);
+  fprintf(final_ptr, "WLAo%c", g_emptyfill);
 
   /* misc bits */
   ind = 0;
@@ -3038,6 +3038,8 @@ int write_object_file(void) {
       ov = g_sec_tmp->bank;
       WRITEOUT_OV;
       ov = g_sec_tmp->base;
+      WRITEOUT_OV;
+      ov = g_sec_tmp->span_bank;
       WRITEOUT_OV;
       ov = g_sec_tmp->size;
       WRITEOUT_OV;

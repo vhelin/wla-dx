@@ -55,6 +55,11 @@ extern int g_romformat;
 
 static int s_current_stack_calculation_addr = 0;
 
+static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int *out_bank, int *out_slot, int *out_address, int *out_rom_address);
+static int _rom_section_get_boundary_location(struct section *s, int extra_offset, int *out_bank, int *out_address);
+static int _find_rom_section_position(struct section *s, int bank, int start_address, int end_address, int *out_address);
+static int _write_rom_section_at(struct section *s, int bank, int address, int overwrite);
+
 
 static void _write_u16be(FILE *f, int value) {
 
@@ -1089,62 +1094,17 @@ static int _mark_ram_section_area(struct section *s, int address, int max_addres
 }
 
 
-static int _insert_rom_after_section(struct section *s) {
+static int _insert_rom_after_section(struct section *s, int overwrite) {
 
-  int address, end_address;
+  int address, bank;
   
-  /* NOTE! SUPERFREE sections can have a new bank at this point */
-  s->bank = s->after->bank;
-
-  s->address = s->after->address + s->after->size + s->offset;
-
-  g_memory_file_id = s->file_id;
-  g_banksize = g_banksizes[s->bank];
-  g_pc_bank = s->address;
-  g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-  g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-  g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-  address = g_pc_full;
-  end_address = address + s->size;
-  s->output_address = address;
-  g_section_overwrite = OFF;
-
-  if (end_address > g_romsize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
-    return FAILED;
-  }
-  if (s->address + s->size > g_banksize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
+  if (_rom_section_get_boundary_location(s->after, s->offset, &bank, &address) == FAILED) {
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" cannot be inserted after \"%s\".\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, s->after->name);
     return FAILED;
   }
 
-  for (; address < end_address; address++) {
-    if (g_rom_usage[address] != 0 && g_rom[address] != s->data[address - g_pc_full])
-      break;
-  }
-
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-  if (address == end_address) {
-    int i;
-    
-    for (i = 0; i < s->size; i++) {
-      if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-        return FAILED;
-    }
-  }
-  else {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-    return FAILED;
-  }
-
-  s->placed = YES;
-
-  return SUCCEEDED;
+  return _write_rom_section_at(s, bank, address, overwrite);
 }
 
 
@@ -1174,6 +1134,187 @@ static int _does_window_allow_section_placement(struct section *s, int address) 
   }
 
   return YES;
+}
+
+
+static int _get_slot_of_address(int address) {
+
+  int i;
+
+  for (i = 0; i < 256; i++) {
+    if (g_slots[i].usage == ON && address >= g_slots[i].address && address < g_slots[i].address + g_slots[i].size)
+      return i;
+  }
+
+  return -1;
+}
+
+
+static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int *out_bank, int *out_slot, int *out_address, int *out_rom_address) {
+
+  int bank_address, original_bank, rom_address, memory_address, slot;
+
+  if (bank < 0 || bank >= g_rombanks || address < 0 || section_offset < 0)
+    return FAILED;
+
+  memory_address = g_slots[s->slot].address + address + section_offset;
+  slot = _get_slot_of_address(memory_address);
+  if (slot < 0)
+    return FAILED;
+
+  original_bank = bank;
+  bank_address = address + section_offset;
+  if (bank_address >= g_banksizes[bank]) {
+    if (s->span_bank < 0 || s->span_bank >= g_rombanks || s->span_bank == bank)
+      return FAILED;
+
+    bank = s->span_bank;
+    bank_address -= g_banksizes[original_bank];
+    if (bank_address < 0 || bank_address >= g_banksizes[bank])
+      return FAILED;
+  }
+
+  rom_address = g_bankaddress[bank] + bank_address;
+  if (rom_address < 0 || rom_address >= g_romsize)
+    return FAILED;
+
+  if (out_bank != NULL)
+    *out_bank = bank;
+  if (out_slot != NULL)
+    *out_slot = slot;
+  if (out_address != NULL)
+    *out_address = memory_address - g_slots[slot].address;
+  if (out_rom_address != NULL)
+    *out_rom_address = rom_address;
+
+  return SUCCEEDED;
+}
+
+
+static int _rom_section_get_boundary_location(struct section *s, int extra_offset, int *out_bank, int *out_address) {
+
+  int bank, address, bank_address;
+
+  if (s->bank < 0 || s->bank >= g_rombanks || s->address < 0 || extra_offset < 0)
+    return FAILED;
+
+  bank = s->bank;
+  address = s->address + s->size + extra_offset;
+  if (address >= g_banksizes[bank]) {
+    if (s->span_bank < 0 || s->span_bank >= g_rombanks || s->span_bank == bank)
+      return FAILED;
+
+    bank_address = address - g_banksizes[bank];
+    if (bank_address > g_banksizes[s->span_bank])
+      return FAILED;
+
+    bank = s->span_bank;
+    address = bank_address;
+  }
+
+  *out_bank = bank;
+  *out_address = address;
+
+  return SUCCEEDED;
+}
+
+
+static int _rom_section_has_room_at(struct section *s, int bank, int address, int overwrite) {
+
+  int i, rom_address;
+
+  if (address < 0 || address >= g_banksizes[bank])
+    return NO;
+
+  if (_does_window_allow_section_placement(s, g_slots[s->slot].address + address) == NO)
+    return NO;
+
+  for (i = 0; i < s->size; i++) {
+    if (_rom_section_get_location(s, bank, address, i, NULL, NULL, NULL, &rom_address) == FAILED)
+      return NO;
+    if (overwrite == OFF && g_rom_usage[rom_address] != 0 && g_rom[rom_address] != s->data[i])
+      return NO;
+  }
+
+  return YES;
+}
+
+
+static int _find_rom_section_position(struct section *s, int bank, int start_address, int end_address, int *out_address) {
+
+  int address, overflow;
+
+  if (bank < 0 || bank >= g_rombanks)
+    return FAILED;
+
+  if (start_address < 0)
+    start_address = 0;
+  if (end_address > g_banksizes[bank])
+    end_address = g_banksizes[bank];
+
+  address = start_address;
+  overflow = (address + g_bankaddress[bank]) % s->alignment;
+  if (overflow > 0)
+    address += s->alignment - overflow;
+
+  for (; address + s->offset < end_address; address += s->alignment) {
+    int candidate = address + s->offset;
+
+    if (_rom_section_has_room_at(s, bank, candidate, OFF) == YES) {
+      *out_address = candidate;
+      return SUCCEEDED;
+    }
+  }
+
+  return FAILED;
+}
+
+
+static int _write_rom_section_at(struct section *s, int bank, int address, int overwrite) {
+
+  int i, rom_address;
+
+  if (_rom_section_has_room_at(s, bank, address, overwrite) == NO) {
+    print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, bank);
+    return FAILED;
+  }
+
+  g_memory_file_id = s->file_id;
+  g_banksize = g_banksizes[bank];
+  g_section_overwrite = overwrite;
+
+  s->bank = bank;
+  s->address = address;
+  if (_rom_section_get_location(s, bank, address, 0, NULL, NULL, NULL, &s->output_address) == FAILED)
+    return FAILED;
+  s->placed = YES;
+
+  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
+
+  for (i = 0; i < s->size; i++) {
+    if (_rom_section_get_location(s, bank, address, i, NULL, NULL, NULL, &rom_address) == FAILED)
+      return FAILED;
+
+    if (overwrite == ON) {
+      g_rom_usage[rom_address] = 1;
+      g_rom[rom_address] = s->data[i];
+    }
+    else if (mem_insert(rom_address, s->data[i]) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _section_is_ram(struct section *s) {
+
+  if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
+      s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)
+    return YES;
+
+  return NO;
 }
 
 
@@ -1284,61 +1425,12 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
 
 static int _try_to_insert_semisuperfree_section(struct section *s, int bank) {
 
-  int i, d, f, x;
-  
-  s->bank = bank;
-  
-  g_pc_bank = s->address;
-  d = g_bankaddress[s->bank];
+  int address;
 
-  /* align the starting address */
-  f = (g_pc_bank + d) % s->alignment;
-  if (f > 0)
-    g_pc_bank += s->alignment - f;
+  if (_find_rom_section_position(s, bank, s->address, g_banksizes[bank], &address) == FAILED)
+    return FAILED;
 
-  i = FAILED;
-  while (i == FAILED) {
-    f = g_pc_bank;
-    for (x = 0; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
-      ;
-    if (x == s->size) {
-      if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
-        break;
-      else
-        g_pc_bank = f + 1;
-    }
-    if (g_pc_bank + s->offset >= g_banksizes[s->bank])
-      return FAILED;
-
-    /* find the next starting address */
-    f = (g_pc_bank + d) % s->alignment;
-    if (f > 0)
-      g_pc_bank += s->alignment - f;
-    for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
-      ;
-  }
-
-  g_memory_file_id = s->file_id;
-  g_banksize = g_banksizes[s->bank];
-  g_pc_bank = f + s->offset;
-  g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-  g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-  g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-  g_section_overwrite = OFF;
-
-  s->address = g_pc_bank;
-  s->output_address = g_pc_full;
-  s->placed = YES;
-      
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-  for (i = 0; i < s->size; i++) {
-    if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-      return FAILED;
-  }
-
-  return SUCCEEDED;
+  return _write_rom_section_at(s, bank, address, OFF);
 }
 
 
@@ -1399,60 +1491,14 @@ static int _write_sections_absolute(void) {
 
 static int _write_section_force(struct section *s) {
 
-  int d, i;
-
   if (s->after != NULL) {
-    /* AFTER section override! */
-    if (s->after->placed == NO) {
-      print_text(NO, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+    if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
-    }
 
-    s->address = s->after->address + s->after->size + s->offset;
-  }
-      
-  g_memory_file_id = s->file_id;
-  g_banksize = g_banksizes[s->bank];
-  g_pc_bank = s->address;
-  g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-  g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-  g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-  d = g_pc_full;
-  i = d + s->size;
-  s->output_address = d;
-  g_section_overwrite = OFF;
-  s->placed = YES;
-  if (i > g_romsize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
-    return FAILED;
-  }
-  if (s->address + s->size > g_banksize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-    return FAILED;
-  }
-  for (; d < i; d++) {
-    if (g_rom_usage[d] != 0 && g_rom[d] != s->data[d - g_pc_full])
-      break;
+    return SUCCEEDED;
   }
 
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-  if (d == i) {
-    for (i = 0; i < s->size; i++) {
-      if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-        return FAILED;
-    }
-  }
-  else {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-    return FAILED;
-  }
-
-  return SUCCEEDED;
+  return _write_rom_section_at(s, s->bank, s->address, OFF);
 }
 
 
@@ -1477,7 +1523,7 @@ static int _write_sections_force(void) {
 static int _write_section_semisuperfree(struct section *s) {
 
   if (s->after != NULL) {
-    if (_insert_rom_after_section(s) == FAILED)
+    if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
   }
   else {
@@ -1529,65 +1575,21 @@ static int _write_sections_semisuperfree(void) {
 
 static int _write_section_semisubfree(struct section *s) {
 
-  int d, i, f, x;
+  int address;
 
   if (s->after != NULL) {
-    if (_insert_rom_after_section(s) == FAILED)
+    if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
   }
   else {
-    g_pc_bank = 0;
-    d = g_bankaddress[s->bank];
-        
-    /* align the starting address */
-    f = (g_pc_bank + d) % s->alignment;
-    if (f > 0)
-      g_pc_bank += s->alignment - f;
-
-    i = FAILED;
-    while (i == FAILED) {
-      f = g_pc_bank;
-      for (x = 0; g_pc_bank + s->offset < s->address && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
-        ;
-      if (x == s->size) {
-        if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
-          break;
-        else
-          g_pc_bank = f + 1;
-      }
-      if (g_pc_bank + s->offset >= s->address) {
-        print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
-                get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-        return FAILED;
-      }
-
-      /* find the next starting address */
-      f = (g_pc_bank + d) % s->alignment;
-      if (f > 0)
-        g_pc_bank += s->alignment - f;
-      for (; g_pc_bank + s->offset < s->address && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
-        ;
+    if (_find_rom_section_position(s, s->bank, 0, s->address, &address) == FAILED) {
+      print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
+      return FAILED;
     }
 
-    g_memory_file_id = s->file_id;
-    g_banksize = g_banksizes[s->bank];
-    g_pc_bank = f + s->offset;
-    g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-    g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-    g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-    g_section_overwrite = OFF;
-          
-    s->address = g_pc_bank;
-    s->output_address = g_pc_full;
-    s->placed = YES;
-      
-    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-    for (i = 0; i < s->size; i++) {
-      if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-        return FAILED;
-    }
+    if (_write_rom_section_at(s, s->bank, address, OFF) == FAILED)
+      return FAILED;
   }
       
   return SUCCEEDED;
@@ -1614,65 +1616,21 @@ static int _write_sections_semisubfree(void) {
 
 static int _write_section_free_and_semifree(struct section *s) {
 
-  int d, i, f, x;
+  int address;
 
   if (s->after != NULL) {
-    if (_insert_rom_after_section(s) == FAILED)
+    if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
   }
   else {
-    g_pc_bank = s->address;
-    d = g_bankaddress[s->bank];
-
-    /* align the starting address */
-    f = (g_pc_bank + d) % s->alignment;
-    if (f > 0)
-      g_pc_bank += s->alignment - f;
-
-    i = FAILED;
-    while (i == FAILED) {
-      f = g_pc_bank;
-      for (x = 0; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
-        ;
-      if (x == s->size) {
-        if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES)
-          break;
-        else
-          g_pc_bank = f + 1;
-      }
-      if (g_pc_bank + s->offset >= g_banksizes[s->bank]) {
-        print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
-                get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-        return FAILED;
-      }
-
-      /* find the next starting address */
-      f = (g_pc_bank + d) % s->alignment;
-      if (f > 0)
-        g_pc_bank += s->alignment - f;
-      for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
-        ;
+    if (_find_rom_section_position(s, s->bank, s->address, g_banksizes[s->bank], &address) == FAILED) {
+      print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
+      return FAILED;
     }
 
-    g_memory_file_id = s->file_id;
-    g_banksize = g_banksizes[s->bank];
-    g_pc_bank = f + s->offset;
-    g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-    g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-    g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-    g_section_overwrite = OFF;
-
-    s->address = g_pc_bank;
-    s->output_address = g_pc_full;
-    s->placed = YES;
-      
-    /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-    snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-    for (i = 0; i < s->size; i++) {
-      if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-        return FAILED;
-    }
+    if (_write_rom_section_at(s, s->bank, address, OFF) == FAILED)
+      return FAILED;
   }
   
   return SUCCEEDED;
@@ -1699,74 +1657,30 @@ static int _write_sections_free_and_semifree(int status) {
 
 static int _write_section_superfree(struct section *s) {
 
-  int d, i, f, q, x;
+  int address = 0, i, q, section_bank = -1;
 
   if (s->after != NULL) {
-    if (_insert_rom_after_section(s) == FAILED)
+    if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
   }
   else {
     /* go through all the banks */
     i = FAILED;
-    f = 0;
 
     for (q = 0; i == FAILED && q < g_rombanks; q++) {
-      g_pc_bank = 0;
-      d = g_bankaddress[q];
-
-      /* align the starting address */
-      f = (g_pc_bank + d) % s->alignment;
-      if (f > 0)
-        g_pc_bank += s->alignment - f;
-
       /* if the slotsize and banksize differ -> try the next bank */
-      if (g_banksizes[q] != g_slots[s->slot].size)
+      if (s->span_bank < 0 && g_banksizes[q] != g_slots[s->slot].size)
         continue;
 
-      while (i == FAILED) {
-        f = g_pc_bank;
-        for (x = 0; g_pc_bank + s->offset < g_banksizes[q] && g_rom_usage[g_pc_bank + s->offset + d] == 0 && x < s->size; g_pc_bank++, x++)
-          ;
-        if (x == s->size) {
-          if (_does_window_allow_section_placement(s, g_slots[s->slot].address + f + s->offset) == YES) {
-            i = SUCCEEDED;
-            break;
-          }
-          else
-            g_pc_bank = f + 1;
-        }
-        if (g_pc_bank + s->offset >= g_banksizes[q])
-          break;
-
-        /* find the next starting address */
-        f = (g_pc_bank + d) % s->alignment;
-        if (f > 0)
-          g_pc_bank += s->alignment - f;
-        for (; g_pc_bank + s->offset < g_banksizes[s->bank] && g_rom_usage[g_pc_bank + s->offset + d] != 0; g_pc_bank += s->alignment)
-          ;
+      if (_find_rom_section_position(s, q, 0, g_banksizes[q], &address) == SUCCEEDED) {
+        section_bank = q;
+        i = SUCCEEDED;
       }
     }
 
     if (i == SUCCEEDED) {
-      s->bank = q-1;
-      g_memory_file_id = s->file_id;
-      g_banksize = g_banksizes[s->bank];
-      g_pc_bank = f + s->offset;
-      g_pc_slot = g_pc_bank;
-      g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-      g_pc_slot_max = g_slots[s->slot].size;
-      g_section_overwrite = OFF;
-
-      s->address = g_pc_bank;
-      s->output_address = g_pc_full;
-      s->placed = YES;
-      
-      /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-      for (i = 0; i < s->size; i++)
-        if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-          return FAILED;
+      if (_write_rom_section_at(s, section_bank, address, OFF) == FAILED)
+        return FAILED;
     }
     else {
       print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
@@ -1799,49 +1713,14 @@ static int _write_sections_superfree(void) {
 
 static int _write_section_overwrite(struct section *s) {
 
-  int i;
-
   if (s->after != NULL) {
-    /* AFTER section override! */
-    if (s->after->placed == NO) {
-      print_text(NO, "INSERT_SECTIONS: Trying to insert SECTION \"%s\" after \"%s\", but its address is unknown. Internal error. Please submit a bug report!\n", s->name, s->after->name);
+    if (_insert_rom_after_section(s, ON) == FAILED)
       return FAILED;
-    }
-    
-    s->address = s->after->address + s->after->size + s->offset;
+
+    return SUCCEEDED;
   }
 
-  g_memory_file_id = s->file_id;
-  g_banksize = g_banksizes[s->bank];
-  g_pc_bank = s->address;
-  g_pc_slot = g_slots[s->slot].address + g_pc_bank;
-  g_pc_full = g_pc_bank + g_bankaddress[s->bank];
-  g_pc_slot_max = g_slots[s->slot].address + g_slots[s->slot].size;
-  g_section_overwrite = ON;
-
-  s->output_address = g_pc_full;
-  s->placed = YES;
-      
-  if (g_pc_full + s->size > g_romsize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) goes beyond the ROM size.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
-    return FAILED;
-  }
-  if (s->address + s->size > g_banksize) {
-    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" (%d bytes) overflows from ROM bank %d.\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, s->bank);
-    return FAILED;
-  }
-  
-  /* create a what-we-are-doing message for mem_insert*() warnings/errors */
-  snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
-
-  for (i = 0; i < s->size; i++) {
-    if (mem_insert_pc(s->data[i], s->slot, s->bank) == FAILED)
-      return FAILED;
-  }
-
-  return SUCCEEDED;
+  return _write_rom_section_at(s, s->bank, s->address, ON);
 }
 
 
@@ -2394,6 +2273,9 @@ int fix_all_sections(void) {
 
         if (g_sec_fix_tmp->banks[0] != 0)
           strcpy(s->banks, g_sec_fix_tmp->banks);
+
+        if (g_sec_fix_tmp->span_bank >= 0)
+          s->span_bank = g_sec_fix_tmp->span_bank;
         
         if (g_sec_fix_tmp->status >= 0)
           s->status = g_sec_fix_tmp->status;
@@ -2606,15 +2488,34 @@ int fix_label_addresses(void) {
           }
           s = l->section_struct;
           if (s->id == l->section) {
-            l->bank = s->bank;
-            l->slot = s->slot;
-            l->address_in_section = (int)l->address;
-            l->address += s->address;
+            int address_in_section = (int)l->address;
 
-            if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE || s->status == SECTION_STATUS_RAM_SEMIFREE || s->status == SECTION_STATUS_RAM_SEMISUBFREE)
+            l->slot = s->slot;
+            l->address_in_section = address_in_section;
+
+            if (_section_is_ram(s) == YES) {
+              l->bank = s->bank;
+              l->address += s->address;
               l->rom_address = l->address + g_slots[l->slot].size * l->bank;
-            else
+            }
+            else if (s->status == SECTION_STATUS_ABSOLUTE) {
+              l->bank = s->bank;
+              l->address += s->address;
               l->rom_address = l->address + g_bankaddress[l->bank];
+            }
+            else {
+              int bank, slot, address, rom_address;
+
+              if (_rom_section_get_location(s, s->bank, s->address, address_in_section, &bank, &slot, &address, &rom_address) == FAILED) {
+                print_text(NO, "FIX_LABEL_ADDRESSES: Internal error: cannot map label \"%s\" in section \"%s\".\n", l->name, s->name);
+                return FAILED;
+              }
+
+              l->bank = bank;
+              l->slot = slot;
+              l->address = address;
+              l->rom_address = rom_address;
+            }
 
             if (s->status != SECTION_STATUS_ABSOLUTE)
               l->address += g_slots[l->slot].address;
@@ -2752,6 +2653,8 @@ int fix_references(void) {
   /* insert references */
   r = g_reference_first;
   while (r != NULL) {
+    int x_is_rom_address = NO;
+
     s = NULL;
 
     x = r->address;
@@ -2759,9 +2662,26 @@ int fix_references(void) {
     if (r->section_status == ON) {
       s = find_section(r->section);
       if (s != NULL) {
-        r->bank = s->bank;
-        x += s->address;
-        r->address += s->address;
+        if (s->status != SECTION_STATUS_ABSOLUTE && _section_is_ram(s) == NO) {
+          int bank, slot, address, rom_address;
+
+          if (_rom_section_get_location(s, s->bank, s->address, r->address, &bank, &slot, &address, &rom_address) == FAILED) {
+            print_text(NO, "%s: %s:%d: FIX_REFERENCES: Cannot map reference in section \"%s\".\n",
+                    get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, s->name);
+            return FAILED;
+          }
+
+          r->bank = bank;
+          r->slot = slot;
+          x = rom_address;
+          x_is_rom_address = YES;
+          r->address = address;
+        }
+        else {
+          r->bank = s->bank;
+          x += s->address;
+          r->address += s->address;
+        }
       }
       /* reference is inside a discarded section? */
       if (s != NULL && s->alive == NO) {
@@ -2777,7 +2697,8 @@ int fix_references(void) {
     }
 
     if (!(r->section_status == ON && s->status == SECTION_STATUS_ABSOLUTE)) {
-      x += g_bankaddress[r->bank];
+      if (x_is_rom_address == NO)
+        x += g_bankaddress[r->bank];
       r->address += g_slots[r->slot].address;
     }
 
@@ -3812,7 +3733,21 @@ int compute_pending_calculations(void) {
       /* remember the memory address (for CADDR) */
       sta->memory_address = s->address + sta->address + g_slots[sta->slot].address;
 
-      if (s->status != SECTION_STATUS_ABSOLUTE)
+      if (s->status != SECTION_STATUS_ABSOLUTE && _section_is_ram(s) == NO) {
+        int bank, slot, address, rom_address;
+
+        if (_rom_section_get_location(s, s->bank, s->address, sta->address, &bank, &slot, &address, &rom_address) == FAILED) {
+          print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Cannot map calculation in section \"%s\".\n",
+                  get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, s->name);
+          return FAILED;
+        }
+
+        sta->bank = bank;
+        sta->slot = slot;
+        sta->memory_address = g_slots[slot].address + address;
+        sta->address = rom_address;
+      }
+      else if (s->status != SECTION_STATUS_ABSOLUTE)
         sta->address += s->address + g_bankaddress[s->bank];
       else
         sta->address += s->address;
@@ -4170,46 +4105,25 @@ int evaluate_deferred_assertions(void) {
 
 static int _get_bank_of_address(int address, int slot) {
 
-  int start_address, slot_size, j;
+  int j, slot_size;
 
   if (address < 0)
     return -1;
 
-  if (slot < 0) {
-    /* we don't know the SLOT so we'll use the .ROMBANKSIZE for the calculation */
-    start_address = 0;
-    j = 0;
-
-    while (1) {
-      if (address >= start_address && address < start_address + g_banksize)
-        return j;
-      start_address += g_banksize;
-      j++;
-      if (j > 1000000000) {
-        print_text(NO, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
-        return -1;
-      }
-    }
-
-    return -1;
-  }
-
-  /* TODO: check if we can just use the banksize in every case and ignore slots[slot].size completely */
-  
-  slot_size = g_slots[slot].size;;
-  start_address = 0;
-  j = 0;
-  
-  while (1) {
-    if (address >= start_address && address < start_address + slot_size)
+  for (j = 0; j < g_rombanks; j++) {
+    if (address >= g_bankaddress[j] && address < g_bankaddress[j] + g_banksizes[j])
       return j;
-    start_address += slot_size;
-    j++;
-    if (j > 1000000000) {
-      print_text(NO, "_GET_BANK_OF_ADDRESS: j > 1000000000! Internal error. Cannot find the BANK. Please submit a bug report.\n");
-      return -1;
-    }
   }
+
+  if (slot < 0)
+    slot_size = g_banksize;
+  else
+    slot_size = g_slots[slot].size;
+
+  if (slot_size <= 0)
+    return -1;
+
+  return address / slot_size;
 }
 
 

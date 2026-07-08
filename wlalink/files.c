@@ -64,7 +64,7 @@ static void _process_tmp(char *tmp) {
 
 int load_files(char *argv[], int argc) {
 
-  int state = STATE_NONE, i, x, line, bank, slot, base, bank_defined, slot_defined, base_defined, n, alignment, offset;
+  int state = STATE_NONE, i, x, line, bank, slot, base, span_bank, bank_defined, slot_defined, base_defined, span_defined, n, alignment, offset;
   int org_defined, org, orga_defined, orga, status_defined, status, priority_defined, priority, appendto_defined, keep_defined;
   int alignment_defined, offset_defined, after_defined, bitwindow_defined, window_defined, size, size_defined, banks_defined;
   int bitwindow, window_start, window_end, sectionwriteorder_defined = NO, ramsectionwriteorder_defined = NO;
@@ -158,6 +158,7 @@ int load_files(char *argv[], int argc) {
 
     bank_defined = NO;
     banks_defined = NO;
+    span_defined = NO;
     slot_defined = NO;
     base_defined = NO;
     orga_defined = NO;
@@ -176,6 +177,7 @@ int load_files(char *argv[], int argc) {
     bank = 0;
     slot = 0;
     base = 0;
+    span_bank = -1;
     orga = 0;
     org = 0;
     status = -1;
@@ -479,6 +481,25 @@ int load_files(char *argv[], int argc) {
           }
 
           strcpy(banks, token);
+        }
+        else if (strcaselesscmp(token, "span") == 0) {
+          if (state != STATE_SECTIONS) {
+            print_text(NO, "%s:%d: LOAD_FILES: SPAN can only be defined for a .SECTION.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
+          if (span_defined == YES) {
+            print_text(NO, "%s:%d: LOAD_FILES: SPAN defined for the second time for a %s.\n", argv[argc - 2], line, state_name);
+            fclose(fop);
+            return FAILED;
+          }
+          span_defined = YES;
+
+          if (get_next_number(&tmp[x], &span_bank, &x) == FAILED || span_bank < 0) {
+            print_text(NO, "%s:%d: LOAD_FILES: Error in SPAN bank number.\n", argv[argc - 2], line);
+            fclose(fop);
+            return FAILED;
+          }
         }
         else if (strcaselesscmp(token, "slot") == 0) {
           if (slot_defined == YES) {
@@ -788,6 +809,7 @@ int load_files(char *argv[], int argc) {
       g_sec_fix_tmp->line_number = line;
       g_sec_fix_tmp->bank = bank;
       g_sec_fix_tmp->slot = slot;
+      g_sec_fix_tmp->span_bank = span_bank;
       g_sec_fix_tmp->keep = keep_defined;
       g_sec_fix_tmp->bitwindow = bitwindow;
       g_sec_fix_tmp->window_start = window_start;

@@ -252,6 +252,7 @@ struct section {
   int  keep;
   int  bank;
   int  slot;
+  int  span_bank;
   int  size;
   int  base;
   int  base_defined;
@@ -288,6 +289,7 @@ struct section_fix {
   int  keep;
   int  bank;
   int  slot;
+  int  span_bank;
   int  orga;
   int  org;
   int  status;

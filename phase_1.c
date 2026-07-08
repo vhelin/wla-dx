@@ -5778,6 +5778,7 @@ static int _directive_section(void) {
   g_sec_tmp->base = -1;
   g_sec_tmp->bank = -1;
   g_sec_tmp->slot = -1;
+  g_sec_tmp->span_bank = -1;
   g_sec_tmp->banks[0] = 0;
 
   if (s_defaultsectionslot_defined != 0)
@@ -6069,6 +6070,27 @@ static int _directive_section(void) {
         return FAILED;
 
       strcpy(g_sec_tmp->banks, g_tmp);
+    }
+    /* bank where the section may continue after this bank */
+    else if (compare_next_token("SPAN") == SUCCEEDED) {
+      if (g_output_format == OUTPUT_LIBRARY) {
+        print_error(ERROR_DIR, "Libraries don't take SPAN sections.\n");
+        return FAILED;
+      }
+
+      if (skip_next_token() == FAILED)
+        return FAILED;
+
+      q = input_number();
+
+      if (q == FAILED)
+        return FAILED;
+      if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int >= g_rombanks) {
+        print_error(ERROR_DIR, "SPAN bank number must be in [0, %d].\n", g_rombanks - 1);
+        return FAILED;
+      }
+
+      g_sec_tmp->span_bank = g_parsed_int;
     }
     /* the type of the section */
     else if (compare_next_token("FORCE") == SUCCEEDED) {
