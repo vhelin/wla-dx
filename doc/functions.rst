@@ -62,6 +62,9 @@ sign(exp)              Return 0 if the supplied value is 0, -1 if negative and 1
 sin(exp)               The same as ANSI C90 sin()
 sinh(exp)              The same as ANSI C90 sinh()
 slot()                 Returns the current slot (*)
+slot(label)            Returns the final slot of the supplied label
+slotaddress(label, s)  Returns the address of ``label`` as seen through slot ``s`` (number or name)
+slotbase(slot)         Returns the start address of ``slot`` (number or name)
 sqrt(exp)              Returns the square root of the supplied value
 substring(s, ind, len) Returns a substring of ``s``, starting at index ``ind``, consisting of ``len`` characters
 tan(exp)               The same as ANSI C90 tan()
@@ -90,6 +93,10 @@ Here's an example about how these functions can be used ::
   
     LDX #lobyte(playMusic)          ; instead of (playMusic & $FF)
     LDA #bank(playMusic)            ; instead of :playMusic
+    LDA #bank(playMusic)
+    TAM #$08
+    .DW slotaddress(playMusic, 3)   ; address if playMusic's bank is mapped into slot 3
+    .DW slotaddress(playMusic, "MPR3")
     .DB random(0, 10)               ; defines a byte with value 0-10
     .DL (base() << 16) | orga()     ; defines the current 24-bit address
 
@@ -114,7 +121,8 @@ is given. If WLALINK e.g., changes the label's .SECTION's bank for some reason
 (e.g., the .SECTION is relocated) then .IF is not calculated correctly.
 
 NOTE: bank(), bankbyte(), base() and slot() without arguments use the information
-the assembler knows, not the linker.
+the assembler knows, not the linker. ``slot(label)`` and ``slotaddress(label,slot)``
+use the label information WLALINK knows.
 
 
 Keywords

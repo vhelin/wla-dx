@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.23a (7.7.2026)";
+char g_version_string[] = "$VER: wlalink 5.23a (8.7.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -137,6 +137,9 @@ static const char *s_si_operator_pow = "pow(a,b)";
 static const char *s_si_operator_sign = "sign(a)";
 static const char *s_si_operator_clamp = "clamp(v,min,max)";
 static const char *s_si_operator_base = "base(a)";
+static const char *s_si_operator_slot = "slot(a)";
+static const char *s_si_operator_slotbase = "slotbase(a)";
+static const char *s_si_operator_slotaddress = "slotaddress(a,b)";
 
 static const char *_get_stack_item_operator_name(int operator) {
 
@@ -240,6 +243,12 @@ static const char *_get_stack_item_operator_name(int operator) {
     return s_si_operator_clamp;
   else if (operator == SI_OP_BASE)
     return s_si_operator_base;
+  else if (operator == SI_OP_SLOT)
+    return s_si_operator_slot;
+  else if (operator == SI_OP_SLOTBASE)
+    return s_si_operator_slotbase;
+  else if (operator == SI_OP_SLOTADDRESS)
+    return s_si_operator_slotaddress;
   
   print_text(NO, "\n");
   print_text(NO, "_get_stack_item_operator_name(): ERROR: Unhandled SI_OP_* (%d)! Please submit a bug report!\n", operator);

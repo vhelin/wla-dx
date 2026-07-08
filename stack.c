@@ -69,6 +69,19 @@ static int _is_stack_condition(struct stack_item st[], int count) {
 }
 
 
+static int _is_string_a_slot_name_argument(struct stack_item st[], int count, int index) {
+
+  if (index + 1 >= count)
+    return NO;
+
+  st = &st[index + 1];
+  if (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_SLOTBASE || st->value == SI_OP_SLOTADDRESS))
+    return YES;
+
+  return NO;
+}
+
+
 static struct stack *_allocate_struct_stack(int items) {
 
   struct stack *stack = calloc(1, sizeof(struct stack));
@@ -391,6 +404,9 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
             value == SI_OP_BANK_BYTE ||
             value == SI_OP_BANK ||
             value == SI_OP_BASE ||
+            value == SI_OP_SLOT ||
+            value == SI_OP_SLOTBASE ||
+            value == SI_OP_SLOTADDRESS ||
             value == SI_OP_CLAMP ||
             value == SI_OP_SIGN ||
             value == SI_OP_ABS))
@@ -440,6 +456,12 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
         print_text(YES, "bankbyte(a)");
       else if (value == SI_OP_BASE)
         print_text(YES, "base(a)");
+      else if (value == SI_OP_SLOT)
+        print_text(YES, "slot(a)");
+      else if (value == SI_OP_SLOTBASE)
+        print_text(YES, "slotbase(a)");
+      else if (value == SI_OP_SLOTADDRESS)
+        print_text(YES, "slotaddress(a,b)");
       else if (value == SI_OP_ROUND)
         print_text(YES, "round(a)");
       else if (value == SI_OP_CEIL)
@@ -565,6 +587,9 @@ static struct stack_item_priority_item s_stack_item_priority_items[] = {
   { SI_OP_LOW_WORD, 110 },
   { SI_OP_HIGH_WORD, 110 },
   { SI_OP_BASE, 110 },
+  { SI_OP_SLOT, 110 },
+  { SI_OP_SLOTBASE, 110 },
+  { SI_OP_SLOTADDRESS, 110 },
   { SI_OP_BANK, 110 },
   { SI_OP_BANK_BYTE, 110 },
   { SI_OP_ROUND, 110 },
@@ -1518,7 +1543,7 @@ static int _parse_function_math1(char *in, int *type, double *value, char *strin
     *value = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value = g_latest_stack;
@@ -1570,7 +1595,7 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     *value_a = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value_a = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string_a, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_a = g_latest_stack;
@@ -1599,7 +1624,7 @@ static int _parse_function_math2(char *in, int *type_a, int *type_b, double *val
     *value_b = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value_b = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string_b, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_b = g_latest_stack;
@@ -1651,7 +1676,7 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     *value_a = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value_a = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string_a, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_a = g_latest_stack;
@@ -1680,7 +1705,7 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     *value_b = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value_b = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string_b, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_b = g_latest_stack;
@@ -1709,7 +1734,7 @@ static int _parse_function_math3(char *in, int *type_a, int *type_b, int *type_c
     *value_c = g_parsed_int;
   else if (res == INPUT_NUMBER_FLOAT)
     *value_c = g_parsed_double;
-  else if (res == INPUT_NUMBER_ADDRESS_LABEL)
+  else if (res == INPUT_NUMBER_ADDRESS_LABEL || res == INPUT_NUMBER_STRING)
     strcpy(string_c, g_label);
   else if (res == INPUT_NUMBER_STACK)
     *value_c = g_latest_stack;
@@ -1769,6 +1794,10 @@ static int _parse_function_math1_base(char **in, struct stack_item *si, int *q, 
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string);
   }
+  else if (type == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
+    strcpy(si[*q].string, string);
+  }
   else if (type == INPUT_NUMBER_STACK) {
     si[*q].type = STACK_ITEM_TYPE_STACK;
     si[*q].value = value;
@@ -1809,6 +1838,10 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_a);
   }
+  else if (type_a == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
+    strcpy(si[*q].string, string_a);
+  }
   else if (type_a == INPUT_NUMBER_STACK) {
     si[*q].type = STACK_ITEM_TYPE_STACK;
     si[*q].value = value_a;
@@ -1824,6 +1857,10 @@ static int _parse_function_math2_base(char **in, struct stack_item *si, int *q, 
   else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
+    strcpy(si[*q].string, string_b);
+  }
+  else if (type_b == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
     strcpy(si[*q].string, string_b);
   }
   else if (type_b == INPUT_NUMBER_STACK) {
@@ -1866,6 +1903,10 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_a);
   }
+  else if (type_a == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
+    strcpy(si[*q].string, string_a);
+  }
   else if (type_a == INPUT_NUMBER_STACK) {
     si[*q].type = STACK_ITEM_TYPE_STACK;
     si[*q].value = value_a;
@@ -1881,6 +1922,10 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
   else if (type_b == INPUT_NUMBER_ADDRESS_LABEL) {
     si[*q].type = STACK_ITEM_TYPE_LABEL;
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
+    strcpy(si[*q].string, string_b);
+  }
+  else if (type_b == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
     strcpy(si[*q].string, string_b);
   }
   else if (type_b == INPUT_NUMBER_STACK) {
@@ -1900,6 +1945,10 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
     si[*q].can_calculate_deltas = NOT_APPLICABLE;
     strcpy(si[*q].string, string_c);
   }
+  else if (type_c == INPUT_NUMBER_STRING) {
+    si[*q].type = STACK_ITEM_TYPE_STRING;
+    strcpy(si[*q].string, string_c);
+  }
   else if (type_c == INPUT_NUMBER_STACK) {
     si[*q].type = STACK_ITEM_TYPE_STACK;
     si[*q].value = value_c;
@@ -1911,6 +1960,29 @@ static int _parse_function_math3_base(char **in, struct stack_item *si, int *q, 
 
 static struct data_stream_item *s_dsp_parent_labels[10];
 static struct map_t *s_dsp_labels_map = NULL;
+
+
+static int _get_slot_number_by_its_name(char *name, int *slot) {
+
+  char c1;
+  int i;
+
+  if (name == NULL || slot == NULL)
+    return FAILED;
+
+  c1 = name[0];
+
+  for (i = 0; i < 256; i++) {
+    if (g_slots[i].size > 0 && c1 == g_slots[i].name[0] && strcmp(name, g_slots[i].name) == 0) {
+      *slot = i;
+      return SUCCEEDED;
+    }
+  }
+
+  print_error(ERROR_STC, "Cannot find SLOT \"%s\".\n", name);
+
+  return FAILED;
+}
 
 
 static struct data_stream_item *_data_stream_parser_find_label(char *label, int file_name_id, int line_number) {
@@ -2965,9 +3037,45 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             si[q].sign = SI_SIGN_POSITIVE;
 
             is_already_processed_function = YES;
-
-            break;
           }
+          else {
+            int enable_label_address_conversion = g_dsp_enable_label_address_conversion;
+
+            g_dsp_enable_label_address_conversion = NO;
+            if (_parse_function_math1_base(&in, si, &q, "slot(a)", SI_OP_SLOT) == FAILED)
+              return FAILED;
+
+            if (g_input_parse_if == YES && si[q].type == STACK_ITEM_TYPE_LABEL) {
+              /* delete the slot() operator */
+              si[q-1].type = STACK_ITEM_TYPE_DELETED;
+
+              /* we want slot of a label inside .IF -> try to solve it here */
+              if (_get_bank_base_slot(&si[q], NO, NO, YES) == FAILED)
+                return FAILED;
+            }
+
+            g_dsp_enable_label_address_conversion = enable_label_address_conversion;
+            is_already_processed_function = YES;
+          }
+          break;
+        }
+        else if (k == 8 && strcaselesscmpn(si[q].string, "slotbase(", 9) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "slotbase(a)", SI_OP_SLOTBASE) == FAILED)
+            return FAILED;
+
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 11 && strcaselesscmpn(si[q].string, "slotaddress(", 12) == 0) {
+          int enable_label_address_conversion = g_dsp_enable_label_address_conversion;
+
+          g_dsp_enable_label_address_conversion = NO;
+          if (_parse_function_math2_base(&in, si, &q, "slotaddress(a,b)", SI_OP_SLOTADDRESS) == FAILED)
+            return FAILED;
+
+          g_dsp_enable_label_address_conversion = enable_label_address_conversion;
+          is_already_processed_function = YES;
+          break;
         }
         else if (k == 4 && strcaselesscmpn(si[q].string, "bank(", 5) == 0) {
           if (*in == ')') {
@@ -3486,6 +3594,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
          si[k + 1].value == SI_OP_BANK_BYTE ||
          si[k + 1].value == SI_OP_BANK ||
          si[k + 1].value == SI_OP_BASE ||
+         si[k + 1].value == SI_OP_SLOT ||
+         si[k + 1].value == SI_OP_SLOTBASE ||
+         si[k + 1].value == SI_OP_SLOTADDRESS ||
          si[k + 1].value == SI_OP_LOG ||
          si[k + 1].value == SI_OP_LOG10 ||
          si[k + 1].value == SI_OP_POW ||
@@ -3523,6 +3634,9 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[k + 1].value != SI_OP_BASE &&
         si[k + 1].value != SI_OP_BANK &&
         si[k + 1].value != SI_OP_BANK_BYTE &&
+        si[k + 1].value != SI_OP_SLOT &&
+        si[k + 1].value != SI_OP_SLOTBASE &&
+        si[k + 1].value != SI_OP_SLOTADDRESS &&
         si[k + 1].value != SI_OP_HIGH_BYTE &&
         si[k + 1].value != SI_OP_LOW_BYTE &&
         si[k + 1].value != SI_OP_HIGH_WORD &&
@@ -3842,7 +3956,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       out->sign = in->sign;
     }
     else if (type == STACK_ITEM_TYPE_STRING) {
-      if (_is_stack_condition(ta, d) == NO) {
+      if (_is_stack_condition(ta, d) == NO && _is_string_a_slot_name_argument(ta, d, q) == NO) {
         print_error(ERROR_STC, "String \"%s\" inside a calculation doesn't make sense.\n", in->string);
         return FAILED;
       }
@@ -4389,6 +4503,10 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
       g_dsp_enable_label_address_conversion = NO;
     else if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BASE)
       g_dsp_enable_label_address_conversion = NO;
+    else if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_SLOT)
+      g_dsp_enable_label_address_conversion = NO;
+    else if (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_SLOTADDRESS)
+      g_dsp_enable_label_address_conversion = NO;
     stack_item_count--;
     st++;
   }
@@ -4508,7 +4626,7 @@ int resolve_stack(struct stack_item s[], int stack_item_count) {
           return FAILED;
         }
       }
-      if (st->type == STACK_ITEM_TYPE_LABEL || (st->type == STACK_ITEM_TYPE_OPERATOR && st->value == SI_OP_BANK)) {
+      if (st->type == STACK_ITEM_TYPE_LABEL || (st->type == STACK_ITEM_TYPE_OPERATOR && (st->value == SI_OP_BANK || st->value == SI_OP_SLOT || st->value == SI_OP_SLOTADDRESS))) {
         g_dsp_enable_label_address_conversion = enable_label_address_conversion;
         return FAILED;
       }
@@ -4701,6 +4819,22 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
       case SI_OP_BANK_BYTE:
         z = ((int)v[t - 1]) >> 16;
         v[t - 1] = _perform_and(z, 0xFF);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_SLOTBASE:
+        if (sp[t - 1] != NULL) {
+          if (_get_slot_number_by_its_name(sp[t - 1], &z) == FAILED)
+            return FAILED;
+        }
+        else
+          z = (int)v[t - 1];
+        if (z < 0 || z >= 256 || g_slots[z].size <= 0) {
+          print_text(NO, "%s:%d: COMPUTE_STACK: slotbase() needs a valid slot number, got %d.\n", get_file_name(sta->filename_id), sta->linenumber, z);
+          return FAILED;
+        }
+        v[t - 1] = g_slots[z].address;
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;

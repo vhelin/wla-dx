@@ -182,6 +182,41 @@ address is $2001), operand hint ``.#b`` will be useful::
 
 It takes the lowest 8 bits of ``ZEROPAGE1`` and hints the assembler's parser that
 the operand is 8 bits in size.
+
+PC Engine ROMs use HuC6280 MPRs to map 8KB physical pages into the CPU address
+space. WLA DX still places a label in one final memory map slot, but you can use
+``slotaddress(label, slot)`` when the same ROM bank will be mapped through a
+different MPR slot at run time. The ``slot`` argument can be either a slot number
+or a slot name::
+
+    .MEMORYMAP
+      DEFAULTSLOT 0
+      SLOTSIZE $2000
+      SLOT 0 $0000 NAME "MPR0"
+      SLOT 1 $2000 NAME "MPR1"
+      SLOT 2 $4000 NAME "MPR2"
+      SLOT 3 $6000 NAME "MPR3"
+      SLOT 4 $8000 NAME "MPR4"
+      SLOT 5 $A000 NAME "MPR5"
+      SLOT 6 $C000 NAME "MPR6"
+      SLOT 7 $E000 NAME "MPR7"
+    .ENDME
+
+    ; Map playMusic's ROM bank into MPR3 ($6000-$7FFF), then use the address
+    ; of playMusic as seen through that slot.
+    LDA #bank(playMusic)
+    TAM #$08
+    JSR slotaddress(playMusic, "MPR3")
+
+``bank(label)`` gives the physical 8KB ROM bank to put into an MPR. The operand
+of ``TAM`` is a bit mask selecting the target MPR (``$08`` selects MPR3). The
+``slotaddress()`` function only calculates the address; it doesn't emit MPR setup
+code. ``slotbase(slot)`` returns the start address of a slot, and ``slot(label)``
+returns the final slot of a label.
+
+The ``include/pcengine/macros.inc`` file has helpers such as
+``PCE_MAP_LABEL_TO_MPR label, slot`` and ``PCE_MAP_BANK_TO_MPR bank, slot`` for
+the common ``LDA #...`` / ``TAM #...`` sequence.
     
 Opcodes that make relative label references::
 

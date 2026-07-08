@@ -4726,6 +4726,85 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_SLOT:
+        y = slot[t - 1];
+        if (y < 0) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Could not get the slot number for the supplied expression.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
+        v_ram[t - 1] = y & 0xFF;
+        v_rom[t - 1] = y & 0xFF;
+        slot[t - 1] = -1;
+        base[t - 1] = -1;
+        bank[t - 1] = -1;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_SLOTBASE:
+        if (sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (get_slot_by_its_name(sta->stack_items[r-1].string, &y) == FAILED)
+            return FAILED;
+        }
+        else
+          y = (int)v_ram[t - 1];
+        if (y < 0 || y >= 256 || g_slots[y].usage != ON) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: slotbase() needs a valid slot number, got %d.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, y);
+          return FAILED;
+        }
+        v_ram[t - 1] = g_slots[y].address;
+        v_rom[t - 1] = g_slots[y].address;
+        slot[t - 1] = y;
+        base[t - 1] = -1;
+        bank[t - 1] = -1;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
+      case SI_OP_SLOTADDRESS:
+        if (t <= 1) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: slotaddress() is missing an operand.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
+        y = slot[t - 2];
+        if (sta->stack_items[r-1].type == STACK_ITEM_TYPE_STRING) {
+          if (get_slot_by_its_name(sta->stack_items[r-1].string, &z) == FAILED)
+            return FAILED;
+        }
+        else
+          z = (int)v_ram[t - 1];
+        if (y < 0 || y >= 256 || g_slots[y].usage != ON) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: Could not get the source slot number for slotaddress().\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+          return FAILED;
+        }
+        if (z < 0 || z >= 256 || g_slots[z].usage != ON) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: slotaddress() needs a valid target slot number, got %d.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z);
+          return FAILED;
+        }
+        q = v_ram[t - 2] - g_slots[y].address;
+        if (q < 0 || q >= g_slots[z].size) {
+          print_text(NO, "%s: %s:%d: COMPUTE_STACK: slotaddress() cannot map offset %d/$%x into slot %d.\n", get_file_name(sta->file_id),
+                  get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, (int)q, (int)q, z);
+          return FAILED;
+        }
+        v_ram[t - 2] = g_slots[z].address + q;
+        v_rom[t - 2] = v_ram[t - 2];
+        slot[t - 2] = z;
+        base[t - 2] = -1;
+        bank[t - 2] = -1;
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 2] = -v_ram[t - 2];
+          v_rom[t - 2] = -v_rom[t - 2];
+        }
+        t--;
+        break;
       case SI_OP_LOW_BYTE:
         z = (int)v_ram[t - 1];
         y = (int)v_rom[t - 1];
