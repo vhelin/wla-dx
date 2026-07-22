@@ -1104,6 +1104,12 @@ static int _insert_rom_after_section(struct section *s, int overwrite) {
     return FAILED;
   }
 
+  if (s->span_banks_count > 0 && bank != s->span_banks_unrolled[0]) {
+    print_text(NO, "%s: %s: INSERT_SECTIONS: Section \"%s\" uses SPAN starting in ROM bank %d, but AFTER \"%s\" places it in ROM bank %d.\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, s->span_banks_unrolled[0], s->after->name, bank);
+    return FAILED;
+  }
+
   return _write_rom_section_at(s, bank, address, overwrite);
 }
 
@@ -1152,25 +1158,34 @@ static int _get_slot_of_address(int address) {
 
 static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int *out_bank, int *out_slot, int *out_address, int *out_rom_address) {
 
-  int bank_address, original_bank, rom_address, memory_address, slot;
+  int bank_address, bank_index, rom_address, memory_address, slot;
 
   if (bank < 0 || bank >= g_rombanks || address < 0 || section_offset < 0)
     return FAILED;
 
-  memory_address = g_slots[s->slot].address + address + section_offset;
-  slot = _get_slot_of_address(memory_address);
-  if (slot < 0)
-    return FAILED;
-
-  original_bank = bank;
   bank_address = address + section_offset;
-  if (bank_address >= g_banksizes[bank]) {
-    if (s->span_bank < 0 || s->span_bank >= g_rombanks || s->span_bank == bank)
+  if (s->span_banks_count > 0) {
+    for (bank_index = 0; bank_index < s->span_banks_count; bank_index++) {
+      bank = s->span_banks_unrolled[bank_index];
+      slot = s->span_slots_unrolled[bank_index];
+      if (bank_address < g_banksizes[bank])
+        break;
+      bank_address -= g_banksizes[bank];
+    }
+    if (bank_index >= s->span_banks_count)
       return FAILED;
 
-    bank = s->span_bank;
-    bank_address -= g_banksizes[original_bank];
-    if (bank_address < 0 || bank_address >= g_banksizes[bank])
+    if (slot < 0 || slot >= 256 || g_slots[slot].usage != ON || bank_address >= g_slots[slot].size)
+      return FAILED;
+    memory_address = g_slots[slot].address + bank_address;
+  }
+  else {
+    memory_address = g_slots[s->slot].address + bank_address;
+    slot = _get_slot_of_address(memory_address);
+    if (slot < 0)
+      return FAILED;
+
+    if (bank_address >= g_banksizes[bank])
       return FAILED;
   }
 
@@ -1193,24 +1208,27 @@ static int _rom_section_get_location(struct section *s, int bank, int address, i
 
 static int _rom_section_get_boundary_location(struct section *s, int extra_offset, int *out_bank, int *out_address) {
 
-  int bank, address, bank_address;
+  int bank, bank_index, address, bank_address;
 
   if (s->bank < 0 || s->bank >= g_rombanks || s->address < 0 || extra_offset < 0)
     return FAILED;
 
   bank = s->bank;
   address = s->address + s->size + extra_offset;
-  if (address >= g_banksizes[bank]) {
-    if (s->span_bank < 0 || s->span_bank >= g_rombanks || s->span_bank == bank)
+  if (s->span_banks_count > 0) {
+    bank_address = address;
+    for (bank_index = 0; bank_index < s->span_banks_count; bank_index++) {
+      bank = s->span_banks_unrolled[bank_index];
+      if (bank_address < g_banksizes[bank] || (bank_address == g_banksizes[bank] && bank_index == s->span_banks_count - 1))
+        break;
+      bank_address -= g_banksizes[bank];
+    }
+    if (bank_index >= s->span_banks_count)
       return FAILED;
-
-    bank_address = address - g_banksizes[bank];
-    if (bank_address > g_banksizes[s->span_bank])
-      return FAILED;
-
-    bank = s->span_bank;
     address = bank_address;
   }
+  else if (address >= g_banksizes[bank])
+    return FAILED;
 
   *out_bank = bank;
   *out_address = address;
@@ -1221,17 +1239,41 @@ static int _rom_section_get_boundary_location(struct section *s, int extra_offse
 
 static int _rom_section_has_room_at(struct section *s, int bank, int address, int overwrite) {
 
-  int i, rom_address;
+  int i, rom_address, slot, mapped_address, memory_address, first_memory_address, mask_top, upper_bits;
 
   if (address < 0 || address >= g_banksizes[bank])
     return NO;
 
-  if (_does_window_allow_section_placement(s, g_slots[s->slot].address + address) == NO)
+  if (s->span_banks_count == 0 && _does_window_allow_section_placement(s, g_slots[s->slot].address + address) == NO)
     return NO;
 
+  first_memory_address = -1;
+  mask_top = 0;
+  upper_bits = 0;
+
   for (i = 0; i < s->size; i++) {
-    if (_rom_section_get_location(s, bank, address, i, NULL, NULL, NULL, &rom_address) == FAILED)
+    if (_rom_section_get_location(s, bank, address, i, NULL, &slot, &mapped_address, &rom_address) == FAILED)
       return NO;
+
+    if (s->span_banks_count > 0) {
+      memory_address = g_slots[slot].address + mapped_address;
+
+      if (s->window_start >= 0 && s->window_end >= 0) {
+        if (memory_address < s->window_start || memory_address >= s->window_end)
+          return NO;
+      }
+
+      if (s->bitwindow != 0) {
+        if (first_memory_address < 0) {
+          mask_top = ~((1 << s->bitwindow) - 1);
+          upper_bits = memory_address & mask_top;
+          first_memory_address = memory_address;
+        }
+        else if ((memory_address & mask_top) != upper_bits)
+          return NO;
+      }
+    }
+
     if (overwrite == OFF && g_rom_usage[rom_address] != 0 && g_rom[rom_address] != s->data[i])
       return NO;
   }
@@ -1318,93 +1360,129 @@ static int _section_is_ram(struct section *s) {
 }
 
 
-static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
+static int _read_bank_list_number(const char *list, int *index, int *value) {
 
-  int i = 0, max = 0, bank, bank2, digits;
+  int digits = 0;
+
+  *value = 0;
+  while (list[*index] >= '0' && list[*index] <= '9') {
+    *value = *value * 10 + list[*index] - '0';
+    digits++;
+    (*index)++;
+  }
+
+  if (digits == 0)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _read_bank_list_range(const char *list, int *index, int *start, int *end) {
+
+  if (_read_bank_list_number(list, index, start) == FAILED)
+    return FAILED;
+
+  *end = *start;
+  if (list[*index] == '-') {
+    (*index)++;
+    if (_read_bank_list_number(list, index, end) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _get_range_size(int start, int end) {
+
+  if (start <= end)
+    return end - start + 1;
+
+  return start - end + 1;
+}
+
+
+static int _get_range_value(int start, int end, int index) {
+
+  if (start <= end)
+    return start + index;
+
+  return start - index;
+}
+
+
+static int _unroll_bank_list(struct section *s, const char *list, const char *list_name, int banks[1024], int *slots, int *banks_max) {
+
+  int i = 0, max = 0, bank, bank2, bank_count, slot, slot2, slot_count, range_index;
   char c;
   
-  while (s->banks[i] != 0) {
-    bank = 0;
-    digits = 0;
-    
-    /* parse the 1st number */
-    while (1) {
-      c = s->banks[i];
-      if (c >= '0' && c <= '9') {
-        bank = bank * 10 + c - '0';
-        digits++;
-        i++;
-      }
-      else
-        break;
-    }
-
-    if (digits == 0) {
-      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
-              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
+  while (list[i] != 0) {
+    if (_read_bank_list_range(list, &i, &bank, &bank2) == FAILED) {
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed %s list (%s).\n", get_file_name(s->file_id),
+          get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
       return FAILED;
     }
 
-    /* single bank number? */
-    c = s->banks[i];
-    if (c == 0 || c == '/') {
-      if (bank >= 1024) {
-        print_text(NO, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+    c = list[i];
+    slot = -1;
+    slot2 = -1;
+    slot_count = 0;
+
+    if (c == ':') {
+      if (slots == NULL) {
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\"'s %s list cannot contain SLOTs (%s).\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
         return FAILED;
       }
 
-      banks[max++] = bank;
-
-      if (c == '/')
-        i++;
-      
-      continue;
-    }
-
-    /* range? */
-    if (c != '-') {
-      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
-              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
-      return FAILED;
-    }
-
-    i++;
-
-    bank2 = 0;
-    digits = 0;
-    
-    /* parse the 1st number */
-    while (1) {
-      c = s->banks[i];
-      if (c >= '0' && c <= '9') {
-        bank2 = bank2 * 10 + c - '0';
-        digits++;
-        i++;
+      i++;
+      if (_read_bank_list_range(list, &i, &slot, &slot2) == FAILED) {
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed %s SLOT list (%s).\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
+        return FAILED;
       }
-      else
-        break;
+      c = list[i];
+      slot_count = _get_range_size(slot, slot2);
     }
 
-    if (digits == 0 || (c != 0 && c != '/')) {
-      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed BANKS list (%s).\n", get_file_name(s->file_id),
-              get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
+    if (c != 0 && c != '/') {
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\" has malformed %s list (%s).\n", get_file_name(s->file_id),
+          get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
       return FAILED;
     }
 
-    while (1) {
-      if (bank >= 1024) {
-        print_text(NO, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s BANKS list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank, s->name);
+    bank_count = _get_range_size(bank, bank2);
+    if (slot_count > 1 && slot_count != bank_count) {
+      print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\"'s %s list has %d BANKs but %d SLOTs (%s).\n", get_file_name(s->file_id),
+          get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, bank_count, slot_count, list);
+      return FAILED;
+    }
+
+    for (range_index = 0; range_index < bank_count; range_index++) {
+      int bank_value = _get_range_value(bank, bank2, range_index);
+
+      if (bank_value >= 1024) {
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Bank %d in Section \"%s\"'s %s list is out of range [0, 1023]. Please submit a bug report if this should work!\n", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), bank_value, s->name, list_name);
         return FAILED;
       }
 
-      banks[max++] = bank;
+      if (max >= 1024) {
+        print_text(NO, "%s: %s: _UNROLL_BANKS: Section \"%s\"'s %s list has too many BANKs (%s).\n", get_file_name(s->file_id),
+            get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
+        return FAILED;
+      }
 
-      if (bank < bank2)
-        bank++;
-      else if (bank > bank2)
-        bank--;
-      else
-        break;
+      banks[max] = bank_value;
+      if (slots != NULL) {
+        if (slot_count == 0)
+          slots[max] = -1;
+        else if (slot_count == 1)
+          slots[max] = slot;
+        else
+          slots[max] = _get_range_value(slot, slot2, range_index);
+      }
+      max++;
     }
 
     if (c == '/')
@@ -1412,14 +1490,20 @@ static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
   }
 
   if (max <= 0) {
-    print_text(NO, "%s: %s: _UNROLL_BANKS: No banks in section \"%s\"'s BANKS list (%s).\n", get_file_name(s->file_id),
-            get_source_file_name(s->file_id, s->file_id_source), s->name, s->banks);
+      print_text(NO, "%s: %s: _UNROLL_BANKS: No banks in section \"%s\"'s %s list (%s).\n", get_file_name(s->file_id),
+        get_source_file_name(s->file_id, s->file_id_source), s->name, list_name, list);
     return FAILED;
   }
   
   *banks_max = max;
 
   return SUCCEEDED;
+}
+
+
+static int _unroll_banks(struct section *s, int banks[1024], int *banks_max) {
+
+  return _unroll_bank_list(s, s->banks, "BANKS", banks, NULL, banks_max);
 }
 
 
@@ -1525,6 +1609,13 @@ static int _write_section_semisuperfree(struct section *s) {
   if (s->after != NULL) {
     if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
+  }
+  else if (s->span_banks_count > 0) {
+    if (_try_to_insert_semisuperfree_section(s, s->bank) == FAILED) {
+      print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes).\n", get_file_name(s->file_id),
+              get_source_file_name(s->file_id, s->file_id_source), s->name, s->size);
+      return FAILED;
+    }
   }
   else {
     int banks[1024], bank = 0, banks_max = 0;
@@ -1663,13 +1754,18 @@ static int _write_section_superfree(struct section *s) {
     if (_insert_rom_after_section(s, OFF) == FAILED)
       return FAILED;
   }
+  else if (s->span_banks_count > 0) {
+    if (_find_rom_section_position(s, s->bank, 0, g_banksizes[s->bank], &address) == FAILED ||
+        _write_rom_section_at(s, s->bank, address, OFF) == FAILED)
+      return FAILED;
+  }
   else {
     /* go through all the banks */
     i = FAILED;
 
     for (q = 0; i == FAILED && q < g_rombanks; q++) {
       /* if the slotsize and banksize differ -> try the next bank */
-      if (s->span_bank < 0 && g_banksizes[q] != g_slots[s->slot].size)
+      if (s->span_banks_count == 0 && g_banksizes[q] != g_slots[s->slot].size)
         continue;
 
       if (_find_rom_section_position(s, q, 0, g_banksizes[q], &address) == SUCCEEDED) {
@@ -1943,6 +2039,40 @@ int insert_sections(void) {
 
   struct section *s;
   int i;
+
+  for (s = g_sec_first; s != NULL; s = s->next) {
+    if (s->span_banks[0] != 0) {
+      s->span_banks_unrolled = calloc(1024, sizeof(int));
+      s->span_slots_unrolled = calloc(1024, sizeof(int));
+      if (s->span_banks_unrolled == NULL || s->span_slots_unrolled == NULL) {
+        print_text(NO, "INSERT_SECTIONS: Out of memory while parsing section \"%s\"'s SPAN list.\n", s->name);
+        return FAILED;
+      }
+      if (_unroll_bank_list(s, s->span_banks, "SPAN", s->span_banks_unrolled, s->span_slots_unrolled, &s->span_banks_count) == FAILED)
+        return FAILED;
+      for (i = 0; i < s->span_banks_count; i++) {
+        if (s->span_banks_unrolled[i] < 0 || s->span_banks_unrolled[i] >= g_rombanks) {
+          print_text(NO, "%s: %s: INSERT_SECTIONS: Bank %d for section \"%s\" is out of range [0, %d].\n", get_file_name(s->file_id),
+                  get_source_file_name(s->file_id, s->file_id_source), s->span_banks_unrolled[i], s->name, g_rombanks - 1);
+          return FAILED;
+        }
+        if (s->span_slots_unrolled[i] < 0)
+          s->span_slots_unrolled[i] = s->slot;
+        if (s->span_slots_unrolled[i] < 0 || s->span_slots_unrolled[i] >= 256 || g_slots[s->span_slots_unrolled[i]].usage != ON) {
+          print_text(NO, "%s: %s: INSERT_SECTIONS: SLOT %d for section \"%s\"'s SPAN bank %d is not defined.\n", get_file_name(s->file_id),
+                  get_source_file_name(s->file_id, s->file_id_source), s->span_slots_unrolled[i], s->name, s->span_banks_unrolled[i]);
+          return FAILED;
+        }
+        if (g_slots[s->span_slots_unrolled[i]].size < g_banksizes[s->span_banks_unrolled[i]]) {
+          print_text(NO, "%s: %s: INSERT_SECTIONS: SLOT %d's size %d < SPAN bank %d's size %d for section \"%s\".\n", get_file_name(s->file_id),
+                  get_source_file_name(s->file_id, s->file_id_source), s->span_slots_unrolled[i], g_slots[s->span_slots_unrolled[i]].size, s->span_banks_unrolled[i], g_banksizes[s->span_banks_unrolled[i]], s->name);
+          return FAILED;
+        }
+      }
+      s->bank = s->span_banks_unrolled[0];
+      s->slot = s->span_slots_unrolled[0];
+    }
+  }
 
   /* find all touched slots */
   s = g_sec_first;
@@ -2262,11 +2392,11 @@ int fix_all_sections(void) {
       if (c1 == s->name[0] && strcmp(s->name, g_sec_fix_tmp->name) == 0) {
         s->bank = g_sec_fix_tmp->bank;
 
-        if (g_sec_fix_tmp->slot < 0) {
+        if (g_sec_fix_tmp->slot < 0 && g_sec_fix_tmp->slot_name[0] != 0) {
           if (get_slot_by_its_name(g_sec_fix_tmp->slot_name, &(s->slot)) == FAILED)
             return FAILED;
         }
-        else {
+        else if (g_sec_fix_tmp->slot >= 0) {
           if (get_slot_by_a_value(g_sec_fix_tmp->slot, &(s->slot)) == FAILED)
             return FAILED;
         }
@@ -2274,8 +2404,8 @@ int fix_all_sections(void) {
         if (g_sec_fix_tmp->banks[0] != 0)
           strcpy(s->banks, g_sec_fix_tmp->banks);
 
-        if (g_sec_fix_tmp->span_bank >= 0)
-          s->span_bank = g_sec_fix_tmp->span_bank;
+        if (g_sec_fix_tmp->span_banks[0] != 0)
+          strcpy(s->span_banks, g_sec_fix_tmp->span_banks);
         
         if (g_sec_fix_tmp->status >= 0)
           s->status = g_sec_fix_tmp->status;
@@ -2338,8 +2468,8 @@ int fix_all_sections(void) {
           }
         }
 
-        if (s->status == SECTION_STATUS_SEMISUPERFREE && s->banks[0] == 0) {
-          print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is marked as SEMISUPERFREE, but no BANKS are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
+        if (s->status == SECTION_STATUS_SEMISUPERFREE && s->banks[0] == 0 && s->span_banks[0] == 0) {
+          print_text(NO, "%s:%d: FIX_ALL_SECTIONS: Section \"%s\" is marked as SEMISUPERFREE, but neither BANKS nor SPAN are defined.\n", g_sec_fix_tmp->file_name, g_sec_fix_tmp->line_number, s->name);
           return FAILED;
         }
         if (s->status != SECTION_STATUS_SEMISUPERFREE && s->banks[0] != 0) {

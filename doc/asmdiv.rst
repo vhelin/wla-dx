@@ -3372,14 +3372,49 @@ as follows::
 
     .SECTION "Init" SIZE 100 ALIGN 4 FREE
 
-If a section needs to continue into another ROM bank when it reaches the end
-of its starting bank, give the target bank with ``SPAN``::
+If a section needs to continue from one ROM bank to another, give the ordered
+list of banks with ``SPAN``. ``/`` separates entries and ``-`` specifies an
+inclusive ascending or descending range::
 
-    .SECTION "Init" FORCE SPAN 2
+    .SECTION "Init" FORCE SPAN 2/5-7/10
 
-In the example above the section starts in the currently selected bank and any
-bytes past the end of that bank are written from offset ``$0`` in ROM bank 2.
-The section's CPU address keeps advancing inside the slot.
+In the example above the section starts in ROM bank 2. Bytes past its end are
+written from offset ``$0`` in ROM bank 5, followed by banks 6, 7 and 10 as
+needed.
+
+Each spanned ROM bank is mapped through a slot. If no slot is supplied for a
+``SPAN`` bank, WLALINK uses the section's effective ``SLOT``. This means that
+plain ``SPAN`` can be used for bank-switched memory where each ROM bank appears
+at the same CPU address range::
+
+    .SECTION "BigThing" FORCE SPAN 0-3
+    .SECTION "BigThing" FORCE SPAN 0-9 SLOT 1
+
+In the first example, all spanned banks use the section's current or default
+slot. In the second example, all spanned banks use slot 1. At each ROM bank
+boundary the section continues at offset ``$0`` in the next ROM bank and at the
+start address of that bank's slot. The slot must exist and must be at least as
+large as the corresponding ROM bank.
+
+Slots can also be supplied per bank by appending ``:`` and a slot or slot range
+to a ``SPAN`` entry::
+
+    .SECTION "BigThing" FORCE SPAN 0:1/1:1/2:2/3-4:0-1
+
+Here banks 0 and 1 use slot 1, bank 2 uses slot 2, bank 3 uses slot 0, and
+bank 4 uses slot 1. If a bank range has one slot after ``:``, that slot is used
+for every bank in the range. If a slot range is used, it must expand to the
+same number of entries as the bank range.
+
+When ``SPAN`` is present, the currently selected ROM bank and a ``BANK``
+parameter on ``.SECTION`` are ignored. The first bank in the ``SPAN`` list is
+always the section's starting bank, so every bank used by the section must be
+included in the list. For a ``SEMISUPERFREE`` section, ``SPAN`` also determines
+the placement banks and a separate ``BANKS`` list is not required. If both
+``BANKS`` and ``SPAN`` are defined for a ``SEMISUPERFREE`` section, ``SPAN`` is
+used for placement and ``BANKS`` is ignored. If ``SPAN`` and ``AFTER`` are used
+together, the ``AFTER`` target plus ``OFFSET`` must place the section in the
+first bank listed by ``SPAN``.
 
 If you need an offset from the alignment, use OFFSET::
 

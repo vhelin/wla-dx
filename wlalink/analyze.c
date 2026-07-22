@@ -2183,6 +2183,13 @@ int parse_data_blocks(void) {
             s->banks[i] = 0;
             t++;
           }
+
+          /* SPAN banks */
+          i = 0;
+          while (*t != 0)
+            s->span_banks[i++] = *(t++);
+          s->span_banks[i] = 0;
+          t++;
           
           s->id = READ_T;
           if (s->id >= 0x10000) {
@@ -2194,7 +2201,6 @@ int parse_data_blocks(void) {
           s->address = READ_T;
           s->bank = READ_T;
           s->base = READ_T;
-          s->span_bank = READ_T;
           s->size = READ_T;
           s->alignment = READ_T;
           s->offset = READ_T;

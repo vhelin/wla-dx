@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.23a (8.7.2026)";
+char g_version_string[] = "$VER: wlalink 5.23a (22.7.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -775,6 +775,10 @@ static void _free_section_allocations(struct section *s) {
     free(s->listfile_cmds);
   if (s->listfile_ints != NULL)
     free(s->listfile_ints);
+  if (s->span_banks_unrolled != NULL)
+    free(s->span_banks_unrolled);
+  if (s->span_slots_unrolled != NULL)
+    free(s->span_slots_unrolled);
 
   if (s->data != NULL)
     free(s->data);

@@ -2681,7 +2681,7 @@ int write_object_file(void) {
   /* SH-2 bit */
   ind |= 1 << 4;
 #endif
-  
+
   fprintf(final_ptr, "%c", ind);
 
 #if defined(Z80)
@@ -3024,6 +3024,7 @@ int write_object_file(void) {
 
       if (g_sec_tmp->status == SECTION_STATUS_SEMISUPERFREE)
         fprintf(final_ptr, "%s%c", g_sec_tmp->banks, 0);
+      fprintf(final_ptr, "%s%c", g_sec_tmp->span_banks, 0);
       
       ov = g_sec_tmp->id;
       WRITEOUT_OV;
@@ -3038,8 +3039,6 @@ int write_object_file(void) {
       ov = g_sec_tmp->bank;
       WRITEOUT_OV;
       ov = g_sec_tmp->base;
-      WRITEOUT_OV;
-      ov = g_sec_tmp->span_bank;
       WRITEOUT_OV;
       ov = g_sec_tmp->size;
       WRITEOUT_OV;

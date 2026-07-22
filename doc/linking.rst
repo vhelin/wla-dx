@@ -79,8 +79,26 @@ to link together. Here's the format:
         [sections]
         bank 0 slot 1 org $100 appendto "MusicPlayers" "MusicPlayer1"
         bank 0 slot 1 orga $2200 semisubfree priority 100 keep bitwindow 8 "EnemyAI"
-        bank 0 slot 1 org $7ff0 force span 2 "LargeLookupTable"
+        slot 1 org $7ff0 force span 2/5-7/10 "LargeLookupTable"
+        slot 1 org $7ff0 force span 0-9 "BankedLookupTable"
+        org $1e force span 18-19:0-1 "SplitLookupTable"
         bank 0 slot 2 after "Enemies" offset 256 "Dragon"
+
+    ``SPAN`` accepts ``/`` separated ROM bank entries and inclusive ``-`` ranges.
+    When ``SPAN`` is present, ``BANK`` is optional and ignored. ``BANKS`` is
+    still only meaningful for ``SEMISUPERFREE`` sections; if both ``BANKS`` and
+    ``SPAN`` are defined for a ``SEMISUPERFREE`` section, ``SPAN`` determines
+    the section's placement and ``BANKS`` is ignored. The first bank in the
+    ``SPAN`` list is the section's starting bank, and the following banks are
+    used in order as the section crosses bank boundaries.
+    Each spanned ROM bank uses the section's ``SLOT`` unless the ``SPAN`` entry
+    supplies an explicit slot with ``:``, such as ``18-19:0-1``. A single slot
+    after ``:`` is used for every bank in that entry; a slot range must have the
+    same number of entries as the bank range. A linkfile section normally
+    requires ``SLOT``, but the top-level ``SLOT`` can be omitted when every
+    ``SPAN`` bank supplies an explicit slot. If ``SPAN`` and ``AFTER`` are used
+    together, the ``AFTER`` target plus ``OFFSET`` must place the section in the
+    first bank listed by ``SPAN``.
    
 7. If you want to make value definitions, here's your chance::
    

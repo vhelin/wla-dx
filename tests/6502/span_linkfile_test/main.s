@@ -3,12 +3,13 @@
         SLOTSIZE $20
         SLOT 0 $8000
         SLOT 1 $8020
+        SLOT 2 $8040
         .ENDME
 
         .ROMBANKMAP
-        BANKSTOTAL 15
+        BANKSTOTAL 20
         BANKSIZE $20
-        BANKS 15
+        BANKS 20
         .ENDRO
 
         .EMPTYFILL $00
@@ -31,6 +32,10 @@
         .DB :superfree_spanned_label
         .DW overwrite_spanned_label
         .DB :overwrite_spanned_label
+        .DW multi_span_middle
+        .DB :multi_span_middle
+        .DW slot_range_middle
+        .DB :slot_range_middle
         .ENDS
 
         .SECTION "ForceLinkSpan" FREE
@@ -80,4 +85,23 @@ overwrite_start_label:
         .DB bank(overwrite_start_label), $90, $91, $92
 overwrite_spanned_label:
         .DB :overwrite_spanned_label, $94, $95, $96
+        .ENDS
+
+        .SECTION "MultiBankLinkSpan" FREE
+multi_span_start:
+        .DB :multi_span_start, $71, $72, $73
+multi_span_middle:
+        .DB :multi_span_middle
+        .DB $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A
+        .DB $0B, $0C, $0D, $0E, $0F, $10, $11, $12, $13, $14
+        .DB $15, $16, $17, $18, $19, $1A, $1B, $1C, $1D, $1E, $1F
+multi_span_end:
+        .DB :multi_span_end, $E1, $E2, $E3
+        .ENDS
+
+        .SECTION "SlotRangeLinkSpan" FREE
+slot_range_start:
+        .DB :slot_range_middle, $51
+slot_range_middle:
+        .DB :slot_range_middle, $52
         .ENDS

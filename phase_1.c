@@ -5778,7 +5778,6 @@ static int _directive_section(void) {
   g_sec_tmp->base = -1;
   g_sec_tmp->bank = -1;
   g_sec_tmp->slot = -1;
-  g_sec_tmp->span_bank = -1;
   g_sec_tmp->banks[0] = 0;
 
   if (s_defaultsectionslot_defined != 0)
@@ -6081,16 +6080,11 @@ static int _directive_section(void) {
       if (skip_next_token() == FAILED)
         return FAILED;
 
-      q = input_number();
-
-      if (q == FAILED)
+      /* collect the banks list string */
+      if (get_next_token() == FAILED)
         return FAILED;
-      if (q != SUCCEEDED || g_parsed_int < 0 || g_parsed_int >= g_rombanks) {
-        print_error(ERROR_DIR, "SPAN bank number must be in [0, %d].\n", g_rombanks - 1);
-        return FAILED;
-      }
 
-      g_sec_tmp->span_bank = g_parsed_int;
+      strcpy(g_sec_tmp->span_banks, g_tmp);
     }
     /* the type of the section */
     else if (compare_next_token("FORCE") == SUCCEEDED) {
@@ -6322,7 +6316,7 @@ static int _directive_section(void) {
   }
 
   /* sanity check */
-  if (g_sec_tmp->status == SECTION_STATUS_SEMISUPERFREE && g_sec_tmp->banks[0] == 0) {
+  if (g_sec_tmp->status == SECTION_STATUS_SEMISUPERFREE && g_sec_tmp->banks[0] == 0 && g_sec_tmp->span_banks[0] == 0) {
     print_error(ERROR_DIR, "SEMISUPERFREE section needs BANKS list.\n");
     return FAILED;
   }

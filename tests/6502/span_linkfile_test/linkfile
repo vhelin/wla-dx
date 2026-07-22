@@ -2,10 +2,12 @@
 main.o
 
 [sections]
-bank 0 slot 0 org $1c force span 8 "ForceLinkSpan"
-banks 1 slot 0 window $801c $8024 semisuperfree span 9 "SemiSuperLinkSpan"
-bank 2 slot 0 org $1f semisubfree window $801c $8024 span 10 "SemiSubLinkSpan"
-bank 3 slot 0 org $1c semifree span 11 "SemiFreeLinkSpan"
-bank 4 slot 0 org $1c free window $801c $8024 span 12 "FreeLinkSpan"
-bank 5 slot 0 org $1c superfree window $801c $8024 span 13 "SuperFreeLinkSpan"
-bank 6 slot 0 org $1c overwrite span 14 "OverwriteLinkSpan"
+bank 0 slot 0 org $1c force span 0:0/8:1 "ForceLinkSpan"
+slot 0 window $801c $8024 semisuperfree span 1:0/9:1 "SemiSuperLinkSpan"
+bank 2 slot 0 org $1f semisubfree window $801c $8024 span 2:0/10:1 "SemiSubLinkSpan"
+bank 3 slot 0 org $1c semifree span 3:0/11:1 "SemiFreeLinkSpan"
+bank 4 slot 0 org $1c free window $801c $8024 span 4:0/12:1 "FreeLinkSpan"
+bank 5 slot 0 org $1c superfree window $801c $8024 span 5:0/13:1 "SuperFreeLinkSpan"
+bank 6 slot 0 org $1c overwrite span 6:0/14:1 "OverwriteLinkSpan"
+org $1c force span 15-17 slot 1 "MultiBankLinkSpan"
+org $1e force span 18-19:0-1 "SlotRangeLinkSpan"

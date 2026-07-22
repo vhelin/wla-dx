@@ -827,6 +827,7 @@ struct label_def {
 struct section_def {
   char name[MAX_NAME_LENGTH + 1];
   char banks[MAX_NAME_LENGTH + 1];
+  char span_banks[MAX_NAME_LENGTH + 1];
   int  alignment;
   int  offset;
   int  priority;
@@ -836,7 +837,6 @@ struct section_def {
   int  bank;
   int  base;
   int  slot;
-  int  span_bank;
   int  size;
   int  status; /* see SECTION_STATUS_* */
   int  bitwindow;

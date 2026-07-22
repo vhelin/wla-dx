@@ -240,6 +240,10 @@ struct reference {
 struct section {
   char name[MAX_NAME_LENGTH + 1];
   char banks[MAX_NAME_LENGTH + 1];
+  char span_banks[MAX_NAME_LENGTH + 1];
+  int  *span_banks_unrolled;
+  int  *span_slots_unrolled;
+  int  span_banks_count;
   int  file_id;
   int  file_id_source;
   int  priority;
@@ -252,7 +256,6 @@ struct section {
   int  keep;
   int  bank;
   int  slot;
-  int  span_bank;
   int  size;
   int  base;
   int  base_defined;
@@ -285,11 +288,11 @@ struct section_fix {
   char file_name[MAX_NAME_LENGTH + 1];
   char slot_name[MAX_NAME_LENGTH + 1];
   char banks[MAX_NAME_LENGTH + 1];
+  char span_banks[MAX_NAME_LENGTH + 1];
   int  line_number;
   int  keep;
   int  bank;
   int  slot;
-  int  span_bank;
   int  orga;
   int  org;
   int  status;
