@@ -23,7 +23,7 @@ the group 1 directives for that particular project and include it to every
 object file.
 
 If you are interested in the WLA object file format, take a look at the
-file ``txt/wla_file_formats.txt`` which is included in the release archive.
+file ``./FILE_FORMATS`` which is included in the release archive.
 
 Here are some examples of definitions:
 
