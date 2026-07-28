@@ -55,7 +55,7 @@ extern int g_romformat;
 
 static int s_current_stack_calculation_addr = 0;
 
-static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int *out_bank, int *out_slot, int *out_address, int *out_rom_address);
+static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int allow_section_end, int *out_bank, int *out_slot, int *out_address, int *out_rom_address);
 static int _rom_section_get_boundary_location(struct section *s, int extra_offset, int *out_bank, int *out_address);
 static int _find_rom_section_position(struct section *s, int bank, int start_address, int end_address, int *out_address);
 static int _write_rom_section_at(struct section *s, int bank, int address, int overwrite);
@@ -1156,41 +1156,45 @@ static int _get_slot_of_address(int address) {
 }
 
 
-static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int *out_bank, int *out_slot, int *out_address, int *out_rom_address) {
+static int _rom_section_get_location(struct section *s, int bank, int address, int section_offset, int allow_section_end, int *out_bank, int *out_slot, int *out_address, int *out_rom_address) {
 
-  int bank_address, bank_index, rom_address, memory_address, slot;
+  int bank_address, bank_index, is_section_end, rom_address, memory_address, slot;
 
   if (bank < 0 || bank >= g_rombanks || address < 0 || section_offset < 0)
     return FAILED;
 
+  is_section_end = allow_section_end == YES && section_offset == s->size;
   bank_address = address + section_offset;
   if (s->span_banks_count > 0) {
     for (bank_index = 0; bank_index < s->span_banks_count; bank_index++) {
       bank = s->span_banks_unrolled[bank_index];
       slot = s->span_slots_unrolled[bank_index];
-      if (bank_address < g_banksizes[bank])
+      if (bank_address < g_banksizes[bank] || (is_section_end && bank_address == g_banksizes[bank] && bank_index == s->span_banks_count - 1))
         break;
       bank_address -= g_banksizes[bank];
     }
     if (bank_index >= s->span_banks_count)
       return FAILED;
 
-    if (slot < 0 || slot >= 256 || g_slots[slot].usage != ON || bank_address >= g_slots[slot].size)
+    if (slot < 0 || slot >= 256 || g_slots[slot].usage != ON || bank_address > g_slots[slot].size || (!is_section_end && bank_address == g_slots[slot].size))
       return FAILED;
     memory_address = g_slots[slot].address + bank_address;
   }
   else {
     memory_address = g_slots[s->slot].address + bank_address;
-    slot = _get_slot_of_address(memory_address);
+    if (is_section_end && bank_address == g_banksizes[bank])
+      slot = s->slot;
+    else
+      slot = _get_slot_of_address(memory_address);
     if (slot < 0)
       return FAILED;
 
-    if (bank_address >= g_banksizes[bank])
+    if (bank_address > g_banksizes[bank] || (!is_section_end && bank_address == g_banksizes[bank]))
       return FAILED;
   }
 
   rom_address = g_bankaddress[bank] + bank_address;
-  if (rom_address < 0 || rom_address >= g_romsize)
+  if (rom_address < 0 || rom_address > g_romsize || (!is_section_end && rom_address == g_romsize))
     return FAILED;
 
   if (out_bank != NULL)
@@ -1252,7 +1256,7 @@ static int _rom_section_has_room_at(struct section *s, int bank, int address, in
   upper_bits = 0;
 
   for (i = 0; i < s->size; i++) {
-    if (_rom_section_get_location(s, bank, address, i, NULL, &slot, &mapped_address, &rom_address) == FAILED)
+    if (_rom_section_get_location(s, bank, address, i, NO, NULL, &slot, &mapped_address, &rom_address) == FAILED)
       return NO;
 
     if (s->span_banks_count > 0) {
@@ -1328,14 +1332,14 @@ static int _write_rom_section_at(struct section *s, int bank, int address, int o
 
   s->bank = bank;
   s->address = address;
-  if (_rom_section_get_location(s, bank, address, 0, NULL, NULL, NULL, &s->output_address) == FAILED)
+  if (_rom_section_get_location(s, bank, address, 0, NO, NULL, NULL, NULL, &s->output_address) == FAILED)
     return FAILED;
   s->placed = YES;
 
   snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing section %s: %s: %s.", get_file_name(s->file_id), get_source_file_name(s->file_id, s->file_id_source), s->name);
 
   for (i = 0; i < s->size; i++) {
-    if (_rom_section_get_location(s, bank, address, i, NULL, NULL, NULL, &rom_address) == FAILED)
+    if (_rom_section_get_location(s, bank, address, i, NO, NULL, NULL, NULL, &rom_address) == FAILED)
       return FAILED;
 
     if (overwrite == ON) {
@@ -2636,7 +2640,7 @@ int fix_label_addresses(void) {
             else {
               int bank, slot, address, rom_address;
 
-              if (_rom_section_get_location(s, s->bank, s->address, address_in_section, &bank, &slot, &address, &rom_address) == FAILED) {
+              if (_rom_section_get_location(s, s->bank, s->address, address_in_section, YES, &bank, &slot, &address, &rom_address) == FAILED) {
                 print_text(NO, "FIX_LABEL_ADDRESSES: Internal error: cannot map label \"%s\" in section \"%s\".\n", l->name, s->name);
                 return FAILED;
               }
@@ -2795,7 +2799,7 @@ int fix_references(void) {
         if (s->status != SECTION_STATUS_ABSOLUTE && _section_is_ram(s) == NO) {
           int bank, slot, address, rom_address;
 
-          if (_rom_section_get_location(s, s->bank, s->address, r->address, &bank, &slot, &address, &rom_address) == FAILED) {
+          if (_rom_section_get_location(s, s->bank, s->address, r->address, NO, &bank, &slot, &address, &rom_address) == FAILED) {
             print_text(NO, "%s: %s:%d: FIX_REFERENCES: Cannot map reference in section \"%s\".\n",
                     get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, s->name);
             return FAILED;
@@ -3866,7 +3870,7 @@ int compute_pending_calculations(void) {
       if (s->status != SECTION_STATUS_ABSOLUTE && _section_is_ram(s) == NO) {
         int bank, slot, address, rom_address;
 
-        if (_rom_section_get_location(s, s->bank, s->address, sta->address, &bank, &slot, &address, &rom_address) == FAILED) {
+        if (_rom_section_get_location(s, s->bank, s->address, sta->address, NO, &bank, &slot, &address, &rom_address) == FAILED) {
           print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Cannot map calculation in section \"%s\".\n",
                   get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, s->name);
           return FAILED;

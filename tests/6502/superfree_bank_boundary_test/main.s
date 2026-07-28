@@ -10,13 +10,7 @@
         BANKS 2
         .ENDRO
 
-        .BANK 0 SLOT 0
-        .ORG $0000
-
-        .SECTION "Anchor" FORCE SPAN 0/1
-        .DSB $21, $AA
-        .ENDS
-
-        .SECTION "Follower" FORCE SPAN 0/1 AFTER "Anchor"
-        .DB $BB
+        .SECTION "ExactBankSuperFree" SUPERFREE
+        .DSB $20, $66
+exact_bank_superfree_end:
         .ENDS
