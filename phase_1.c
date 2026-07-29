@@ -141,14 +141,21 @@ extern int g_resolve_stack_calculations;
 
 #if defined(W65816)
 char g_snesid[4];
-int g_snesid_defined = 0, g_snesromsize = 0;
+char g_snesexpandedheader_makercode[2];
+int g_snesid_defined = 0, g_snesid_size = 0, g_snesromsize = 0;
+int g_snesexpandedheader_defined = 0, g_snesexpandedheader_makercode_defined = 0;
+int g_snesexpandedheader_expansionflashsize = 0, g_snesexpandedheader_expansionflashsize_defined = 0;
+int g_snesexpandedheader_expansionramsize = 0, g_snesexpandedheader_expansionramsize_defined = 0;
+int g_snesexpandedheader_specialversion = 0, g_snesexpandedheader_specialversion_defined = 0;
+int g_snesexpandedheader_chipsetsubtype = 0, g_snesexpandedheader_chipsetsubtype_defined = 0;
+int g_snesheader_defined = 0;
 int g_sramsize_defined = 0, g_sramsize = 0, g_country_defined = 0, g_country = 0;
 int g_cartridgetype = 0, g_cartridgetype_defined = 0, g_licenseecode_defined = 0, g_licenseecode = 0;
 int g_version_defined = 0, g_version = 0;
 int g_hirom_defined = 0, g_lorom_defined = 0, g_slowrom_defined = 0, g_fastrom_defined = 0, g_snes_mode = 0;
 int g_exlorom_defined = 0, g_exhirom_defined = 0;
 int g_computesneschecksum_defined = 0, g_use_wdc_standard = 0;
-static int s_snesemuvector_defined = 0, s_snesheader_defined = 0, s_snesnativevector_defined = 0;
+static int s_snesemuvector_defined = 0, s_snesnativevector_defined = 0;
 #endif
 
 #if defined(GB) || defined(W65816)
@@ -11196,11 +11203,138 @@ static int _directive_endm(void) {
 
 #if defined(W65816)
 
+static int _parse_snesexpandedheader_byte(char *name, int *value, int *defined) {
+
+  int number_result;
+
+  if (*defined != 0) {
+    print_error(ERROR_DIR, "%s can be defined only once.\n", name);
+    return FAILED;
+  }
+
+  number_result = input_number();
+  if (number_result == SUCCEEDED && (g_parsed_int < 0 || g_parsed_int > 255)) {
+    print_error(ERROR_DIR, "%s expects unsigned 8-bit data, %d is out of range!\n", name, g_parsed_int);
+    return FAILED;
+  }
+  else if (number_result == SUCCEEDED) {
+    *value = g_parsed_int;
+    *defined = 1;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+static int _directive_snesexpandedheader(void) {
+
+  int token_result;
+
+  if (g_snesexpandedheader_defined != 0) {
+    print_error(ERROR_DIR, ".SNESEXPANDEDHEADER can be defined only once.\n");
+    return FAILED;
+  }
+
+  if (g_output_format == OUTPUT_LIBRARY) {
+    print_error(ERROR_DIR, "Libraries don't take .SNESEXPANDEDHEADER.\n");
+    return FAILED;
+  }
+
+  while ((token_result = get_next_token()) == SUCCEEDED) {
+    if (g_tmp[0] == '.') {
+      int q = parse_if_directive();
+      if (q == FAILED)
+        return FAILED;
+      else if (q == SUCCEEDED)
+        continue;
+    }
+
+    if (strcaselesscmp(g_tmp, ".ENDSNES") == 0)
+      break;
+    else if (strcaselesscmp(g_tmp, "MAKERCODE") == 0) {
+      if ((token_result = get_next_token()) == FAILED)
+        return FAILED;
+
+      if (g_snesexpandedheader_makercode_defined != 0) {
+        print_error(ERROR_DIR, "MAKERCODE can be defined only once.\n");
+        return FAILED;
+      }
+      if (token_result != GET_NEXT_TOKEN_STRING || g_tmp[0] == 0 || g_tmp[1] == 0 || g_tmp[2] != 0) {
+        print_error(ERROR_DIR, "MAKERCODE requires a string of exactly 2 letters.\n");
+        return FAILED;
+      }
+
+      g_snesexpandedheader_makercode[0] = g_tmp[0];
+      g_snesexpandedheader_makercode[1] = g_tmp[1];
+      g_snesexpandedheader_makercode_defined = 1;
+    }
+    else if (strcaselesscmp(g_tmp, "GAMECODE") == 0) {
+      int i;
+
+      if ((token_result = get_next_token()) == FAILED)
+        return FAILED;
+
+      if (token_result != GET_NEXT_TOKEN_STRING || g_tmp[0] == 0 || g_tmp[1] == 0 ||
+          g_tmp[2] == 0 || g_tmp[3] == 0 || g_tmp[4] != 0) {
+        print_error(ERROR_DIR, "GAMECODE requires a string of exactly 4 letters.\n");
+        return FAILED;
+      }
+
+      if (g_snesid_defined != 0) {
+        if (g_snesid_size != 4 || memcmp(g_snesid, g_tmp, 4) != 0) {
+          print_error(ERROR_DIR, "GAMECODE conflicts with the ID that was already defined.\n");
+          return FAILED;
+        }
+      }
+      else {
+        for (i = 0; i < 4; i++)
+          g_snesid[i] = g_tmp[i];
+        g_snesid_size = 4;
+        g_snesid_defined = 1;
+      }
+    }
+    else if (strcaselesscmp(g_tmp, "EXPANSIONFLASHSIZE") == 0) {
+      if (_parse_snesexpandedheader_byte("EXPANSIONFLASHSIZE", &g_snesexpandedheader_expansionflashsize,
+                                         &g_snesexpandedheader_expansionflashsize_defined) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "EXPANSIONRAMSIZE") == 0) {
+      if (_parse_snesexpandedheader_byte("EXPANSIONRAMSIZE", &g_snesexpandedheader_expansionramsize,
+                                         &g_snesexpandedheader_expansionramsize_defined) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "SPECIALVERSION") == 0) {
+      if (_parse_snesexpandedheader_byte("SPECIALVERSION", &g_snesexpandedheader_specialversion,
+                                         &g_snesexpandedheader_specialversion_defined) == FAILED)
+        return FAILED;
+    }
+    else if (strcaselesscmp(g_tmp, "CHIPSETSUBTYPE") == 0) {
+      if (_parse_snesexpandedheader_byte("CHIPSETSUBTYPE", &g_snesexpandedheader_chipsetsubtype,
+                                         &g_snesexpandedheader_chipsetsubtype_defined) == FAILED)
+        return FAILED;
+    }
+    else {
+      token_result = FAILED;
+      break;
+    }
+  }
+
+  if (token_result != SUCCEEDED) {
+    print_error(ERROR_DIR, "Error in .SNESEXPANDEDHEADER data structure.\n");
+    return FAILED;
+  }
+
+  g_snesexpandedheader_defined = 1;
+
+  return SUCCEEDED;
+}
+
 static int _directive_snesheader(void) {
 
   int token_result;
   
-  if (s_snesheader_defined != 0) {
+  if (g_snesheader_defined != 0) {
     print_error(ERROR_DIR, ".SNESHEADER can be defined only once.\n");
     return FAILED;
   }
@@ -11243,6 +11377,8 @@ static int _directive_snesheader(void) {
 
         for (i = 0; g_tmp[i] != 0 && i < 4; i++)
           g_snesid[i] = g_tmp[i];
+
+        g_snesid_size = i;
 
         for (; i < 4; i++)
           g_snesid[i] = 0;
@@ -11492,7 +11628,7 @@ static int _directive_snesheader(void) {
     return FAILED;
   }
 
-  s_snesheader_defined = 1;
+  g_snesheader_defined = 1;
   g_snes_mode++;
 
   return SUCCEEDED;
@@ -13980,7 +14116,7 @@ int parse_directive(void) {
         print_error(ERROR_DIR, ".COMPUTESNESCHECKSUM needs .LOROM, .HIROM or .EXHIROM defined earlier.\n");
         return FAILED;
       }
-      if (s_snesheader_defined != 0) 
+      if (g_snesheader_defined != 0) 
         print_error(ERROR_WRN, ".COMPUTESNESCHECKSUM is unnecessary when .SNESHEADER defined.\n");
 
       g_computesneschecksum_defined = 1;
@@ -15019,6 +15155,10 @@ int parse_directive(void) {
     /* SNESHEADER */
     if (strcmp(directive_upper, "SNESHEADER") == 0)
       return _directive_snesheader();
+
+    /* SNESEXPANDEDHEADER */
+    if (strcmp(directive_upper, "SNESEXPANDEDHEADER") == 0)
+      return _directive_snesexpandedheader();
 
     /* SNESNATIVEVECTOR */
     if (strcmp(directive_upper, "SNESNATIVEVECTOR") == 0)

@@ -58,7 +58,14 @@ extern int g_lynxheader_defined;
 #if defined(W65816)
 extern char g_name[32];
 extern char g_snesid[4];
-extern int g_snesid_defined, g_snesromsize;
+extern char g_snesexpandedheader_makercode[2];
+extern int g_snesid_defined, g_snesid_size, g_snesromsize;
+extern int g_snesexpandedheader_defined, g_snesexpandedheader_makercode_defined;
+extern int g_snesexpandedheader_expansionflashsize, g_snesexpandedheader_expansionflashsize_defined;
+extern int g_snesexpandedheader_expansionramsize, g_snesexpandedheader_expansionramsize_defined;
+extern int g_snesexpandedheader_specialversion, g_snesexpandedheader_specialversion_defined;
+extern int g_snesexpandedheader_chipsetsubtype, g_snesexpandedheader_chipsetsubtype_defined;
+extern int g_snesheader_defined;
 extern int g_sramsize_defined, g_sramsize, g_country_defined, g_country;
 extern int g_licenseecode_defined, g_licenseecode;
 extern int g_version_defined, g_version, g_cartridgetype, g_cartridgetype_defined;
@@ -256,6 +263,28 @@ static void _md_emit_fixed_string(char *s, int length) {
 
 #if defined(W65816)
 
+static void _write_snes_expanded_cartridge_information(int start) {
+
+  unsigned char expanded_header[16] = { 0 };
+  int expanded_start = start - (0xD5 - 0xB0), i;
+
+  expanded_header[0] = g_snesexpandedheader_makercode[0];
+  expanded_header[1] = g_snesexpandedheader_makercode[1];
+  for (i = 0; i < 4; i++)
+    expanded_header[2 + i] = g_snesid[i];
+  if (g_snesexpandedheader_expansionflashsize_defined != 0)
+    expanded_header[12] = g_snesexpandedheader_expansionflashsize;
+  if (g_snesexpandedheader_expansionramsize_defined != 0)
+    expanded_header[13] = g_snesexpandedheader_expansionramsize;
+  if (g_snesexpandedheader_specialversion_defined != 0)
+    expanded_header[14] = g_snesexpandedheader_specialversion;
+  if (g_snesexpandedheader_chipsetsubtype_defined != 0)
+    expanded_header[15] = g_snesexpandedheader_chipsetsubtype;
+
+  for (i = 0; i < 16; i++)
+    mem_insert_absolute(expanded_start + i, expanded_header[i]);
+}
+
 static void _write_snes_cartridge_information(int start) {
 
   int info_bits;
@@ -293,9 +322,12 @@ static void _write_snes_cartridge_information(int start) {
 
   if (g_version_defined != 0)
     mem_insert_absolute(start + 6, g_version);
+
+  if (g_snesexpandedheader_defined != 0)
+    _write_snes_expanded_cartridge_information(start);
   
   /* snes cartridge ID */
-  if (g_snesid_defined != 0) {
+  if (g_snesid_defined != 0 && g_snesexpandedheader_defined == 0) {
     int i;
     
     for (i = 0; i < 4; i++) 
@@ -333,6 +365,27 @@ int phase_2(void) {
     print_text(NO, "PHASE_2: %s ROMBANKS/ROMBANKMAP wasn't defined.\n", s_include_directives_name);
     return FAILED;
   }
+
+#if defined(W65816)
+  if (g_snesexpandedheader_defined != 0) {
+    if (g_snesheader_defined == 0) {
+      print_text(NO, "PHASE_2: .SNESEXPANDEDHEADER requires .SNESHEADER.\n");
+      return FAILED;
+    }
+    if (g_licenseecode_defined == 0 || g_licenseecode != 0x33) {
+      print_text(NO, "PHASE_2: .SNESEXPANDEDHEADER requires LICENSEECODE $33 in .SNESHEADER.\n");
+      return FAILED;
+    }
+    if (g_snesexpandedheader_makercode_defined == 0) {
+      print_text(NO, "PHASE_2: .SNESEXPANDEDHEADER requires MAKERCODE.\n");
+      return FAILED;
+    }
+    if (g_snesid_defined == 0 || g_snesid_size != 4) {
+      print_text(NO, "PHASE_2: .SNESEXPANDEDHEADER requires a four-letter GAMECODE or ID.\n");
+      return FAILED;
+    }
+  }
+#endif
 
 #if defined(MCS6502)
   /* INESHEADER */

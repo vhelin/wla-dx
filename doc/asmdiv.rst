@@ -91,6 +91,7 @@ GB   ``.ROMSIZE 1``
 68K  ``.SMDHEADER``
 Z80  ``.SMSHEADER``
 658  ``.SNESEMUVECTOR``
+658  ``.SNESEXPANDEDHEADER``
 658  ``.SNESHEADER``
 658  ``.SNESNATIVEVECTOR``
 GB   ``.VERSION 1``
@@ -1480,10 +1481,10 @@ used this one is required to terminate it.
 ``.ENDSNES``
 ------------
 
-This ends the SNES header definition.
+This ends the SNES header or expanded header definition.
 
-This is not a compulsory directive, but when ``.SNESHEADER`` is used this
-one is required to terminate it.
+This is not a compulsory directive, but when ``.SNESHEADER`` or
+``.SNESEXPANDEDHEADER`` is used this one is required to terminate it.
 
 
 ``.ENDST``
@@ -3956,12 +3957,65 @@ ExHiROM) in the order listed above. All the vectors default to ``$0000``.
 This is not a compulsory directive.
 
 
+``.SNESEXPANDEDHEADER``
+-----------------------
+
+Begins definition of the 16-byte SNES expanded cartridge header. The header is
+written at ``$7FB0`` in LoROM, ``$FFB0`` in HiROM, and both ``$40FFB0`` and
+``$FFB0`` in ExHiROM.
+
+``.SNESEXPANDEDHEADER`` requires a ``.SNESHEADER`` with
+``LICENSEECODE $33``. The two blocks may appear in either order. The following
+fields are supported:
+
+* ``MAKERCODE "AB"`` - Places the required two-character maker code at
+    offset ``$00``.
+* ``GAMECODE "GM01"`` - Places the four-character game code at offset
+    ``$02``. A four-character ``ID`` in ``.SNESHEADER`` may be used instead. If
+    both are specified, they must match.
+* ``EXPANSIONFLASHSIZE $00`` - Places the expansion flash size at offset
+    ``$0C``.
+* ``EXPANSIONRAMSIZE $03`` - Places the expansion RAM size at offset ``$0D``.
+* ``SPECIALVERSION $00`` - Places the special version at offset ``$0E``.
+* ``CHIPSETSUBTYPE $00`` - Places the chipset subtype at offset ``$0F``.
+
+``MAKERCODE`` and a four-character ``GAMECODE`` or ``ID`` are required. The
+numeric fields accept unsigned 8-bit values and default to zero. The six
+reserved bytes at offsets ``$06`` through ``$0B`` are also written as zero.
+
+For example, a header with expanded cartridge information can be defined as
+follows::
+
+    .SNESHEADER
+        ID            "GM01"
+        NAME          "EXAMPLE GAME"
+        LOROM
+        SLOWROM
+        CARTRIDGETYPE $00
+        ROMSIZE       $09
+        SRAMSIZE      $00
+        COUNTRY       $01
+        LICENSEECODE  $33
+        VERSION       $00
+    .ENDSNES
+
+    .SNESEXPANDEDHEADER
+        MAKERCODE          "AB"
+        GAMECODE           "GM01"
+        EXPANSIONFLASHSIZE $00
+        EXPANSIONRAMSIZE   $03
+        SPECIALVERSION     $00
+        CHIPSETSUBTYPE     $00
+    .ENDSNES
+
+This is not a compulsory directive.
+
+
 ``.SNESHEADER``
 ---------------
 
 This begins the SNES header definition, and automatically defines
 ``.COMPUTESNESCHECKSUM``. From here you may define any of the following:
-
 
 * ``ID "ABCD"`` - inserts a one to four letter string starting at ``$7FB2``
   (lorom) or ``$FFB2`` (hirom).
@@ -4015,6 +4069,21 @@ This begins the SNES header definition, and automatically defines
 * ``VERSION $01`` - Places the given 8-bit value into ``$7FDB`` (``$FFDB`` in
   HiROM, ``$40FFDB`` and ``$FFDB`` in ExHiROM). This is supposedly interpreted as
   version 1.byte, so a ``$01`` here would be version 1.01.
+
+Example of a complete SNES header definition::
+
+    .SNESHEADER
+        ID            "GM01"
+        NAME          "EXAMPLE GAME"
+        LOROM
+        SLOWROM
+        CARTRIDGETYPE $00
+        ROMSIZE       $09
+        SRAMSIZE      $00
+        COUNTRY       $01
+        LICENSEECODE  $33
+        VERSION       $00
+    .ENDSNES
 
 This is not a compulsory directive.
 
