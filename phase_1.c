@@ -609,6 +609,25 @@ static int _macro_stack_grow(void) {
 }
 
 
+static int _macro_prepare_runtime(struct macro_runtime **mrt_out) {
+
+  struct macro_runtime *mrt;
+
+  if (_macro_stack_grow() == FAILED)
+    return FAILED;
+
+  mrt = &g_macro_stack[g_macro_active];
+  mrt->argument_data = NULL;
+  mrt->incbin_data = NULL;
+  mrt->definition_storage = NULL;
+  mrt->supplied_arguments = 0;
+
+  *mrt_out = mrt;
+
+  return SUCCEEDED;
+}
+
+
 static int _macro_start(struct macro_static *m, struct macro_runtime *mrt, int caller, int nargs) {
 
   if (_call_stack_item_push() == FAILED)
@@ -1258,11 +1277,118 @@ int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffe
 }
 
 
+static int _macro_collect_arguments(struct macro_static *m, struct macro_runtime *mrt, int got_opening_parenthesis) {
+
+  int o, p, q;
+
+  for (p = 0; 1; p++) {
+    if (got_opening_parenthesis == YES) {
+      /* skip ')' */
+      if (compare_and_skip_next_symbol(')') == SUCCEEDED)
+        break;
+    }
+
+    /* take away the white space */
+    while (1) {
+      if (g_buffer[g_source_index] == ' ' || g_buffer[g_source_index] == ',')
+        g_source_index++;
+      else
+        break;
+    }
+
+    o = g_source_index;
+    g_input_allow_leading_hashtag = YES;
+    g_input_allow_leading_ampersand = YES;
+    g_input_float_mode = ON;
+    q = input_number();
+    g_input_allow_leading_hashtag = NO;
+    g_input_allow_leading_ampersand = NO;
+    g_input_float_mode = OFF;
+    if (q == INPUT_NUMBER_EOL) {
+      g_source_index = o;
+      break;
+    }
+
+    mrt->argument_data = realloc(mrt->argument_data, (p+1)*sizeof(struct macro_argument *));
+    mrt->argument_data[p] = calloc(1, sizeof(struct macro_argument));
+    if (mrt->argument_data == NULL || mrt->argument_data[p] == NULL) {
+      print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
+      return FAILED;
+    }
+
+    mrt->argument_data[p]->start = o;
+    mrt->argument_data[p]->type = q;
+    mrt->argument_data[p]->has_leading_hashtag = g_input_has_leading_hashtag;
+
+    if (q == INPUT_NUMBER_ADDRESS_LABEL)
+      strcpy(mrt->argument_data[p]->string, g_label);
+    else if (q == INPUT_NUMBER_STRING)
+      strcpy(mrt->argument_data[p]->string, g_label);
+    else if (q == INPUT_NUMBER_STACK)
+      mrt->argument_data[p]->value = (double)g_latest_stack;
+    else if (q == SUCCEEDED) {
+      mrt->argument_data[p]->value = (double)g_parsed_int;
+      snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
+    }
+    else if (q == INPUT_NUMBER_FLOAT) {
+      mrt->argument_data[p]->value = g_parsed_double;
+      snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
+    }
+    else
+      return FAILED;
+
+    /* do we have a name for this argument? */
+    if (p < m->nargument_names) {
+      char argument_name[MAX_NAME_LENGTH + 1];
+      struct definition *definition;
+
+      if (m->namespace[0] == 0)
+        strcpy(argument_name, m->argument_names[p]);
+      else
+        snprintf(argument_name, sizeof(argument_name), "%s.%s", m->namespace, m->argument_names[p]);
+
+      /* does the definition exist already? */
+      hashmap_get(g_defines_map, argument_name, (void*)&definition);
+      if (definition != NULL) {
+        /* yes, store it! */
+        struct definition_storage *storage = calloc(1, sizeof(struct definition_storage));
+        if (storage == NULL) {
+          print_error(ERROR_ERR, "Out of memory error while trying to store a definition.\n");
+          return FAILED;
+        }
+
+        storage->definition = definition;
+        storage->next = mrt->definition_storage;
+        mrt->definition_storage = storage;
+
+        /* temporarily remove the definition, because a new one is going to replace it */
+        hashmap_remove(g_defines_map, argument_name);
+      }
+
+      if (q == INPUT_NUMBER_ADDRESS_LABEL)
+        redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
+      else if (q == INPUT_NUMBER_STRING)
+        redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
+      else if (q == INPUT_NUMBER_STACK)
+        redefine(argument_name, (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
+      else if (q == SUCCEEDED)
+        redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+      else if (q == INPUT_NUMBER_FLOAT)
+        redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
+    }
+  }
+
+  mrt->supplied_arguments = p;
+
+  return SUCCEEDED;
+}
+
+
 int phase_1(void) {
 
   struct macro_runtime *mrt;
   struct macro_static *m = NULL;
-  int o, p, q;
+  int q;
 
   if (g_verbose_level >= 100)
     print_text(YES, "Pass 1...\n");
@@ -1428,118 +1554,17 @@ int phase_1(void) {
       }
 
       /* start running a macro... run until .ENDM */
-      if (_macro_stack_grow() == FAILED)
+      if (_macro_prepare_runtime(&mrt) == FAILED)
         return FAILED;
-
-      mrt = &g_macro_stack[g_macro_active];
-      mrt->argument_data = NULL;
-      mrt->incbin_data = NULL;
-      mrt->definition_storage = NULL;
 
       /* skip '(' */
       if (g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
         got_opening_parenthesis = YES;
 
-      /* collect macro arguments */
-      for (p = 0; 1; p++) {
-        if (got_opening_parenthesis == YES) {
-          /* skip ')' */
-          if (compare_and_skip_next_symbol(')') == SUCCEEDED)
-            break;
-        }
+      if (_macro_collect_arguments(m, mrt, got_opening_parenthesis) == FAILED)
+        return FAILED;
 
-        /* take away the white space */
-        while (1) {
-          if (g_buffer[g_source_index] == ' ' || g_buffer[g_source_index] == ',')
-            g_source_index++;
-          else
-            break;
-        }
-
-        o = g_source_index;
-        g_input_allow_leading_hashtag = YES;
-        g_input_allow_leading_ampersand = YES;
-        g_input_float_mode = ON;
-        q = input_number();
-        g_input_allow_leading_hashtag = NO;
-        g_input_allow_leading_ampersand = NO;
-        g_input_float_mode = OFF;
-        if (q == INPUT_NUMBER_EOL) {
-          g_source_index = o;
-          break;
-        }
-
-        mrt->argument_data = realloc(mrt->argument_data, (p+1)*sizeof(struct macro_argument *));
-        mrt->argument_data[p] = calloc(1, sizeof(struct macro_argument));
-        if (mrt->argument_data == NULL || mrt->argument_data[p] == NULL) {
-          print_error(ERROR_NONE, "Out of memory error while collecting macro arguments.\n");
-          return FAILED;
-        }
-
-        mrt->argument_data[p]->start = o;
-        mrt->argument_data[p]->type = q;
-        mrt->argument_data[p]->has_leading_hashtag = g_input_has_leading_hashtag;
-
-        if (q == INPUT_NUMBER_ADDRESS_LABEL)
-          strcpy(mrt->argument_data[p]->string, g_label);
-        else if (q == INPUT_NUMBER_STRING)
-          strcpy(mrt->argument_data[p]->string, g_label);
-        else if (q == INPUT_NUMBER_STACK)
-          mrt->argument_data[p]->value = (double)g_latest_stack;
-        else if (q == SUCCEEDED) {
-          mrt->argument_data[p]->value = (double)g_parsed_int;
-          snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
-        }
-        else if (q == INPUT_NUMBER_FLOAT) {
-          mrt->argument_data[p]->value = g_parsed_double;
-          snprintf(mrt->argument_data[p]->string, sizeof(mrt->argument_data[p]->string), "%.*s", g_source_index - o, &g_buffer[o]);
-        }
-        else
-          return FAILED;
-
-        /* do we have a name for this argument? */
-        if (p < m->nargument_names) {
-          char argument_name[MAX_NAME_LENGTH + 1];
-          struct definition *definition;
-
-          if (m->namespace[0] == 0)
-            strcpy(argument_name, m->argument_names[p]);
-          else
-            snprintf(argument_name, sizeof(argument_name), "%s.%s", m->namespace, m->argument_names[p]);
-
-          /* does the definition exist already? */
-          hashmap_get(g_defines_map, argument_name, (void*)&definition);
-          if (definition != NULL) {
-            /* yes, store it! */
-            struct definition_storage *storage = calloc(1, sizeof(struct definition_storage));
-            if (storage == NULL) {
-              print_error(ERROR_ERR, "Out of memory error while trying to store a definition.\n");
-              return FAILED;
-            }
-
-            storage->definition = definition;
-            storage->next = mrt->definition_storage;
-            mrt->definition_storage = storage;
-
-            /* temporarily remove the definition, because a new one is going to replace it */
-            hashmap_remove(g_defines_map, argument_name);
-          }
-
-          if (q == INPUT_NUMBER_ADDRESS_LABEL)
-            redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_ADDRESS_LABEL, (int)strlen(g_label));
-          else if (q == INPUT_NUMBER_STRING)
-            redefine(argument_name, 0.0, g_label, DEFINITION_TYPE_STRING, (int)strlen(g_label));
-          else if (q == INPUT_NUMBER_STACK)
-            redefine(argument_name, (double)g_latest_stack, NULL, DEFINITION_TYPE_STACK, 0);
-          else if (q == SUCCEEDED)
-            redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
-          else if (q == INPUT_NUMBER_FLOAT)
-            redefine(argument_name, g_parsed_double, NULL, DEFINITION_TYPE_VALUE, 0);
-        }
-      }
-
-      mrt->supplied_arguments = p;
-      if (_macro_start(m, mrt, MACRO_CALLER_NORMAL, p) == FAILED)
+      if (_macro_start(m, mrt, MACRO_CALLER_NORMAL, mrt->supplied_arguments) == FAILED)
         return FAILED;
 
       continue;
@@ -13802,6 +13827,55 @@ static int _directive_enum(void) {
 }
 
 
+static int _directive_invoke(void) {
+
+  struct macro_runtime *mrt;
+  struct macro_static *macro;
+  char macro_name[MAX_NAME_LENGTH + 1];
+  int got_opening_parenthesis = NO, old_expect_calculations, q;
+
+  old_expect_calculations = g_expect_calculations;
+  g_expect_calculations = NO;
+  q = input_number();
+  g_expect_calculations = old_expect_calculations;
+  if (q == FAILED)
+    return FAILED;
+  if (q == INPUT_NUMBER_EOL) {
+    print_error(ERROR_DIR, ".INVOKE needs a macro name.\n");
+    return FAILED;
+  }
+  if (q != INPUT_NUMBER_ADDRESS_LABEL && q != INPUT_NUMBER_STRING) {
+    print_error(ERROR_DIR, ".INVOKE needs a macro name or a string containing one.\n");
+    return FAILED;
+  }
+
+  strcpy(macro_name, g_label);
+
+  if (macro_get(macro_name, YES, &macro) == FAILED)
+    return FAILED;
+  if (macro == NULL) {
+    if (macro_get(macro_name, NO, &macro) == FAILED)
+      return FAILED;
+  }
+  if (macro == NULL) {
+    print_error(ERROR_DIR, ".INVOKE cannot find macro \"%s\".\n", macro_name);
+    return FAILED;
+  }
+
+  if (_macro_prepare_runtime(&mrt) == FAILED)
+    return FAILED;
+
+  /* forwarded arguments support the same optional parentheses as ordinary macro calls */
+  if (g_buffer[g_source_index] == '(' && compare_and_skip_next_symbol('(') == SUCCEEDED)
+    got_opening_parenthesis = YES;
+
+  if (_macro_collect_arguments(macro, mrt, got_opening_parenthesis) == FAILED)
+    return FAILED;
+
+  return _macro_start(macro, mrt, MACRO_CALLER_NORMAL, mrt->supplied_arguments);
+}
+
+
 int parse_directive(void) {
 
   char c, directive_upper[MAX_NAME_LENGTH + 1];
@@ -14639,6 +14713,10 @@ int parse_directive(void) {
     /* INPUT */
     if (strcmp(directive_upper, "INPUT") == 0)
       return _directive_input();
+
+    /* INVOKE */
+    if (strcmp(directive_upper, "INVOKE") == 0)
+      return _directive_invoke();
 
     break;
     

@@ -2349,6 +2349,7 @@ the data.
 
 ``.INPUT`` works like ``.REDEFINE``, but the user gets to type in the data.
 
+
 Here are few examples how to use input::
 
     .PRINTT "The name of the ROM? "
@@ -2366,6 +2367,37 @@ Here are few examples how to use input::
     .ENDR
     
     ...
+
+This is not a compulsory directive.
+
+
+``.INVOKE callback, argument, ...``
+-----------------------------------
+
+Invokes the macro whose name is given by ``callback``. The callback can be a
+macro name, a quoted string, a named macro argument, or a positional macro
+argument. The name is resolved when ``.INVOKE`` is assembled, and the invoked
+macro returns normally at ``.ENDM``.
+
+Arguments after the callback name are optional and use the same syntax and
+types as arguments in an ordinary macro call. They become ``\1``, ``\2``,
+etc. in the invoked macro and are also available through names declared with
+``ARGS``. Like an ordinary macro call, the argument list can instead be
+wrapped in parentheses::
+
+    .INVOKE callback($1234, "text")
+
+For example::
+
+    .MACRO WRITEVALUE ARGS value
+        .DW value
+    .ENDM
+
+    .MACRO DATA ARGS label, callback
+    \1:
+        .INVOKE callback, $1234
+    \1End:
+    .ENDM
 
 This is not a compulsory directive.
 

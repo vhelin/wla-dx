@@ -4,7 +4,7 @@
            6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.8 (29-Jul-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
+v10.8 (02-Aug-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] .MACRO calls should now work properly in listfiles.
                     [ALL] WLA assembles now "WLAK" library files and "WLAo"
                       object files.
@@ -13,6 +13,7 @@ v10.8 (29-Jul-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                       from one ROM bank to one or more ROM banks.
                     [ALL] Added built-in functions slotbase(slot), slot(label)
                       and slotaddress(label, slot).
+                    [ALL] Added .INVOKE.
                     [658] Added .SNESEXPANDEDHEADER.
 
 v10.7 (28-Jun-2026) [ALL] Prefixed by a hashtag didn't propagate through nested

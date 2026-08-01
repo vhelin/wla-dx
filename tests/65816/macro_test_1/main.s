@@ -445,3 +445,56 @@ _hello2: .db "27>"              ; @BT TEST-27 27 START
         VERYISOLATED2           ; @BT 00 07 AC 
         .dw _hello2 + 2         ; @BT 02 AC
         .db "<27"               ; @BT END
+
+        .macro INVOKE_LEAF
+        .if NARGS != 0
+          .fail ".INVOKE passed unexpected arguments"
+        .endif
+        .db $22
+        .endm
+
+        .macro INVOKE_NESTED
+        .invoke "INVOKE_LEAF"
+        .db $33
+        .endm
+
+        .macro INVOKE_ARGUMENTS ARGS number, text, address, pending
+        .if NARGS != 4
+          .fail ".INVOKE forwarded the wrong number of arguments"
+        .endif
+        .db number
+        .db text.length, text
+        .if \?3 == ARG_LABEL
+          .db 3
+        .else
+          .fail ".INVOKE did not forward a label"
+        .endif
+        .if \?4 == ARG_PENDING_CALCULATION
+          .db 4
+        .else
+          .fail ".INVOKE did not forward a pending calculation"
+        .endif
+        .endm
+
+        .macro INVOKE_WRAPPER ARGS marker, callback
+        .db marker
+        .invoke callback, marker + 2, "OK", INVOKE_FORWARD_LABEL, INVOKE_PENDING_LABEL + 1
+        .db marker + 1
+        .if NARGS != 2
+          .fail ".INVOKE did not restore the caller's NARGS"
+        .endif
+        .db \1
+        .invoke \2(marker + 2, "OK", INVOKE_FORWARD_LABEL, INVOKE_PENDING_LABEL + 1)
+        .endm
+
+        .bank 0 slot 1
+        .orga $AD00
+
+INVOKE_FORWARD_LABEL:
+        .db "28>"                       ; @BT TEST-28 28 START
+        .invoke INVOKE_LEAF             ; @BT 22
+        .invoke INVOKE_LEAF()           ; @BT 22
+        .invoke INVOKE_NESTED           ; @BT 22 33
+        INVOKE_WRAPPER $10, INVOKE_ARGUMENTS ; @BT 10 12 02 4F 4B 03 04 11 10 12 02 4F 4B 03 04
+        .db "<28"                       ; @BT END
+INVOKE_PENDING_LABEL:
