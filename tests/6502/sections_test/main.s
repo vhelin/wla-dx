@@ -81,6 +81,13 @@ semifree_label:
         .DB $C1, $C2
         .ENDS
 
+        .ORG $F00
+
+        .SECTION "DiscardedReferences" SUPERFREE
+        .DSB $101, $00
+        .DW force_label
+        .ENDS
+
         .ORG $00
 
         .SECTION "BANKHEADER"

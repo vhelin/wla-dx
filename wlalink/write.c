@@ -2795,6 +2795,11 @@ int fix_references(void) {
     /* search for the section of the reference and fix the address */
     if (r->section_status == ON) {
       s = find_section(r->section);
+      /* reference is inside a discarded section? */
+      if (s != NULL && s->alive == NO) {
+        r = r->next;
+        continue;
+      }
       if (s != NULL) {
         if (s->status != SECTION_STATUS_ABSOLUTE && _section_is_ram(s) == NO) {
           int bank, slot, address, rom_address;
@@ -2816,11 +2821,6 @@ int fix_references(void) {
           x += s->address;
           r->address += s->address;
         }
-      }
-      /* reference is inside a discarded section? */
-      if (s != NULL && s->alive == NO) {
-        r = r->next;
-        continue;
       }
       if (s == NULL) {
         if (write_bank_header_references(r) == FAILED)
