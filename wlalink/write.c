@@ -1241,7 +1241,7 @@ static int _rom_section_get_boundary_location(struct section *s, int extra_offse
 }
 
 
-static int _rom_section_has_room_at(struct section *s, int bank, int address, int overwrite) {
+static int _rom_section_has_room_at(struct section *s, int bank, int address, int overwrite, int require_empty) {
 
   int i, rom_address, slot, mapped_address, memory_address, first_memory_address, mask_top, upper_bits;
 
@@ -1278,8 +1278,10 @@ static int _rom_section_has_room_at(struct section *s, int bank, int address, in
       }
     }
 
-    if (overwrite == OFF && g_rom_usage[rom_address] != 0 && g_rom[rom_address] != s->data[i])
-      return NO;
+    if (overwrite == OFF && g_rom_usage[rom_address] != 0) {
+      if (require_empty == YES || g_rom[rom_address] != s->data[i])
+        return NO;
+    }
   }
 
   return YES;
@@ -1306,7 +1308,7 @@ static int _find_rom_section_position(struct section *s, int bank, int start_add
   for (; address + s->offset < end_address; address += s->alignment) {
     int candidate = address + s->offset;
 
-    if (_rom_section_has_room_at(s, bank, candidate, OFF) == YES) {
+    if (_rom_section_has_room_at(s, bank, candidate, OFF, YES) == YES) {
       *out_address = candidate;
       return SUCCEEDED;
     }
@@ -1320,7 +1322,7 @@ static int _write_rom_section_at(struct section *s, int bank, int address, int o
 
   int i, rom_address;
 
-  if (_rom_section_has_room_at(s, bank, address, overwrite) == NO) {
+  if (_rom_section_has_room_at(s, bank, address, overwrite, NO) == NO) {
     print_text(NO, "%s: %s: INSERT_SECTIONS: No room for section \"%s\" (%d bytes) in ROM bank %d.\n", get_file_name(s->file_id),
             get_source_file_name(s->file_id, s->file_id_source), s->name, s->size, bank);
     return FAILED;

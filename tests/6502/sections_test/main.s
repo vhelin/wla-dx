@@ -25,7 +25,9 @@
         .DW semisub_label       ; @BT 00 80
         .DW semifree_label      ; @BT 02 80
         .DW free_label          ; @BT 04 80
-        .DW superfree_label     ; @BT 06 80
+        .DW superfree_reference_large ; @BT 06 80
+        .DW superfree_label     ; @BT 0A 80
+        .DW superfree_reference_small ; @BT 0C 80
         .db "<01"               ; @BT END
         .ENDS
 
@@ -58,6 +60,17 @@ semisuper_label:
         .SECTION "SuperFreeSection" SUPERFREE
 superfree_label:
         .DB $E1, $E2
+        .ENDS
+
+        .SECTION "SuperFreeReferenceLarge" SUPERFREE
+superfree_reference_large:
+        .DW force_label
+        .DW force_label
+        .ENDS
+
+        .SECTION "SuperFreeReferenceSmall" SUPERFREE
+superfree_reference_small:
+        .DW overwrite_label
         .ENDS
 
         .ORG $50
