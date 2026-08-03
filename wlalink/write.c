@@ -828,7 +828,15 @@ static int _sections_sort(const void *a, const void *b) {
   if ((*((struct section **)a))->size < (*((struct section **)b))->size)
     return 1;
 
-  return -1;
+  if ((*((struct section **)a))->size > (*((struct section **)b))->size)
+    return -1;
+
+  if ((*((struct section **)a))->id < (*((struct section **)b))->id)
+    return -1;
+  else if ((*((struct section **)a))->id > (*((struct section **)b))->id)
+    return 1;
+
+  return 0;
 }
 
 
