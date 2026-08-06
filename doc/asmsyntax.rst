@@ -263,6 +263,8 @@ and the value begins with an alphabet, you must place a zero in front of it
 so WLA knows it's not a label (e.g., ``0ah`` instead of ``ah``).
 
 
+.. _syntax-strings:
+
 Strings
 -------
 
@@ -275,6 +277,21 @@ Here are some examples of strings::
 
     "Hello world!"
     "He said: \"Please, kiss me honey.\""
+
+
+String lengths
+--------------
+
+Append ``.length`` to a string or a string definition to get its length in
+bytes. Append ``.length_utf8`` to get the number of UTF-8 code points instead.
+For example::
+
+    .DEFINE TEXT "Aü’"
+    .DB TEXT.length            ; 6 bytes: 1 + 2 + 3
+    .DB TEXT.length_utf8       ; 3 UTF-8 code points
+
+``.length_utf8`` counts Unicode code points, not user-perceived characters
+(grapheme clusters). Both suffixes are case-insensitive.
 
 
 Substitution

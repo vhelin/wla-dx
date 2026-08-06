@@ -2,7 +2,8 @@
 #ifndef _STACK_H
 #define _STACK_H
 
-int get_label_length(char *l);
+int get_label_length(char *l, int utf8);
+int get_utf8_string_length(char *s);
 int stack_calculate_free_allocations(void);
 int stack_calculate(char *in, int *value, int *bytes_parsed, unsigned char from_substitutor);
 int stack_create_value_stack(double value);

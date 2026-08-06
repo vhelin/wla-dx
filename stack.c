@@ -536,25 +536,41 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
 #endif
 
 
-int get_label_length(char *l) {
+int get_utf8_string_length(char *s) {
+
+  int length = 0;
+  unsigned char *u = (unsigned char *)s;
+
+  while (*u != 0) {
+    if ((*u & 0xC0) != 0x80)
+      length++;
+    u++;
+  }
+
+  return length;
+}
+
+
+int get_label_length(char *l, int utf8) {
 
   struct definition *tmp_def;
-  int length;
+  int byte_length, length;
   
   hashmap_get(g_defines_map, l, (void*)&tmp_def);
 
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_STRING)
-      return (int)strlen(tmp_def->string);
+      return utf8 == YES ? get_utf8_string_length(tmp_def->string) : (int)strlen(tmp_def->string);
     else {
-      print_error(ERROR_NUM, "Definition \"%s\" is not a string definition. .length returns 0 for that...\n", l);
+      print_error(ERROR_NUM, "Definition \"%s\" is not a string definition. .length%s returns 0 for that...\n", l, utf8 == YES ? "_utf8" : "");
       return 0;
     }
   }
 
-  length = (int)strlen(l);
+  byte_length = (int)strlen(l);
+  length = utf8 == YES ? get_utf8_string_length(l) : byte_length;
 
-  if (l[0] == '"' && l[length-1] == '"')
+  if (l[0] == '"' && l[byte_length-1] == '"')
     length -= 2;
 
   return length;
@@ -2718,9 +2734,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       if (process_string_for_special_characters(si[q].string, NULL) == FAILED)
         return FAILED;
 
-      /* .length? */
-      if (*in == '.' && toupper((int)in[1]) == 'L' && toupper((int)in[2]) == 'E' && toupper((int)in[3]) == 'N' &&
-          toupper((int)in[4]) == 'G' && toupper((int)in[5]) == 'T' && toupper((int)in[6]) == 'H') {
+      /* .length / .length_utf8? */
+      if (strcaselesscmpn(in, ".length_utf8", 12) == 0) {
+        in += 12;
+        si[q].value = get_utf8_string_length(si[q].string);
+        si[q].type = STACK_ITEM_TYPE_VALUE;
+      }
+      else if (strcaselesscmpn(in, ".length", 7) == 0) {
         in += 7;
         si[q].value = (int)strlen(si[q].string);
         si[q].type = STACK_ITEM_TYPE_VALUE;
@@ -4094,6 +4114,7 @@ static void _remove_can_calculate_deltas_pair(struct stack_item *s) {
 static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
   struct definition *tmp_def;
+  int length;
 
   /*
   if (s->type == STACK_ITEM_TYPE_STRING)
@@ -4297,12 +4318,18 @@ static int _resolve_string(struct stack_item *s, int *cannot_resolve) {
 
   process_special_labels(s->string);
   
+  length = (int)strlen(s->string);
+
+  /* is this form "string".length_utf8? */
+  if (length >= 12 && strcaselesscmp(&s->string[length - 12], ".length_utf8") == 0) {
+    s->string[length - 12] = 0;
+    s->value = get_label_length(s->string, YES);
+    s->type = STACK_ITEM_TYPE_VALUE;
+  }
   /* is this form "string".length? */
-  if (is_string_ending_with(s->string, ".length") > 0 ||
-      is_string_ending_with(s->string, ".LENGTH") > 0) {
-    /* we have a X.length -> calculate */
-    s->string[strlen(s->string) - 7] = 0;
-    s->value = get_label_length(s->string);
+  else if (length >= 7 && strcaselesscmp(&s->string[length - 7], ".length") == 0) {
+    s->string[length - 7] = 0;
+    s->value = get_label_length(s->string, NO);
     s->type = STACK_ITEM_TYPE_VALUE;
   }
 

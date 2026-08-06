@@ -42,7 +42,7 @@ extern struct namespace *g_namespaces_first;
 extern int g_latest_stack, g_asciitable_defined, g_global_label_hint, g_parsing_function_body, g_resolve_stack_calculations;
 extern int g_is_file_isolated_counter, g_can_remember_converted_stack_items;
 
-int parse_string_length(char *end);
+int parse_string_length(char *end, int utf8);
 
 PROFILE_GLOBALS_EXTERN();
 
@@ -287,7 +287,7 @@ int add_namespace_to_a_label(char *label, int sizeof_label, int add_outside_macr
   while (1) {
     namespace_tmp[i] = label_tmp[i];
     if (label_tmp[i] == '.') {
-      if (strcaselesscmp(&label_tmp[i], ".length") != 0) {
+      if (strcaselesscmp(&label_tmp[i], ".length") != 0 && strcaselesscmp(&label_tmp[i], ".length_utf8") != 0) {
         /* we have a dot in the name -> check if we know the namespace */
         struct namespace *namespace = g_namespaces_first;
         
@@ -734,9 +734,9 @@ static int _input_number(void) {
 int input_number(void) {
 #endif
 
-  char label_tmp[MAX_NAME_LENGTH + 1];
+  char label_tmp[MAX_NAME_LENGTH + 1], *length_suffix;
   unsigned char e, ee, check_if_a_definition = YES, can_have_calculations = YES, use_substitution = NO;
-  int k, p, q, spaces = 0, curly_braces = 0;
+  int k, p, q, label_length, spaces = 0, curly_braces = 0;
   double decimal_mul;
 #if defined(SPC700)
   int dot = 0;
@@ -1224,8 +1224,17 @@ int input_number(void) {
       if (e == '"') {
         int is_string_split = -1;
         
+        /* check for "string".length_utf8 */
+        if (strcaselesscmpn(&g_buffer[g_source_index], ".length_utf8", 12) == 0) {
+          g_source_index += 12;
+          g_label[k] = 0;
+          g_parsed_int = get_utf8_string_length(g_label);
+          g_parsed_double = (double)g_parsed_int;
+
+          return SUCCEEDED;
+        }
         /* check for "string".length */
-        if (g_buffer[g_source_index+0] == '.' &&
+        else if (g_buffer[g_source_index+0] == '.' &&
             (g_buffer[g_source_index+1] == 'l' || g_buffer[g_source_index+1] == 'L') &&
             (g_buffer[g_source_index+2] == 'e' || g_buffer[g_source_index+2] == 'E') &&
             (g_buffer[g_source_index+3] == 'n' || g_buffer[g_source_index+3] == 'N') &&
@@ -1235,7 +1244,7 @@ int input_number(void) {
           /* yes, we've got it! calculate the length and return the integer */
           g_source_index += 7;
           g_label[k] = 0;
-          g_parsed_int = (int)get_label_length(g_label);
+          g_parsed_int = get_label_length(g_label, NO);
           g_parsed_double = (double)g_parsed_int;
 
           return SUCCEEDED;
@@ -1456,14 +1465,21 @@ int input_number(void) {
   else
     strcpy(label_tmp, g_label);
 
-  /* check for "string".length */
-  if (strstr(g_label, ".length") != NULL) {
-    if (parse_string_length(strstr(g_label, ".length")) == FAILED)
+  label_length = (int)strlen(g_label);
+  length_suffix = label_length >= 12 ? &g_label[label_length - 12] : NULL;
+
+  /* check for "string".length_utf8 */
+  if (length_suffix != NULL && strcaselesscmp(length_suffix, ".length_utf8") == 0) {
+    if (parse_string_length(length_suffix, YES) == FAILED)
       return FAILED;
     return SUCCEEDED;
   }
-  else if (strstr(g_label, ".LENGTH") != NULL) {
-    if (parse_string_length(strstr(g_label, ".LENGTH")) == FAILED)
+
+  length_suffix = label_length >= 7 ? &g_label[label_length - 7] : NULL;
+
+  /* check for "string".length */
+  if (length_suffix != NULL && strcaselesscmp(length_suffix, ".length") == 0) {
+    if (parse_string_length(length_suffix, NO) == FAILED)
       return FAILED;
     return SUCCEEDED;
   }
@@ -1505,11 +1521,11 @@ int process_special_labels(char *label) {
 }
 
 
-int parse_string_length(char *end) {
+int parse_string_length(char *end, int utf8) {
 
   struct definition *tmp_def;
 
-  /* remove ".length" from the end of label (end points to inside of label) */
+  /* remove the length suffix from the end of label (end points to inside of label) */
   end[0] = 0;
 
   /* check if the label is actually a definition - it should be or else we'll give an error */
@@ -1518,17 +1534,17 @@ int parse_string_length(char *end) {
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_VALUE) {
       if (g_input_number_error_msg == YES)
-        print_error(ERROR_NUM, ".length of a value does not make any sense.\n");
+        print_error(ERROR_NUM, ".length%s of a value does not make any sense.\n", utf8 == YES ? "_utf8" : "");
       return FAILED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_STACK) {
       if (g_input_number_error_msg == YES)
-        print_error(ERROR_NUM, ".length of a pending computation does not make any sense.\n");
+        print_error(ERROR_NUM, ".length%s of a pending computation does not make any sense.\n", utf8 == YES ? "_utf8" : "");
       return FAILED;
     }
     else if (tmp_def->type == DEFINITION_TYPE_ADDRESS_LABEL) {
       if (g_input_number_error_msg == YES)
-        print_error(ERROR_NUM, ".length of an address label does not make any sense.\n");
+        print_error(ERROR_NUM, ".length%s of an address label does not make any sense.\n", utf8 == YES ? "_utf8" : "");
       return FAILED;
     }
     else {
@@ -1536,7 +1552,7 @@ int parse_string_length(char *end) {
       memcpy(g_label, tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 
-      g_parsed_int = (int)strlen(g_label);
+      g_parsed_int = utf8 == YES ? get_utf8_string_length(g_label) : (int)strlen(g_label);
       g_parsed_double = (double)g_parsed_int;
 
       return SUCCEEDED;

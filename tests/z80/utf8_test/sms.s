@@ -66,5 +66,17 @@ BANKS 2
 
         .db "💩💩💩"
 
+        .define UTF8_TEXT "Aü’💩"
+        .db "02>"                       ; @BT TEST-02 02 START
+        .db "Aü’💩".length              ; @BT 0A
+        .db "Aü’💩".length_utf8         ; @BT 04
+        .db "Aü’💩".LENGTH_UTF8         ; @BT 04
+        .db "hello".length_utf8         ; @BT 05
+        .db UTF8_TEXT.length             ; @BT 0A
+        .db UTF8_TEXT.LeNgTh_UtF8        ; @BT 04
+        .db "ü".length_utf8+1           ; @BT 02
+        .db UTF8_TEXT.length_utf8+1      ; @BT 05
+        .db "<02"                       ; @BT END
+
         
         .ends

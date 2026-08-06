@@ -11,6 +11,7 @@ Good things to know about WLA
   traversed in the assembling phase.
 - WLA's source code is mainly a huge mess, but WLALINK is quite well
   structured and written. So beware!
-- To get the length of a string e.g. "peasoup", write "peasoup".length.
+- To get the byte length of a string, append ``.length``. To get its number of
+  UTF-8 code points, append ``.length_utf8``. See :ref:`syntax-strings`.
 - Do not write ``.E`` into your sources as WLA uses it internally to mark
   the end of a file.
