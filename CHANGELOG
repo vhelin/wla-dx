@@ -4,7 +4,7 @@
            6809/8008/8080/HUC6280/SH-2/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.8 (07-Aug-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
+v10.8 (13-Aug-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] .MACRO calls should now work properly in listfiles.
                     [ALL] WLA assembles now "WLAK" library files and "WLAo"
                       object files.
@@ -13,6 +13,7 @@ v10.8 (07-Aug-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                       from one ROM bank to one or more ROM banks.
                     [ALL] Added built-in functions slotbase(slot), slot(label)
                       and slotaddress(label, slot).
+                    [ALL] Added built-in function paword(a).
                     [ALL] Added .INVOKE.
                     [ALL] Added .length_utf8.
                     [658] Added .SNESEXPANDEDHEADER.
@@ -1613,6 +1614,8 @@ v1.0 (10-Jul-2000) The first public release.
 ------------------------------------------------------------------------------
 4... WLALINK History
 ------------------------------------------------------------------------------
+
+v5.24 (13-Aug-2026) Added support for paword(a).
 
 v5.23 (22-Jul-2026) .MACRO calls should now work properly in listfiles.
                     Added support for SPAN in .SECTIONs.

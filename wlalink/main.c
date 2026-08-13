@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.23a (22.7.2026)";
+char g_version_string[] = "$VER: wlalink 5.24a (13.8.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -112,6 +112,7 @@ static const char *s_si_operator_logical_or = "||";
 static const char *s_si_operator_logical_and = "&&";
 static const char *s_si_operator_low_word = "loword(a)";
 static const char *s_si_operator_high_word = "hiword(a)";
+static const char *s_si_operator_pa_word = "paword(a)";
 static const char *s_si_operator_bank_byte = "bankbyte(a)";
 static const char *s_si_operator_round = "round(a)";
 static const char *s_si_operator_floor = "floor(a)";
@@ -193,6 +194,8 @@ static const char *_get_stack_item_operator_name(int operator) {
     return s_si_operator_low_word;
   else if (operator == SI_OP_HIGH_WORD)
     return s_si_operator_high_word;
+  else if (operator == SI_OP_PA_WORD)
+    return s_si_operator_pa_word;
   else if (operator == SI_OP_BANK_BYTE)
     return s_si_operator_bank_byte;
   else if (operator == SI_OP_ROUND)
@@ -1278,7 +1281,7 @@ int main(int argc, char *argv[]) {
     i = FAILED;
 
   if (i == FAILED) {
-    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.23a";
+    char title[] = "WLALINK - WLA DX Macro Assembler Linker v5.24a";
     int length, left, right;
 
     length = (int)strlen(title);

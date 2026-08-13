@@ -401,6 +401,7 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
             value == SI_OP_HIGH_BYTE ||
             value == SI_OP_LOW_WORD ||
             value == SI_OP_HIGH_WORD ||
+            value == SI_OP_PA_WORD ||
             value == SI_OP_BANK_BYTE ||
             value == SI_OP_BANK ||
             value == SI_OP_BASE ||
@@ -452,6 +453,8 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
         print_text(YES, "loword(a)");
       else if (value == SI_OP_HIGH_WORD)
         print_text(YES, "hiword(a)");
+      else if (value == SI_OP_PA_WORD)
+        print_text(YES, "paword(a)");
       else if (value == SI_OP_BANK_BYTE)
         print_text(YES, "bankbyte(a)");
       else if (value == SI_OP_BASE)
@@ -602,6 +605,7 @@ static struct stack_item_priority_item s_stack_item_priority_items[] = {
   { SI_OP_HIGH_BYTE, 110 },
   { SI_OP_LOW_WORD, 110 },
   { SI_OP_HIGH_WORD, 110 },
+  { SI_OP_PA_WORD, 110 },
   { SI_OP_BASE, 110 },
   { SI_OP_SLOT, 110 },
   { SI_OP_SLOTBASE, 110 },
@@ -2953,6 +2957,12 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
           is_already_processed_function = YES;
           break;
         }
+        else if (k == 6 && strcaselesscmpn(si[q].string, "paword(", 7) == 0) {
+          if (_parse_function_math1_base(&in, si, &q, "paword(a)", SI_OP_PA_WORD) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
         else if (k == 3 && strcaselesscmpn(si[q].string, "get(", 4) == 0) {
           int parsed_chars = 0;
           
@@ -3611,6 +3621,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
          si[k + 1].value == SI_OP_HIGH_BYTE ||
          si[k + 1].value == SI_OP_LOW_WORD ||
          si[k + 1].value == SI_OP_HIGH_WORD ||
+         si[k + 1].value == SI_OP_PA_WORD ||
          si[k + 1].value == SI_OP_BANK_BYTE ||
          si[k + 1].value == SI_OP_BANK ||
          si[k + 1].value == SI_OP_BASE ||
@@ -3661,6 +3672,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         si[k + 1].value != SI_OP_LOW_BYTE &&
         si[k + 1].value != SI_OP_HIGH_WORD &&
         si[k + 1].value != SI_OP_LOW_WORD &&
+        si[k + 1].value != SI_OP_PA_WORD &&
         si[k + 1].value != SI_OP_ROUND &&
         si[k + 1].value != SI_OP_FLOOR &&
         si[k + 1].value != SI_OP_CEIL &&
@@ -4876,6 +4888,13 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
       case SI_OP_HIGH_WORD:
         z = ((int)v[t - 1]) >> 16;
         v[t - 1] = _perform_and(z, 0xFFFF);
+        if (s->sign == SI_SIGN_NEGATIVE)
+          v[t - 1] = -v[t - 1];
+        sp[t - 1] = NULL;
+        break;
+      case SI_OP_PA_WORD:
+        z = (int)v[t - 1];
+        v[t - 1] = _perform_and(z, 0xFF00);
         if (s->sign == SI_SIGN_NEGATIVE)
           v[t - 1] = -v[t - 1];
         sp[t - 1] = NULL;

@@ -706,3 +706,10 @@ parent  apples2 2
         .db definedmacro(METAPRIM_DELETE), definedfunction(METAPRIM_FUNC), definedfunction(METAPRIM_ALIAS) ; @BT 01 01 01
         .db METAPRIM_FUNC(), METAPRIM_ALIAS(6) ; @BT 09 07
         .db "<28"               ; @BT END
+
+        .DB "29>"                                                       ; @BT TEST-29 29 START
+        .DW paword($12345678), paword($FF000201+$EE1111)                ; @BT 00 56 00 13
+        .DW paword(BIGGEST_VALUE), paword(BIGGEST_VALUE+$111234)        ; @BT 00 EF 00 01
+        .DW paword(addr_04), paword(addr_04+$01234567)                  ; @BT 00 80 00 C5
+        .DW paword($A0110102) + paword($01020304)                       ; @BT 00 04
+        .DB "<29"                                                       ; @BT END

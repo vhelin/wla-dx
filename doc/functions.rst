@@ -54,6 +54,7 @@ mid(ind, len, s)       Returns ``len`` characters of ``s``, starting at index ``
 min(exp1, exp2)        Returns the smaller value
 org()                  Returns the current address since the start of the slot (*)
 orga()                 Returns the current 16-bit memory address (*)
+paword(exp)            Returns bits 8-15 of the argument (the same as ``a & $FF00``)
 pow(base, power)       The same as ANSI C90 pow()
 random(min, max)       Returns a pseudo random integer like ``.DBRND`` [min, max]
 right(len, s)          Returns the rightmost ``len`` characters of ``s``
@@ -92,6 +93,7 @@ Here's an example about how these functions can be used ::
     .IF defined(USE_DEBUG) && defined(DEBUG_SHOW) && min(VALUE_A, VALUE_B) > 10
   
     LDX #lobyte(playMusic)          ; instead of (playMusic & $FF)
+    .DW paword(playMusic)           ; instead of (playMusic & $FF00)
     LDA #bank(playMusic)            ; instead of :playMusic
     LDA #bank(playMusic)
     TAM #$08

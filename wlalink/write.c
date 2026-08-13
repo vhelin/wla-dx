@@ -4989,6 +4989,16 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
           v_rom[t - 1] = -v_rom[t - 1];
         }
         break;
+      case SI_OP_PA_WORD:
+        z = (int)v_ram[t - 1];
+        y = (int)v_rom[t - 1];
+        v_ram[t - 1] = _perform_and(z, 0xFF00);
+        v_rom[t - 1] = _perform_and(y, 0xFF00);
+        if (s->sign == SI_SIGN_NEGATIVE) {
+          v_ram[t - 1] = -v_ram[t - 1];
+          v_rom[t - 1] = -v_rom[t - 1];
+        }
+        break;
       case SI_OP_MODULO:
         if (((int)v_ram[t - 1]) == 0 || ((int)v_rom[t - 1]) == 0) {
           print_text(NO, "%s: %s:%d: COMPUTE_STACK: Modulo by zero.\n", get_file_name(sta->file_id),

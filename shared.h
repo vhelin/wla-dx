@@ -175,6 +175,7 @@
 #define SI_OP_SLOT        52
 #define SI_OP_SLOTBASE    53
 #define SI_OP_SLOTADDRESS 54
+#define SI_OP_PA_WORD     55
 
 #define SI_SIGN_POSITIVE 0
 #define SI_SIGN_NEGATIVE 1

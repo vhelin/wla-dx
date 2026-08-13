@@ -8335,6 +8335,7 @@ static int _is_built_in_function_name(char *function_name) {
     "hibyte",
     "loword",
     "hiword",
+    "paword",
     "bankbyte",
     "bank",
     "base",
