@@ -155,6 +155,7 @@ struct object_file {
   int cpu_65816;
   int cpu_65ce02;
   int cpu_sh2;
+  int cpu_cp1610;
   int id;
   int fix_slot;
   int listfile_items;

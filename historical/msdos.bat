@@ -94,6 +94,11 @@ make
 move w-sh2.exe binaries\
 make clean
 
+copy makefiles\makefile.msdos.cp1610 MAKEFILE
+make
+move w-cp1610.exe binaries\
+make clean
+
 cd wlalink
 copy makefile.msdos MAKEFILE
 make clean

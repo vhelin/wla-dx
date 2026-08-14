@@ -64,6 +64,7 @@ set(DOC_SRCS
     "linking.rst"
     "sega32x.rst"
     "sh2.rst"
+    "cp1610.rst"
     "tempfiles.rst"
     "wla-dx.rst"
     "wlaflags.rst"

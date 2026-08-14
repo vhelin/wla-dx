@@ -10,8 +10,8 @@ Here's the order in which the data is placed into the output:
 
 === ================================================================
 ALL All, GB-Z80, Cx4, Z80, Z80N, eZ80, 6502, 65C02, 65CE02, 65816,
-    HUC6280, SPC-700, 68000, 6800, 6801, 6809, 8008, 8080 and SuperFX
-    versions apply.
+    HUC6280, SPC-700, 68000, 6800, 6801, 6809, 8008, 8080, SuperFX,
+    SH-2 and CP1610 versions apply.
 GB  Only the GB-Z80 version applies.
 GB8 Only the GB-Z80 and 65816 versions apply.
 Z80 Only the Z80 version applies.

@@ -13,6 +13,7 @@
     ez80-support
     cx4
     sh2
+    cp1610
     sega32x
     bugs
     files

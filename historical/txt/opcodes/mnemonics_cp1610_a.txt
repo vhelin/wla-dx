@@ -1,0 +1,97 @@
+
+WLA DX: CP1610 mnemonics listed in alphabetical order.
+
+If you notice any errors or something is missing, please
+open an issue @ https://github.com/vhelin/wla-dx
+
+
+x = 8bit
+? = 16bit
+
+
+"ADCR" $0028
+"ADD" $02C0
+"ADD@" $02C0
+"ADDI" $02C0
+"ADDR" $00C0
+"AND" $0380
+"AND@" $0380
+"ANDI" $0380
+"ANDR" $0180
+"B" $0000
+"BC" $0001
+"BEQ" $0004
+"BESC" $000F
+"BEXT" $0000
+"BGE" $000D
+"BGT" $000E
+"BLE" $0006
+"BLGE" $0001
+"BLLT" $0009
+"BLT" $0005
+"BMI" $000B
+"BNC" $0009
+"BNE" $000C
+"BNEQ" $000C
+"BNOV" $000A
+"BNZ" $000C
+"BOV" $0002
+"BPL" $0003
+"BUSC" $0007
+"BZ" $0004
+"BZE" $0004
+"CALL" $0000
+"CLRC" $0006
+"CLRR" $0000
+"CMP" $0340
+"CMP@" $0340
+"CMPI" $0340
+"CMPR" $0140
+"COMR" $0018
+"DECR" $0010
+"DIS" $0003
+"EIS" $0002
+"GSWD" $0030
+"HLT" $0000
+"INCR" $0008
+"J" $0000
+"JD" $0002
+"JE" $0001
+"JR" $0000
+"JSR" $0000
+"JSRD" $0002
+"JSRE" $0001
+"MVI" $0280
+"MVI@" $0280
+"MVII" $0280
+"MVO" $0240
+"MVO@" $0240
+"MVOI" $0240
+"MOVR" $0080
+"NEGR" $0020
+"NOP" $0034
+"NOPP" $0008
+"PSHR" $0000
+"PULR" $0000
+"RLC" $0050
+"RRC" $0070
+"RSWD" $0038
+"SAR" $0068
+"SARC" $0078
+"SDBD" $0001
+"SETC" $0007
+"SIN" $0036
+"SLL" $0048
+"SLLC" $0058
+"SLR" $0060
+"SUB" $0300
+"SUB@" $0300
+"SUBI" $0300
+"SUBR" $0100
+"SWAP" $0040
+"TCI" $0005
+"TSTR" $0000
+"XOR" $03C0
+"XOR@" $03C0
+"XORI" $03C0
+"XORR" $01C0

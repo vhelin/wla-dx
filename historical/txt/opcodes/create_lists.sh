@@ -254,6 +254,20 @@ export WLA_NICELIST=NICELIST2
 make
 ./op | sort > _sh2_o
 
+# CP1610
+
+make clean
+export WLA_TARGET=CP1610
+export WLA_NICELIST=NICELIST1
+make
+./op | sort > _cp1610_a
+
+make clean
+export WLA_TARGET=CP1610
+export WLA_NICELIST=NICELIST2
+make
+./op | sort > _cp1610_o
+
 make clean
 
 # create the final files
@@ -337,6 +351,11 @@ cat header_o_cx4.txt _cx4_o > mnemonics_cx4_o.txt
 
 cat header_a_sh2.txt _sh2_a > mnemonics_sh2_a.txt
 cat header_o_sh2.txt _sh2_o > mnemonics_sh2_o.txt
+
+# CP1610
+
+cat header_a_cp1610.txt _cp1610_a > mnemonics_cp1610_a.txt
+cat header_o_cp1610.txt _cp1610_o > mnemonics_cp1610_o.txt
 
 # cleanup
 

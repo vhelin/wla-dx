@@ -257,6 +257,42 @@ int phase_3(void) {
                 get_file_name(file_name_id), line_number);
         return FAILED;
 
+      case 'F':
+      case '{':
+        if (g_section_status == ON) {
+          if (c == 'F')
+            err = fscanf(g_file_out_ptr, "%*s ");
+          else
+            err = fscanf(g_file_out_ptr, "%*d ");
+          if (err < 0)
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+          address += 2;
+          continue;
+        }
+
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(file_name_id), line_number);
+        return FAILED;
+
+      case '(':
+      case ')':
+        if (g_section_status == ON) {
+          if (c == '(')
+            err = fscanf(g_file_out_ptr, "%*d %*s ");
+          else
+            err = fscanf(g_file_out_ptr, "%*d %*d ");
+          if (err < 0)
+            return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+          address += 4;
+          continue;
+        }
+
+        print_text(NO, "%s:%d: INTERNAL_PHASE_1: .ORG needs to be set before any code/data can be accepted.\n",
+                get_file_name(file_name_id), line_number);
+        return FAILED;
+
       case '*':
         if (g_section_status == ON) {
           err = fscanf(g_file_out_ptr, "%*s ");
@@ -1117,6 +1153,28 @@ int phase_3(void) {
       if (err < 0)
         return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
       address += 2;
+      continue;
+
+    case 'F':
+    case '{':
+      if (c == 'F')
+        err = fscanf(g_file_out_ptr, "%*s ");
+      else
+        err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address += 2;
+      continue;
+
+    case '(':
+    case ')':
+      if (c == '(')
+        err = fscanf(g_file_out_ptr, "%*d %*s ");
+      else
+        err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+      address += 4;
       continue;
 
     case '@':

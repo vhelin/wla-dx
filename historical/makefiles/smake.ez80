@@ -30,11 +30,11 @@ decode.o: decode.c decode.h parse.h phase_1.h printf.h stack.h
 hashmap.o: hashmap.c hashmap.h crc32.h
 	$(CC) $(CFLAGS) hashmap.c
 
-include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h phase_1.h printf.h
-	$(CC) $(CFLAGS) include.c
-
 iez80.o: iez80.c 
 	$(CC) $(CFLAGS) iez80.c
+
+include.o: include.c include.h crc32.h defines.h hashmap.h shared.h parse.h phase_1.h printf.h
+	$(CC) $(CFLAGS) include.c
 
 listfile.o: listfile.c listfile.h defines.h hashmap.h shared.h include.h
 	$(CC) $(CFLAGS) listfile.c

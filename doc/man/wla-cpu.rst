@@ -26,8 +26,11 @@ SYNOPSIS
 | ``wla-huc6280`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-spc700`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-superfx`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-sh2`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-cp1610`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-z80`` [``OPTIONS``] ``SRC_FILE``
 | ``wla-z80n`` [``OPTIONS``] ``SRC_FILE``
+| ``wla-ez80`` [``OPTIONS``] ``SRC_FILE``
 
 
 OPTIONS

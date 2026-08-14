@@ -213,3 +213,14 @@ add_custom_command(
 	)
 ADD_CUSTOM_TARGET(SH2_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tsh2.c)
 
+# --- WLA_TARGET=CP1610
+add_executable (gen_CP1610 ${CFILES})
+set_target_properties (gen_CP1610 PROPERTIES COMPILE_DEFINITIONS "CP1610")
+# Generate tables
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tcp1610.c
+	COMMAND gen_CP1610
+	DEPENDS gen_CP1610
+	)
+ADD_CUSTOM_TARGET(CP1610_table ALL DEPENDS ${CMAKE_BINARY_DIR}/tcp1610.c)
+

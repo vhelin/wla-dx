@@ -31,7 +31,8 @@ cpus = [
     {'name': 'z80n', 'define': 'Z80N'},
     {'name': 'ez80', 'define': 'EZ80'},
     {'name': 'cx4', 'define': 'CX4'},
-    {'name': 'sh2', 'define': 'SH2'}
+    {'name': 'sh2', 'define': 'SH2'},
+    {'name': 'cp1610', 'define': 'CP1610'}
 ]
 
 def main():

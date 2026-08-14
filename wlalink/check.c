@@ -68,8 +68,9 @@ static char *_get_snes_rom_mode(int mode) {
 
 int check_headers(void) {
 
-  int count = 0, misc_bits, e, files_count = 0, sh2_files_count = 0;
+  int count = 0, misc_bits, e, files_count = 0, sh2_files_count = 0, cp1610_files_count = 0;
   char *first_sh2_file = NULL, *first_non_sh2_file = NULL;
+  char *first_cp1610_file = NULL, *first_non_cp1610_file = NULL;
   struct object_file *o;
   unsigned char *t;
   
@@ -98,6 +99,11 @@ int check_headers(void) {
         o->cpu_sh2 = YES;
       else
         o->cpu_sh2 = NO;
+
+      if ((extr_bits & 32) != 0)
+        o->cpu_cp1610 = YES;
+      else
+        o->cpu_cp1610 = NO;
       
       if (((more_bits >> 7) & 1) != 0)
         o->little_endian = NO;
@@ -229,6 +235,11 @@ int check_headers(void) {
       else
         o->cpu_sh2 = NO;
 
+      if ((misc_bits & 16) != 0)
+        o->cpu_cp1610 = YES;
+      else
+        o->cpu_cp1610 = NO;
+
       if ((misc_bits & 2) != 0)
         o->cpu_65816 = YES;
       else
@@ -249,11 +260,24 @@ int check_headers(void) {
     else if (first_non_sh2_file == NULL)
       first_non_sh2_file = o->name;
 
+    if (o->cpu_cp1610 == YES) {
+      cp1610_files_count++;
+      if (first_cp1610_file == NULL)
+        first_cp1610_file = o->name;
+    }
+    else if (first_non_cp1610_file == NULL)
+      first_non_cp1610_file = o->name;
+
     o = o->next;
   }
 
   if (sh2_files_count != 0 && sh2_files_count != files_count) {
     print_text(NO, "CHECK_HEADERS: Cannot mix SH-2 file \"%s\" with non-SH-2 file \"%s\".\n", first_sh2_file, first_non_sh2_file);
+    return FAILED;
+  }
+
+  if (cp1610_files_count != 0 && cp1610_files_count != files_count) {
+    print_text(NO, "CHECK_HEADERS: Cannot mix CP1610 file \"%s\" with non-CP1610 file \"%s\".\n", first_cp1610_file, first_non_cp1610_file);
     return FAILED;
   }
 

@@ -518,6 +518,56 @@
 #endif
 
 /**************************************************************/
+/* CP1610                                                     */
+/**************************************************************/
+
+#ifdef CP1610
+
+/* instruction types */
+
+/*  0 - implied / no operands */
+/*  1 - single register R0-R7 */
+/*  2 - single register R0-R3 */
+/*  3 - shift/rotate/swap R0-R3 [,1|,2] */
+/*  4 - register, register */
+/*  5 - conditional branch */
+/*  6 - BEXT condition, target */
+/*  7 - J / JE / JD */
+/*  8 - JSR / JSRE / JSRD / CALL */
+/*  9 - direct address <-> register */
+/* 10 - indirect register <-> register */
+/* 11 - immediate <-> register */
+/* 12 - JR Rs */
+/* 13 - TSTR Rd */
+/* 14 - CLRR Rd */
+/* 15 - PSHR Rs */
+/* 16 - PULR Rd */
+
+#define CP1610_MODE_NONE        0
+#define CP1610_MODE_REG         1
+#define CP1610_MODE_REG_R03     2
+#define CP1610_MODE_SHIFT       3
+#define CP1610_MODE_REG_REG     4
+#define CP1610_MODE_BRANCH      5
+#define CP1610_MODE_BEXT        6
+#define CP1610_MODE_JUMP        7
+#define CP1610_MODE_JSR         8
+#define CP1610_MODE_DIRECT      9
+#define CP1610_MODE_INDIRECT   10
+#define CP1610_MODE_IMMEDIATE  11
+#define CP1610_MODE_JR         12
+#define CP1610_MODE_TSTR       13
+#define CP1610_MODE_CLRR       14
+#define CP1610_MODE_PSHR       15
+#define CP1610_MODE_PULR       16
+
+#define INSTRUCTION_STRING_LENGTH_MAX 8
+#define ARCH_STR "CP1610"
+#define WLA_NAME "cp1610"
+
+#endif
+
+/**************************************************************/
 /* 6800                                                       */
 /**************************************************************/
 

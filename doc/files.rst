@@ -57,4 +57,7 @@ The Sega 32X maps include ``md32x68k.i`` for 68000-side boot/hot-start code and
 framebuffer windows.
 
 The Agon MOS flat eZ80 map is ``agon_mos.i``. The PC Engine map is
-``pcengine.i``. The Atari Lynx flat 65C02 map is ``lynx.i``.
+``pcengine.i``. The Atari Lynx flat 65C02 map is ``lynx.i``. The Intellivision
+CP1610 maps are ``intellivision.i`` (full 16-bit byte space) and
+``intellivision_cart.i`` (8KB cartridge at byte ``$A000`` / CPU ``$5000``;
+see :doc:`cp1610`).

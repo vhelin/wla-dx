@@ -91,6 +91,10 @@ make -f makefiles/makefile.amiga.sh2
 move wla-sh2 TO binaries
 
 make -f makefiles/makefile.amiga.sh2 clean
+make -f makefiles/makefile.amiga.cp1610
+move wla-cp1610 TO binaries
+
+make -f makefiles/makefile.amiga.cp1610 clean
 
 echo *********************
 echo * compiling WLALINK *

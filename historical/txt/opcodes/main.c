@@ -64,6 +64,9 @@
 #ifdef SH2
 #include "../../../ish2.c"
 #endif
+#ifdef CP1610
+#include "../../../icp1610.c"
+#endif
 
 
 /* this program is used to print out the mnemonic tables */
@@ -147,7 +150,7 @@ int main(int argc, char *argv[]) {
 #if defined(SUPERFX)
     printf("  { \"%s\", %d, 0x%X, 0x%X, %d, %d },\n", g_instructions_table[i].string, g_instructions_table[i].type, g_instructions_table[i].hex, g_instructions_table[i].prefix, g_instructions_table[i].min, g_instructions_table[i].max);
 #endif
-#if defined(CX4) || defined(SH2)
+#if defined(CX4) || defined(SH2) || defined(CP1610)
     printf("  { \"%s\", 0x%X, %d },\n", g_instructions_table[i].string, g_instructions_table[i].hex, g_instructions_table[i].type);
 #endif
     
@@ -277,7 +280,7 @@ int main(int argc, char *argv[]) {
     printf("$%.4X\n", g_instructions_table[i].hex);
 #endif
 
-#if defined(CX4) || defined(SH2)
+#if defined(CX4) || defined(SH2) || defined(CP1610)
     printf("\"%s\" ", g_instructions_table[i].string);
     printf("$%.4X\n", g_instructions_table[i].hex);
 #endif
@@ -496,7 +499,7 @@ int main(int argc, char *argv[]) {
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif
 
-#if defined(CX4) || defined(SH2)
+#if defined(CX4) || defined(SH2) || defined(CP1610)
     printf("$%.4X ", g_instructions_table[i].hex);
     printf("\"%s\"\n", g_instructions_table[i].string);
 #endif

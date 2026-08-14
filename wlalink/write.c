@@ -2785,6 +2785,107 @@ static int _flip_endianess(int value, int bits) {
 }
 
 
+static int _cp1610_insert_word(int address, int word, int little_endian) {
+
+  if (little_endian == YES) {
+    if (mem_insert_ref(address, word & 0xFF) == FAILED)
+      return FAILED;
+    if (mem_insert_ref(address + 1, (word >> 8) & 0xFF) == FAILED)
+      return FAILED;
+  }
+  else {
+    if (mem_insert_ref(address, (word >> 8) & 0xFF) == FAILED)
+      return FAILED;
+    if (mem_insert_ref(address + 1, word & 0xFF) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_value_to_cpu_word(int value, int already_word, int file_id, int file_id_source, int linenumber, int *out) {
+
+  if (already_word != 0) {
+    if (value < 0 || value > 0xFFFF) {
+      print_text(NO, "%s: %s:%d: CP1610 address ($%x) is out of 16-bit range.\n",
+              get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
+      return FAILED;
+    }
+    *out = value;
+    return SUCCEEDED;
+  }
+
+  if (value < 0 || (value & 1) != 0) {
+    print_text(NO, "%s: %s:%d: CP1610 label address ($%x) must be even.\n",
+            get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, value);
+    return FAILED;
+  }
+
+  *out = value / 2;
+  if (*out > 0xFFFF) {
+    print_text(NO, "%s: %s:%d: CP1610 address ($%x) is out of 16-bit range.\n",
+            get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, *out);
+    return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_encode_branch(int write_addr, int cpu_addr, int special, int target_cpu, int file_id, int file_id_source, int linenumber, int little_endian) {
+
+  int disp, mag, z, opcode, instr_cpu;
+
+  if ((cpu_addr & 1) != 0) {
+    print_text(NO, "%s: %s:%d: CP1610 instruction address ($%x) must be even.\n",
+            get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, cpu_addr);
+    return FAILED;
+  }
+
+  instr_cpu = cpu_addr / 2;
+  disp = target_cpu - (instr_cpu + 2);
+  if (disp >= 0) {
+    z = 0;
+    mag = disp;
+  }
+  else {
+    z = 1;
+    mag = -disp;
+  }
+
+  if (mag > 0xFFFF) {
+    print_text(NO, "%s: %s:%d: CP1610 branch displacement (%d) is out of range.\n",
+            get_file_name(file_id), get_source_file_name(file_id, file_id_source), linenumber, disp);
+    return FAILED;
+  }
+
+  opcode = 0x0200 | (z << 5) | (special & 0x1F);
+  if (_cp1610_insert_word(write_addr, opcode, little_endian) == FAILED)
+    return FAILED;
+  if (_cp1610_insert_word(write_addr + 2, mag, little_endian) == FAILED)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_encode_jump(int write_addr, int special, int target_cpu, int little_endian) {
+
+  int word2, word3;
+
+  word2 = (((special >> 2) & 3) << 8) | (((target_cpu >> 10) & 0x3F) << 2) | (special & 3);
+  word3 = target_cpu & 0x3FF;
+
+  if (_cp1610_insert_word(write_addr, word2, little_endian) == FAILED)
+    return FAILED;
+  if (_cp1610_insert_word(write_addr + 2, word3, little_endian) == FAILED)
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
 int fix_references(void) {
 
   struct reference *r;
@@ -3254,6 +3355,36 @@ int fix_references(void) {
         }
         mem_insert_ref(x, i & 0xFF);
         mem_insert_ref(x + 1, (hi_mask & 0xFF) | ((i >> 8) & 0x03));
+      }
+      /* CP1610 CPU word address */
+      else if (r->type == REFERENCE_TYPE_CP1610_WORD_ADDRESS) {
+        int cpu_word, already_word, little_endian;
+
+        i = (int)l->address;
+        already_word = (l->status == LABEL_STATUS_DEFINE && strcaselesscmp(l->name, "CADDR") != 0) ? 1 : 0;
+        if (_cp1610_value_to_cpu_word(i, already_word, r->file_id, r->file_id_source, r->linenumber, &cpu_word) == FAILED)
+          return FAILED;
+        little_endian = get_file(r->file_id)->little_endian;
+        if (_cp1610_insert_word(x, cpu_word, little_endian) == FAILED)
+          return FAILED;
+      }
+      /* CP1610 branch / jump */
+      else if (r->type == REFERENCE_TYPE_CP1610_BRANCH) {
+        int cpu_word, already_word, little_endian;
+
+        i = (int)l->address;
+        already_word = (l->status == LABEL_STATUS_DEFINE && strcaselesscmp(l->name, "CADDR") != 0) ? 1 : 0;
+        if (_cp1610_value_to_cpu_word(i, already_word, r->file_id, r->file_id_source, r->linenumber, &cpu_word) == FAILED)
+          return FAILED;
+        little_endian = get_file(r->file_id)->little_endian;
+        if ((r->special_id & 0x80) != 0) {
+          if (_cp1610_encode_jump(x, r->special_id, cpu_word, little_endian) == FAILED)
+            return FAILED;
+        }
+        else {
+          if (_cp1610_encode_branch(x, r->address, r->special_id, cpu_word, r->file_id, r->file_id_source, r->linenumber, little_endian) == FAILED)
+            return FAILED;
+        }
       }
       else {
         i = ((int)l->address) & 0xFFFF;
@@ -4149,9 +4280,34 @@ int compute_pending_calculations(void) {
       if (mem_insert_ref(a, k & 0xFF) == FAILED)
         return FAILED;
     }
+    else if (sta->type == STACK_TYPE_CP1610_WORD) {
+      int cpu_word, already_word;
+
+      already_word = (sta->special_id & 0x40) != 0 ? 1 : 0;
+      if (_cp1610_value_to_cpu_word(k, already_word, sta->file_id, sta->file_id_source, sta->linenumber, &cpu_word) == FAILED)
+        return FAILED;
+      if (_cp1610_insert_word(a, cpu_word, get_file(sta->file_id)->little_endian) == FAILED)
+        return FAILED;
+    }
+    else if (sta->type == STACK_TYPE_CP1610_BRANCH) {
+      int cpu_word, already_word;
+
+      already_word = (sta->special_id & 0x40) != 0 ? 1 : 0;
+      if (_cp1610_value_to_cpu_word(k, already_word, sta->file_id, sta->file_id_source, sta->linenumber, &cpu_word) == FAILED)
+        return FAILED;
+      if ((sta->special_id & 0x80) != 0) {
+        if (_cp1610_encode_jump(a, sta->special_id, cpu_word, get_file(sta->file_id)->little_endian) == FAILED)
+          return FAILED;
+      }
+      else {
+        if (_cp1610_encode_branch(a, sta->memory_address, sta->special_id, cpu_word, sta->file_id, sta->file_id_source, sta->linenumber, get_file(sta->file_id)->little_endian) == FAILED)
+          return FAILED;
+      }
+    }
     else {
       print_text(NO, "%s: %s:%d: COMPUTE_PENDING_CALCULATIONS: Unsupported pending calculation type. Please send an error report!\n",
               get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber);
+      return FAILED;
     }
 
     /* next stack computation */
@@ -5682,6 +5838,12 @@ int parse_stack(struct stack *sta) {
     ed = 3;
     break;
   case STACK_TYPE_32BIT: /* not presently used by any CPU arch supported */
+    ed = 4;
+    break;
+  case STACK_TYPE_CP1610_WORD:
+    ed = 2;
+    break;
+  case STACK_TYPE_CP1610_BRANCH:
     ed = 4;
     break;
   default:

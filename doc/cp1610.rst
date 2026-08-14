@@ -1,0 +1,72 @@
+CP1610 support
+==============
+
+WLA DX includes a General Instrument CP1610 target named ``wla-cp1610``.
+The CP1610 shares its instruction set with the CP1600 (the Intellivision CPU).
+The assembler emits 16-bit instruction words in big-endian order. Only the low
+10 bits of each word are significant to the CPU.
+
+Byte Addresses Versus CPU Word Addresses
+----------------------------------------
+
+WLA tracks locations in **bytes**. Each CP1610 memory word occupies two bytes,
+so ``.ORG``, labels, slots and ``.DW`` use byte addresses. The CPU itself
+addresses 16-bit words.
+
+Convert between the two with ``byte_address = cpu_word_address * 2``. A
+cartridge that the CPU sees at ``$5000`` is therefore assembled at
+``.ORG $A000``.
+
+Instruction memory operands (``MVI``, ``MVO``, ``J``, ``JSR``, branches, and
+the immediate forms) encode **CPU word addresses**:
+
+- numeric literals and ``.DEFINE`` values are written as-is (CPU words)
+- labels are divided by two (the byte address must be even)
+- label arithmetic on those operands is in bytes (``label+2`` is the next word)
+
+``.DW label`` still stores the 16-bit byte address. Write ``.DW label/2`` if
+you need a CPU word address in a data table.
+
+Registers and Syntax
+--------------------
+
+Registers are ``R0`` through ``R7``. ``SP`` is an alias for ``R6`` and ``PC``
+is an alias for ``R7``. Operand order follows as1600:
+
+- ``MOVR Rs,Rd``, ``ADDR Rs,Rd``, ``SUBR Rs,Rd``, ``CMPR Rs,Rd``, ``ANDR Rs,Rd``, ``XORR Rs,Rd``
+- ``MVI addr,Rd``, ``MVO Rs,addr``
+- ``MVI@ Rm,Rd``, ``MVO@ Rs,Rm`` (``Rm`` is ``R1``-``R6``)
+- ``MVII #imm,Rd``, ``MVOI Rs,#imm`` (``#`` is optional)
+- ``JSR R4|R5|R6,addr``, ``CALL addr`` (``CALL`` is ``JSR R5``)
+- ``JR Rs`` (``MOVR Rs,R7``), ``TSTR Rd``, ``CLRR Rd``, ``PSHR Rs``, ``PULR Rd``
+
+``GSWD`` and the shift/rotate/swap instructions accept only ``R0``-``R3``.
+The optional ``,1`` / ``,2`` operand selects a one-bit or two-bit shift.
+``SIN`` is the one-word software interrupt; ``SIN 2`` (or ``SIN, 2``) encodes
+the two-word form.
+
+``SDBD`` prefixes the next immediate instruction so a 16-bit constant is stored
+as two 8-bit words, low byte then high byte. ``SDBD`` immediates must be
+numeric constants.
+
+Branches and Jumps
+------------------
+
+Conditional branches are PC-relative in CPU words from the instruction plus two
+words. WLAlink patches both the direction bit and the unsigned displacement.
+``NOPP`` may be used with or without a target (the no-operand form encodes a
+zero displacement).
+
+``J``, ``JE``, ``JD``, ``JSR``, ``JSRE`` and ``JSRD`` are three-word jumps.
+``JE``/``JSRE`` enable interrupts after the jump; ``JD``/``JSRD`` disable them.
+``BEXT cond, addr`` is the external-condition branch (``cond`` is 0-15).
+
+CP1610 objects cannot be mixed with objects from other WLA CPU targets.
+
+Example
+-------
+
+``examples/intellivision/hello_world`` builds an 8KB cartridge ``hello.bin``
+(with a jzintv ``hello.cfg``) that takes over from the EXEC, draws
+``HELLO WORLD`` in white GROM text on a black screen, and plays three short
+PSG beeps.

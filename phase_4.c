@@ -393,6 +393,38 @@ static void _bits_add_bit(int *bits_byte, int *bits_position, int *bits_to_defin
 }
 
 
+static int _cp1610_stack_has_label(struct stack *stack) {
+
+  int i;
+
+  for (i = 0; i < stack->stacksize; i++) {
+    if (stack->stack_items[i].type == STACK_ITEM_TYPE_LABEL)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+static int _cp1610_mem_insert_word(int word) {
+
+  if (g_little_endian == YES) {
+    if (mem_insert(word & 0xFF) == FAILED)
+      return FAILED;
+    if (mem_insert((word >> 8) & 0xFF) == FAILED)
+      return FAILED;
+  }
+  else {
+    if (mem_insert((word >> 8) & 0xFF) == FAILED)
+      return FAILED;
+    if (mem_insert(word & 0xFF) == FAILED)
+      return FAILED;
+  }
+
+  return SUCCEEDED;
+}
+
+
 int phase_4(void) {
 
   int i, o, z, y, add_old = 0, x, q, inz, ind, bits_position = 0, bits_byte = 0, flip_endianess = NO, err;
@@ -2268,8 +2300,234 @@ int phase_4(void) {
 
       continue;
 
-      /* 8BIT PC RELATIVE REFERENCE */
+      /* CP1610 CPU WORD ADDRESS (LABEL) */
 
+    case 'F':
+      {
+        struct label_def *label;
+
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
+        if (tmp_def != NULL) {
+          if (tmp_def->type == DEFINITION_TYPE_STRING) {
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: Reference to a string definition \"%s\"?\n", get_file_name(s_filename_id), s_line_number, g_tmp);
+            return FAILED;
+          }
+          else {
+            if (tmp_def->type == DEFINITION_TYPE_STACK) {
+              if (_try_to_calculate_stack_calculation_define(tmp_def) == FAILED)
+                return FAILED;
+            }
+
+            if (tmp_def->type != DEFINITION_TYPE_STACK) {
+              o = (int)tmp_def->value;
+
+              snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a CP1610 word address", get_file_name(s_filename_id), s_line_number);
+
+              if (_cp1610_mem_insert_word(o) == FAILED)
+                return FAILED;
+
+              continue;
+            }
+          }
+        }
+
+        label = _new_unknown_reference(REFERENCE_TYPE_CP1610_WORD_ADDRESS);
+        if (label == NULL)
+          return FAILED;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a CP1610 word address", get_file_name(s_filename_id), s_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+
+        continue;
+      }
+
+      /* CP1610 CPU WORD ADDRESS (STACK) */
+
+    case '{':
+      err = fscanf(g_file_out_ptr, "%d ", &inz);
+      if (err < 1)
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        return FAILED;
+      }
+
+      if (stack->section_status == ON) {
+        stack->address = g_sec_tmp->i;
+        stack->base = s_base;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
+      }
+      else {
+        stack->address = s_pc_bank;
+        stack->base = s_base;
+        stack->bank = s_rom_bank;
+        stack->slot = s_slot;
+      }
+
+      stack->type = STACK_TYPE_CP1610_WORD;
+      if (_cp1610_stack_has_label(stack) == NO)
+        stack->special_id |= 0x40;
+
+      if (_mangle_stack_references(stack) == FAILED)
+        return FAILED;
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
+            return FAILED;
+        }
+      }
+
+      if (stack->is_function_body == NO && resolve_stack(stack->stack_items, stack->stacksize) == SUCCEEDED) {
+        double r;
+
+        if (compute_stack(stack, stack->stacksize, &r) == FAILED)
+          return FAILED;
+
+        stack->is_function_body = YES;
+        o = (int)r;
+
+        if ((stack->special_id & 0x40) == 0) {
+          if ((o & 1) != 0) {
+            print_text(NO, "%s:%d: INTERNAL_PHASE_2: CP1610 label address $%x must be even.\n", get_file_name(s_filename_id), s_line_number, o);
+            return FAILED;
+          }
+          o = o / 2;
+        }
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Writing a CP1610 word address", get_file_name(s_filename_id), s_line_number);
+
+        if (_cp1610_mem_insert_word(o) == FAILED)
+          return FAILED;
+      }
+      else {
+        stack->position = STACK_POSITION_CODE;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a CP1610 word address", get_file_name(s_filename_id), s_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+
+      continue;
+
+      /* CP1610 BRANCH/JUMP (LABEL) */
+
+    case '(':
+      {
+        struct label_def *label;
+
+        err = fscanf(g_file_out_ptr, "%d ", &inz);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+        err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
+        if (err < 1)
+          return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+        if (g_namespace[0] != 0) {
+          if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+            if (_add_namespace_to_reference(g_tmp, g_namespace, g_sizeof_g_tmp) == FAILED)
+              return FAILED;
+          }
+        }
+
+        label = _new_unknown_reference(REFERENCE_TYPE_CP1610_BRANCH);
+        if (label == NULL)
+          return FAILED;
+        label->special_id = inz;
+
+        snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a CP1610 branch/jump", get_file_name(s_filename_id), s_line_number);
+
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+        if (mem_insert_padding() == FAILED)
+          return FAILED;
+      }
+
+      continue;
+
+      /* CP1610 BRANCH/JUMP (STACK) */
+
+    case ')':
+      err = fscanf(g_file_out_ptr, "%d %d ", &x, &inz);
+      if (err < 2)
+        return _print_fscanf_error_accessing_internal_data_stream(s_filename_id, s_line_number);
+
+      stack = find_stack_calculation(inz, NO);
+      if (stack == NULL) {
+        print_text(NO, "%s:%d: INTERNAL_PHASE_2: Could not find computation stack number %d. WLA corruption detected. Please send a bug report!\n", get_file_name(s_filename_id), s_line_number, inz);
+        return FAILED;
+      }
+
+      if (stack->section_status == ON) {
+        stack->address = g_sec_tmp->i;
+        stack->base = s_base;
+        stack->bank = g_sec_tmp->bank;
+        stack->slot = g_sec_tmp->slot;
+      }
+      else {
+        stack->address = s_pc_bank;
+        stack->base = s_base;
+        stack->bank = s_rom_bank;
+        stack->slot = s_slot;
+      }
+
+      stack->type = STACK_TYPE_CP1610_BRANCH;
+      stack->special_id = x;
+      if (_cp1610_stack_has_label(stack) == NO)
+        stack->special_id |= 0x40;
+
+      if (_mangle_stack_references(stack) == FAILED)
+        return FAILED;
+
+      if (g_namespace[0] != 0) {
+        if (g_section_status == OFF || g_sec_tmp->nspace == NULL) {
+          if (_add_namespace_to_stack_references(stack, g_namespace) == FAILED)
+            return FAILED;
+        }
+      }
+
+      stack->position = STACK_POSITION_CODE;
+
+      snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "%s:%d: Inserting padding for a CP1610 branch/jump", get_file_name(s_filename_id), s_line_number);
+
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+      if (mem_insert_padding() == FAILED)
+        return FAILED;
+
+      continue;
+
+      /* 8BIT PC RELATIVE REFERENCE */
+      
     case 'R':
       err = fscanf(g_file_out_ptr, STRING_READ_FORMAT, g_tmp);
       if (err < 1)
@@ -2680,6 +2938,11 @@ int write_object_file(void) {
 #if defined(SH2)
   /* SH-2 bit */
   ind |= 1 << 4;
+#endif
+
+#if defined(CP1610)
+  /* CP1610 bit */
+  ind |= 1 << 5;
 #endif
 
   fprintf(final_ptr, "%c", ind);
@@ -3103,6 +3366,10 @@ int write_library_file(void) {
 #if defined(SH2)
   /* SH-2 bit */
   ind |= 1 << 3;
+#endif
+#if defined(CP1610)
+  /* CP1610 bit */
+  ind |= 1 << 4;
 #endif
     
   fprintf(final_ptr, "%c", ind);

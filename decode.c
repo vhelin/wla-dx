@@ -1886,6 +1886,251 @@ static void _sh2_note_assembled_instruction(struct instruction *instruction) {
 #endif
 
 
+#if defined(CP1610)
+
+#define CP1610_JUMP_FLAG 0x80
+#define CP1610_TARGET_WORD 0x40
+
+static int s_cp1610_sdbd = NO;
+
+static int _cp1610_skip_spaces(int index) {
+
+  while (index < g_source_file_size && (g_buffer[index] == ' ' || g_buffer[index] == 0x09))
+    index++;
+
+  return index;
+}
+
+
+static int _cp1610_is_end(int index) {
+
+  index = _cp1610_skip_spaces(index);
+  if (index >= g_source_file_size)
+    return SUCCEEDED;
+  if (g_buffer[index] == 0x0A || g_buffer[index] == 0x0D || g_buffer[index] == ';' || g_buffer[index] == 0)
+    return SUCCEEDED;
+  if (g_buffer[index] == '\\' && index + 1 < g_source_file_size && g_buffer[index + 1] == 0x0A)
+    return SUCCEEDED;
+
+  return FAILED;
+}
+
+
+static int _cp1610_parse_comma(int *index) {
+
+  *index = _cp1610_skip_spaces(*index);
+  if (g_buffer[*index] != ',')
+    return FAILED;
+  *index = *index + 1;
+
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_finish(int index) {
+
+  if (_cp1610_is_end(index) == FAILED)
+    return FAILED;
+
+  g_source_index = _cp1610_skip_spaces(index);
+
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_parse_register(int *index, int *reg) {
+
+  int i;
+
+  i = _cp1610_skip_spaces(*index);
+  if (i + 1 < g_source_file_size && toupper((int)g_buffer[i]) == 'R' && g_buffer[i + 1] >= '0' && g_buffer[i + 1] <= '7') {
+    if (i + 2 < g_source_file_size && ((g_buffer[i + 2] >= '0' && g_buffer[i + 2] <= '9') || (toupper((int)g_buffer[i + 2]) >= 'A' && toupper((int)g_buffer[i + 2]) <= 'Z') || g_buffer[i + 2] == '_'))
+      return FAILED;
+    *reg = g_buffer[i + 1] - '0';
+    *index = i + 2;
+    return SUCCEEDED;
+  }
+  if (i + 1 < g_source_file_size && toupper((int)g_buffer[i]) == 'S' && toupper((int)g_buffer[i + 1]) == 'P') {
+    if (i + 2 < g_source_file_size && ((g_buffer[i + 2] >= '0' && g_buffer[i + 2] <= '9') || (toupper((int)g_buffer[i + 2]) >= 'A' && toupper((int)g_buffer[i + 2]) <= 'Z') || g_buffer[i + 2] == '_'))
+      return FAILED;
+    *reg = 6;
+    *index = i + 2;
+    return SUCCEEDED;
+  }
+  if (i + 1 < g_source_file_size && toupper((int)g_buffer[i]) == 'P' && toupper((int)g_buffer[i + 1]) == 'C') {
+    if (i + 2 < g_source_file_size && ((g_buffer[i + 2] >= '0' && g_buffer[i + 2] <= '9') || (toupper((int)g_buffer[i + 2]) >= 'A' && toupper((int)g_buffer[i + 2]) <= 'Z') || g_buffer[i + 2] == '_'))
+      return FAILED;
+    *reg = 7;
+    *index = i + 2;
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+static int _cp1610_parse_number(int *index, int *value, int *result_type, char *label) {
+
+  int old_i, z;
+
+  *index = _cp1610_skip_spaces(*index);
+  if (g_buffer[*index] == '#')
+    *index = *index + 1;
+
+  old_i = g_source_index;
+  g_source_index = *index;
+  z = input_number();
+  *index = g_source_index;
+  g_source_index = old_i;
+
+  *result_type = z;
+  if (z == SUCCEEDED)
+    *value = g_parsed_int;
+  else if (z == INPUT_NUMBER_ADDRESS_LABEL && label != NULL)
+    strcpy(label, g_label);
+  else if (z == INPUT_NUMBER_STACK)
+    *value = g_latest_stack;
+  else
+    return FAILED;
+
+  return SUCCEEDED;
+}
+
+
+static void _cp1610_emit_word(int word) {
+
+  _output_assembled_instruction(s_instruction_tmp, "k%d y%d ", g_active_file_info_last->line_current, word & 0xFFFF);
+}
+
+
+static int _cp1610_stack_has_label(int id) {
+
+  struct stack *stack = find_stack_calculation(id, NO);
+  int i;
+
+  if (stack == NULL)
+    return NO;
+
+  for (i = 0; i < stack->stacksize; i++) {
+    if (stack->stack_items[i].type == STACK_ITEM_TYPE_LABEL)
+      return YES;
+  }
+
+  return NO;
+}
+
+
+static int _cp1610_encode_jump_words(int address, int save_reg, int intr_mode, int *word2, int *word3) {
+
+  if (address < 0 || address > 0xFFFF) {
+    print_error(ERROR_NUM, "Out of 16-bit CP1610 address range.\n");
+    return FAILED;
+  }
+
+  *word2 = ((save_reg & 3) << 8) | (((address >> 10) & 0x3F) << 2) | (intr_mode & 3);
+  *word3 = address & 0x3FF;
+  return SUCCEEDED;
+}
+
+
+static int _cp1610_emit_word_address(int result_type, int value, char *label) {
+
+  if (result_type == SUCCEEDED) {
+    if (value < 0 || value > 0xFFFF) {
+      print_error(ERROR_NUM, "Out of 16-bit CP1610 address range.\n");
+      return FAILED;
+    }
+    _cp1610_emit_word(value);
+    return SUCCEEDED;
+  }
+  if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+    _output_assembled_instruction(s_instruction_tmp, "k%d F%s ", g_active_file_info_last->line_current, label);
+    return SUCCEEDED;
+  }
+  if (result_type == INPUT_NUMBER_STACK) {
+    _output_assembled_instruction(s_instruction_tmp, "k%d {%d ", g_active_file_info_last->line_current, value);
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+static int _cp1610_emit_immediate_data(int result_type, int value, char *label) {
+
+  if (s_cp1610_sdbd == YES) {
+    if (result_type != SUCCEEDED) {
+      print_error(ERROR_ERR, "SDBD immediates must be constants.\n");
+      return FAILED;
+    }
+    if (value < -32768 || value > 0xFFFF) {
+      print_error(ERROR_NUM, "Out of 16-bit range.\n");
+      return FAILED;
+    }
+    _cp1610_emit_word(value & 0xFF);
+    _cp1610_emit_word((value >> 8) & 0xFF);
+    return SUCCEEDED;
+  }
+
+  return _cp1610_emit_word_address(result_type, value, label);
+}
+
+
+static int _cp1610_emit_branch(int cond, int result_type, int value, char *label) {
+
+  if (result_type == SUCCEEDED) {
+    if (stack_create_value_stack((double)value) == FAILED)
+      return FAILED;
+    _output_assembled_instruction(s_instruction_tmp, "k%d )%d %d ", g_active_file_info_last->line_current, (cond & 0x1F) | CP1610_TARGET_WORD, g_latest_stack);
+    return SUCCEEDED;
+  }
+  if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+    _output_assembled_instruction(s_instruction_tmp, "k%d (%d %s ", g_active_file_info_last->line_current, cond & 0x1F, label);
+    return SUCCEEDED;
+  }
+  if (result_type == INPUT_NUMBER_STACK) {
+    int special;
+
+    special = cond & 0x1F;
+    if (_cp1610_stack_has_label(value) == NO)
+      special |= CP1610_TARGET_WORD;
+    _output_assembled_instruction(s_instruction_tmp, "k%d )%d %d ", g_active_file_info_last->line_current, special, value);
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+
+static int _cp1610_emit_jump(int save_reg, int intr_mode, int result_type, int value, char *label) {
+
+  int word2, word3, special;
+
+  _cp1610_emit_word(0x0004);
+  if (result_type == SUCCEEDED) {
+    if (_cp1610_encode_jump_words(value, save_reg, intr_mode, &word2, &word3) == FAILED)
+      return FAILED;
+    _cp1610_emit_word(word2);
+    _cp1610_emit_word(word3);
+    return SUCCEEDED;
+  }
+
+  special = CP1610_JUMP_FLAG | ((save_reg & 3) << 2) | (intr_mode & 3);
+  if (result_type == INPUT_NUMBER_ADDRESS_LABEL) {
+    _output_assembled_instruction(s_instruction_tmp, "k%d (%d %s ", g_active_file_info_last->line_current, special, label);
+    return SUCCEEDED;
+  }
+  if (result_type == INPUT_NUMBER_STACK) {
+    _output_assembled_instruction(s_instruction_tmp, "k%d )%d %d ", g_active_file_info_last->line_current, special, value);
+    return SUCCEEDED;
+  }
+
+  return FAILED;
+}
+
+#endif
+
+
 int evaluate_token(void) {
 
   int f, x, y, last_stack_id_backup, instruction_i;
@@ -1896,7 +2141,7 @@ int evaluate_token(void) {
 #if defined(SPC700)
   int g;
 #endif
-#if !defined(MC68000) && !defined(CX4) && !defined(SH2)
+#if !defined(MC68000) && !defined(CX4) && !defined(SH2) && !defined(CP1610)
   int z;
 #endif
 #if defined(HUC6280)
@@ -2561,6 +2806,358 @@ int evaluate_token(void) {
 
       /*************************************************************************************************/
       /* </SH-2> */
+      /*************************************************************************************************/
+
+#endif
+
+#if defined(CP1610)
+
+      /*************************************************************************************************/
+      /* <CP1610> */
+      /*************************************************************************************************/
+
+    case CP1610_MODE_NONE:
+      {
+        int index;
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->hex == 0x0036 && _cp1610_is_end(index) == FAILED) {
+          int result_type, value;
+          char dummy[MAX_NAME_LENGTH + 1];
+
+          (void)_cp1610_parse_comma(&index);
+          if (_cp1610_parse_number(&index, &value, &result_type, dummy) == SUCCEEDED && result_type == SUCCEEDED && value == 2 && _cp1610_finish(index) == SUCCEEDED) {
+            _cp1610_emit_word(0x0037);
+            s_cp1610_sdbd = NO;
+            return SUCCEEDED;
+          }
+          break;
+        }
+        if (_cp1610_finish(index) == SUCCEEDED) {
+          _cp1610_emit_word(s_instruction_tmp->hex);
+          if (s_instruction_tmp->hex == 0x0001)
+            s_cp1610_sdbd = YES;
+          else
+            s_cp1610_sdbd = NO;
+          return SUCCEEDED;
+        }
+        break;
+      }
+
+    case CP1610_MODE_REG:
+    case CP1610_MODE_REG_R03:
+      {
+        int index, reg;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &reg) == FAILED)
+          break;
+        if (s_instruction_tmp->type == CP1610_MODE_REG_R03 && reg > 3)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + reg);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_SHIFT:
+      {
+        int index, reg, count;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &reg) == FAILED)
+          break;
+        if (reg > 3)
+          break;
+        count = 1;
+        if (_cp1610_parse_comma(&index) == SUCCEEDED) {
+          int result_type, value;
+          char dummy[MAX_NAME_LENGTH + 1];
+
+          if (_cp1610_parse_number(&index, &value, &result_type, dummy) == FAILED)
+            break;
+          if (result_type != SUCCEEDED || (value != 1 && value != 2))
+            break;
+          count = value;
+        }
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + ((count == 2) ? 4 : 0) + reg);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_REG_REG:
+      {
+        int index, rs, rd;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rs) == FAILED)
+          break;
+        if (_cp1610_parse_comma(&index) == FAILED)
+          break;
+        if (_cp1610_parse_register(&index, &rd) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + (rs << 3) + rd);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_JR:
+      {
+        int index, rs;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rs) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(0x0080 + (rs << 3) + 7);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_TSTR:
+      {
+        int index, rd;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rd) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(0x0080 + (rd << 3) + rd);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_CLRR:
+      {
+        int index, rd;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rd) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(0x01C0 + (rd << 3) + rd);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_PSHR:
+      {
+        int index, rs;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rs) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(0x0240 + (6 << 3) + rs);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_PULR:
+      {
+        int index, rd;
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_register(&index, &rd) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(0x0280 + (6 << 3) + rd);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_BRANCH:
+      {
+        int index, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->hex == 0x0008 && _cp1610_is_end(index) == SUCCEEDED) {
+          _cp1610_emit_word(0x0208);
+          _cp1610_emit_word(0x0000);
+          s_cp1610_sdbd = NO;
+          g_source_index = _cp1610_skip_spaces(index);
+          return SUCCEEDED;
+        }
+        if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        if (_cp1610_emit_branch((int)s_instruction_tmp->hex, result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_BEXT:
+      {
+        int index, cond, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_number(&index, &cond, &result_type, label) == FAILED)
+          break;
+        if (result_type != SUCCEEDED || cond < 0 || cond > 15)
+          break;
+        if (_cp1610_parse_comma(&index) == FAILED)
+          break;
+        if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        if (_cp1610_emit_branch(0x10 | (cond & 0x0F), result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_JUMP:
+      {
+        int index, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        if (_cp1610_emit_jump(3, (int)s_instruction_tmp->hex, result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_JSR:
+      {
+        int index, save_reg, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (strcmp(s_instruction_tmp->string, "CALL") == 0)
+          save_reg = 1;
+        else {
+          if (_cp1610_parse_register(&index, &save_reg) == FAILED)
+            break;
+          if (save_reg < 4 || save_reg > 6)
+            break;
+          save_reg = save_reg - 4;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+        }
+        if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        if (_cp1610_emit_jump(save_reg, (int)s_instruction_tmp->hex, result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_DIRECT:
+      {
+        int index, reg, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->hex == 0x0240) {
+          if (_cp1610_parse_register(&index, &reg) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+            break;
+        }
+        else {
+          if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_register(&index, &reg) == FAILED)
+            break;
+        }
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + reg);
+        if (_cp1610_emit_word_address(result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_INDIRECT:
+      {
+        int index, rm, r;
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->hex == 0x0240) {
+          if (_cp1610_parse_register(&index, &r) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_register(&index, &rm) == FAILED)
+            break;
+        }
+        else {
+          if (_cp1610_parse_register(&index, &rm) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_register(&index, &r) == FAILED)
+            break;
+        }
+        if (rm < 1 || rm > 6)
+          break;
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + (rm << 3) + r);
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+    case CP1610_MODE_IMMEDIATE:
+      {
+        int index, reg, result_type, value;
+        char label[MAX_NAME_LENGTH + 1];
+
+        index = s_parser_source_index;
+        if (s_instruction_tmp->hex == 0x0240) {
+          if (_cp1610_parse_register(&index, &reg) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+            break;
+        }
+        else {
+          if (_cp1610_parse_number(&index, &value, &result_type, label) == FAILED)
+            break;
+          if (_cp1610_parse_comma(&index) == FAILED)
+            break;
+          if (_cp1610_parse_register(&index, &reg) == FAILED)
+            break;
+        }
+        if (_cp1610_finish(index) == FAILED)
+          break;
+        _cp1610_emit_word(s_instruction_tmp->hex + (7 << 3) + reg);
+        if (_cp1610_emit_immediate_data(result_type, value, label) == FAILED)
+          return FAILED;
+        s_cp1610_sdbd = NO;
+        return SUCCEEDED;
+      }
+
+      /*************************************************************************************************/
+      /* </CP1610> */
       /*************************************************************************************************/
 
 #endif

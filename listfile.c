@@ -452,6 +452,32 @@ int listfile_collect(void) {
       origin += 2;
       continue;
 
+    case 'F':
+    case '{':
+      if (c == 'F')
+        err = fscanf(g_file_out_ptr, "%*s ");
+      else
+        err = fscanf(g_file_out_ptr, "%*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add += 2;
+      origin += 2;
+      continue;
+
+    case '(':
+    case ')':
+      if (c == '(')
+        err = fscanf(g_file_out_ptr, "%*d %*s ");
+      else
+        err = fscanf(g_file_out_ptr, "%*d %*d ");
+      if (err < 0)
+        return _print_fscanf_error_accessing_internal_data_stream(file_name_id, line_number);
+
+      add += 4;
+      origin += 4;
+      continue;
+
     case '@':
       err = fscanf(g_file_out_ptr, "%*d %*s ");
       if (err < 0)

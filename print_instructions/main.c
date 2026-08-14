@@ -29,6 +29,9 @@
 #ifdef SH2
 #include "../ish2.c"
 #endif
+#ifdef CP1610
+#include "../icp1610.c"
+#endif
 
 
 /* this program is used to print the instructions */
