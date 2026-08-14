@@ -1973,8 +1973,13 @@ static int _cp1610_parse_number(int *index, int *value, int *result_type, char *
 
   int old_i, z;
 
+  *value = 0;
+  *result_type = FAILED;
+  if (label != NULL)
+    label[0] = 0;
+
   *index = _cp1610_skip_spaces(*index);
-  if (g_buffer[*index] == '#')
+  if (*index < g_source_file_size && g_buffer[*index] == '#')
     *index = *index + 1;
 
   old_i = g_source_index;
