@@ -1615,7 +1615,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.24 (13-Aug-2026) Added support for paword(a).
+v5.24 (18-Aug-2026) Added support for paword(a).
+                    -C removes duplicate definitions in symbol file.
 
 v5.23 (22-Jul-2026) .MACRO calls should now work properly in listfiles.
                     Added support for SPAN in .SECTIONs.

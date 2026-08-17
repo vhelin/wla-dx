@@ -2341,6 +2341,13 @@ static int _try_put_label(map_t map, struct label *l, int duplicate_check) {
           }
         }
       }
+
+      /* Same-value duplicate definitions stay in the label list after -C/-c,
+         so symbol files would list them once per object. Drop extras here.
+         Duplicate labels are left alive: with -C they can share a CPU address
+         across banks, and the symbol file still needs each bank:offset. */
+      if (label != l && l->status == LABEL_STATUS_DEFINE && (int)l->address == (int)label->address)
+        l->alive = NO;
       
       /* don't insert duplicates into the hashmap */
       return SUCCEEDED;

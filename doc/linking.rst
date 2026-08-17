@@ -251,9 +251,15 @@ same memory address (in the program's point of view).
 
 Allow duplicate labels when they have the same values using ``C`` flag.
 
+When ``-C`` is used, exported definitions that appear in more than one object
+file with the same name and value (for example a shared ``.ENUM EXPORT``
+include) are written only once to the symbol file. Duplicate labels are still
+kept, because the same CPU address can exist in more than one bank.
+
 If you want to allow for some reason duplicate labels (and definitions) when they
 have different values, use the ``c`` flag. The linker will in this case probably
-use those that it processed first.
+use those that it processed first. Same-value duplicate definitions are still
+merged in the symbol file.
 
 Note that when you use .RAMSECTIONs, WLALINK will generate labels
 RAM_USAGE_SLOT_[slot name/id]_BANK_[bank number]_START and
