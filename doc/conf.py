@@ -2,6 +2,21 @@
 
 import sys
 import os
+import warnings
+
+try:
+    from sphinx.deprecation import RemovedInSphinx80Warning
+
+    # sphinxcontrib-applehelp 1.0.2 and some htmlhelp releases still import
+    # sphinx.util.SkipProgressMessage / progress_message; those aliases warn
+    # on Sphinx 7 and we don't build Apple Help or HTML Help.
+    warnings.filterwarnings(
+        'ignore',
+        category=RemovedInSphinx80Warning,
+        module=r'sphinxcontrib\.'
+    )
+except Exception:
+    pass
 
 try:
     from sphinx import environment as sphinx_environment

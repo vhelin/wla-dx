@@ -136,6 +136,10 @@ If flag ``R`` is used the file paths inside the link file are relative
 to the directory where the link file is, not relative to current working
 directory.
 
+By default WLALINK sorts sections by priority (highest first) and then by
+size (largest first). Sections that share the same priority and size keep
+their original order of appearance.
+
 If flag ``nS`` is used, WLALINK doesn't sort the sections at all, so they
 are placed in the output in their order of appearance.
 

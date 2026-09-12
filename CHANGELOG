@@ -1615,8 +1615,11 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.24 (18-Aug-2026) Added support for paword(a).
+v5.24 (13-Sep-2026) Added support for paword(a).
                     -C removes duplicate definitions in symbol file.
+                    WLALINK now places same-size sections in a stable
+                      order (object-file order) so packing does not depend
+                      on the host C library's qsort().
 
 v5.23 (22-Jul-2026) .MACRO calls should now work properly in listfiles.
                     Added support for SPAN in .SECTIONs.

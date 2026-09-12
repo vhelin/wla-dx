@@ -820,20 +820,28 @@ static int _write_c64_crt_file(FILE *f, char *outname) {
 
 static int _sections_sort(const void *a, const void *b) {
 
-  if ((*((struct section **)a))->priority < (*((struct section **)b))->priority)
+  struct section *sa = *((struct section **)a), *sb = *((struct section **)b);
+
+  if (sa->priority < sb->priority)
     return 1;
-  else if ((*((struct section **)a))->priority > (*((struct section **)b))->priority)
+  else if (sa->priority > sb->priority)
     return -1;
 
-  if ((*((struct section **)a))->size < (*((struct section **)b))->size)
+  if (sa->size < sb->size)
     return 1;
 
-  if ((*((struct section **)a))->size > (*((struct section **)b))->size)
+  if (sa->size > sb->size)
     return -1;
 
-  if ((*((struct section **)a))->id < (*((struct section **)b))->id)
+  /* unique original index: qsort() need not be stable for a deterministic order */
+  if (sa->i < sb->i)
     return -1;
-  else if ((*((struct section **)a))->id > (*((struct section **)b))->id)
+  else if (sa->i > sb->i)
+    return 1;
+
+  if (sa->id < sb->id)
+    return -1;
+  else if (sa->id > sb->id)
     return 1;
 
   return 0;
@@ -1023,6 +1031,7 @@ int sort_sections(void) {
   i = 0;
   s = g_sec_first;
   while (s != NULL) {
+    s->i = i;
     sa[i++] = s;
     s = s->next;
   }
