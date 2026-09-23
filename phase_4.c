@@ -330,10 +330,31 @@ static int _mangle_stack_references(struct stack *stack) {
 }
 
 
+static int _namespaced_label_is_in_this_file(char *name) {
+
+  struct label_def *l;
+
+  /* label in a (section) namespace? */
+  if (g_section_status == ON && g_sec_tmp != NULL && g_sec_tmp->nspace != NULL) {
+    if (hashmap_get(g_sec_tmp->nspace->label_map, name, (void*)&l) == MAP_OK) {
+      if (s_filename_id == l->filename_id)
+        return YES;
+    }
+  }
+
+  /* global label? */
+  if (hashmap_get(g_global_unique_label_map, name, (void*)&l) == MAP_OK) {
+    if (s_filename_id == l->filename_id)
+      return YES;
+  }
+
+  return NO;
+}
+
+
 static int _add_namespace_to_reference(char *label, char *name_space, unsigned int label_size) {
 
   char expanded[MAX_NAME_LENGTH*2+2];
-  struct label_def *l;
   
   snprintf(expanded, sizeof(expanded), "%s.%s", name_space, label);
   if (strlen(expanded) >= label_size) {
@@ -342,23 +363,34 @@ static int _add_namespace_to_reference(char *label, char *name_space, unsigned i
   }
 
   /* use the expanded version only if we can find it */
-  
-  /* label in a namespace? */
-  if (g_section_status == ON && g_sec_tmp != NULL && g_sec_tmp->nspace != NULL) {
-    if (hashmap_get(g_sec_tmp->nspace->label_map, expanded, (void*)&l) == MAP_OK) {
-      if (s_filename_id == l->filename_id) {
-        strcpy(label, expanded);
-        return SUCCEEDED;
-      }
-    }
+  if (_namespaced_label_is_in_this_file(expanded) == YES) {
+    strcpy(label, expanded);
+    return SUCCEEDED;
   }
 
-  /* global label? */
-  if (hashmap_get(g_global_unique_label_map, expanded, (void*)&l) == MAP_OK) {
-    if (s_filename_id == l->filename_id) {
-      strcpy(label, expanded);
+  /* wlalink builds _sizeof_* from the label's final name, so it does not exist
+     yet. A naked "_sizeof_baz" in namespace "foo" has to become "_sizeof_foo.baz"
+     when "foo.baz" is a label in this file. Leave assembler-made _sizeof_*
+     definitions (enum, struct, ramsection) untouched. */
+  if (strncmp(label, "_sizeof_", 8) == 0) {
+    struct definition *tmp_def;
+    char base_expanded[MAX_NAME_LENGTH*2+2];
+
+    hashmap_get(g_defines_map, label, (void*)&tmp_def);
+    if (tmp_def != NULL)
       return SUCCEEDED;
+
+    snprintf(base_expanded, sizeof(base_expanded), "%s.%s", name_space, &label[8]);
+    if (_namespaced_label_is_in_this_file(base_expanded) == NO)
+      return SUCCEEDED;
+
+    snprintf(expanded, sizeof(expanded), "_sizeof_%s", base_expanded);
+    if (strlen(expanded) >= label_size) {
+      print_text(NO, "_ADD_NAMESPACE_TO_REFERENCE: Label expands to \"%s\" which is %d characters too large.\n", expanded, (int)(strlen(expanded)-label_size+1));
+      return FAILED;
     }
+
+    strcpy(label, expanded);
   }
 
   return SUCCEEDED;
