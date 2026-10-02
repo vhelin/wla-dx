@@ -4419,16 +4419,18 @@ int evaluate_deferred_assertions(void) {
 }
 
 
-static int _get_bank_of_address(int address, int slot) {
+static int _get_bank_of_address(int address, int slot, int is_ram) {
 
   int j, slot_size;
 
   if (address < 0)
     return -1;
 
-  for (j = 0; j < g_rombanks; j++) {
-    if (address >= g_bankaddress[j] && address < g_bankaddress[j] + g_banksizes[j])
-      return j;
+  if (is_ram == NO) {
+    for (j = 0; j < g_rombanks; j++) {
+      if (address >= g_bankaddress[j] && address < g_bankaddress[j] + g_banksizes[j])
+        return j;
+    }
   }
 
   if (slot < 0)
@@ -4443,10 +4445,12 @@ static int _get_bank_of_address(int address, int slot) {
 }
 
 
-static void _pass_on_slot(int *slot, int t) {
+static void _pass_on_slot(int *slot, int *is_ram, int t) {
 
-  if (slot[t - 2] < 0 && slot[t - 1] >= 0)
+  if (slot[t - 2] < 0 && slot[t - 1] >= 0) {
     slot[t - 2] = slot[t - 1];
+    is_ram[t - 2] = is_ram[t - 1];
+  }
   else if (slot[t - 2] >= 0 && slot[t - 1] >= 0) {
     /* sanity check */
     /*
@@ -4455,6 +4459,7 @@ static void _pass_on_slot(int *slot, int t) {
     }
     */
     slot[t - 2] = slot[t - 1];
+    is_ram[t - 2] = is_ram[t - 1];
   }
 }
 
@@ -4538,6 +4543,7 @@ static int _perform_and(int a, int b) {
 int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int *result_slot, int *result_base, int *result_bank) {
 
   int r, t, z, y, x, res_base, res_bank, res_slot, slot[256], base[256], bank[256];
+  int is_ram[256];
   double v_ram[256], v_rom[256], q, res_ram, res_rom;
   struct stack_item *s;
   struct stack *st;
@@ -4568,6 +4574,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
     slot[x] = -1;
     base[x] = -1;
     bank[x] = -1;
+    is_ram[x] = NO;
   }
 
   sta->under_work = YES;
@@ -4606,6 +4613,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       slot[t] = s->slot;
       base[t] = s->base;
       bank[t] = s->bank;
+      is_ram[t] = s->is_ram;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STRING) {
@@ -4614,6 +4622,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       slot[t] = -1;
       base[t] = -1;
       bank[t] = -1;
+      is_ram[t] = NO;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_LABEL) {
@@ -4630,6 +4639,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       slot[t] = s->slot;
       base[t] = s->base;
       bank[t] = s->bank;
+      is_ram[t] = s->is_ram;
       t++;
     }
     else if (s->type == STACK_ITEM_TYPE_STACK) {
@@ -4668,6 +4678,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
       slot[t] = res_slot;
       base[t] = res_base;
       bank[t] = res_bank;
+      is_ram[t] = st->result_is_ram;
       t++;
     }
     else {
@@ -4680,7 +4691,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] += v_ram[t - 1];
         v_rom[t - 2] += v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -4693,7 +4704,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] -= v_ram[t - 1];
         v_rom[t - 2] -= v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -4735,7 +4746,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 1] ^ (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] ^ (int)v_rom[t - 2];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -4748,7 +4759,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] *= v_ram[t - 1];
         v_rom[t - 2] *= v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -4761,8 +4772,10 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 1] | (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] | (int)v_rom[t - 2];
-        if (slot[t - 2] < 0 && slot[t - 1] >= 0)
+        if (slot[t - 2] < 0 && slot[t - 1] >= 0) {
           slot[t - 2] = slot[t - 1];
+          is_ram[t - 2] = is_ram[t - 1];
+        }
         t--;
         break;
       case SI_OP_AND:
@@ -4773,7 +4786,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 1] & (int)v_ram[t - 2];
         v_rom[t - 2] = (int)v_rom[t - 1] & (int)v_rom[t - 2];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -4994,7 +5007,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         break;
       case SI_OP_BANK:
         z = (int)v_rom[t - 1];
-        y = _get_bank_of_address(z, slot[t - 1]);
+        y = _get_bank_of_address(z, slot[t - 1], is_ram[t - 1]);
         if (y < 0) {
           print_text(NO, "%s: %s:%d: COMPUTE_STACK: Could not get the bank number for ROM address %d/$%x (out of bounds).\n", get_file_name(sta->file_id),
                   get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber, z, z);
@@ -5054,6 +5067,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         slot[t - 1] = -1;
         base[t - 1] = -1;
         bank[t - 1] = -1;
+        is_ram[t - 1] = NO;
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -5076,6 +5090,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         slot[t - 1] = y;
         base[t - 1] = -1;
         bank[t - 1] = -1;
+        is_ram[t - 1] = NO;
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 1] = -v_ram[t - 1];
           v_rom[t - 1] = -v_rom[t - 1];
@@ -5115,6 +5130,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         slot[t - 2] = z;
         base[t - 2] = -1;
         bank[t - 2] = -1;
+        is_ram[t - 2] = NO;
         if (s->sign == SI_SIGN_NEGATIVE) {
           v_ram[t - 2] = -v_ram[t - 2];
           v_rom[t - 2] = -v_rom[t - 2];
@@ -5184,7 +5200,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 2] % (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] % (int)v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -5202,7 +5218,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] /= v_ram[t - 1];
         v_rom[t - 2] /= v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -5223,7 +5239,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         for (z = 0; z < v_rom[t - 1]; z++)
           q *= v_rom[t - 2];
         v_rom[t - 2] = q;
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -5236,7 +5252,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 2] << (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] << (int)v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -5249,7 +5265,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
         }
         v_ram[t - 2] = (int)v_ram[t - 2] >> (int)v_ram[t - 1];
         v_rom[t - 2] = (int)v_rom[t - 2] >> (int)v_rom[t - 1];
-        _pass_on_slot(slot, t);
+        _pass_on_slot(slot, is_ram, t);
         _pass_on_base(base, t);
         _pass_on_bank(bank, t);
         t--;
@@ -5456,6 +5472,7 @@ int compute_stack(struct stack *sta, double *result_ram, double *result_rom, int
   sta->result_slot = (int)slot[0];
   sta->result_base = (int)base[0];
   sta->result_bank = (int)bank[0];
+  sta->result_is_ram = is_ram[0];
 
   sta->computed = YES;
   sta->under_work = NO;
@@ -6007,6 +6024,7 @@ int parse_stack(struct stack *sta) {
       si->slot = l->slot;
       si->base = l->base;
       si->bank = l->bank;
+      si->is_ram = l->section_status == ON && l->section_struct != NULL && _section_is_ram(l->section_struct) == YES;
 
       /*
         fprintf(stdout, "%s: %s:%d: %s %x %d\n", get_file_name(sta->file_id), get_source_file_name(sta->file_id, sta->file_id_source), sta->linenumber,

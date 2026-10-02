@@ -329,6 +329,7 @@ struct stack {
   int result_slot;
   int result_base;
   int result_bank;
+  int result_is_ram;
   int position;
   int file_id;
   int file_id_source;
@@ -362,6 +363,7 @@ struct stack_item {
   int slot;
   int base;
   int bank;
+  int is_ram;
   int stack_file_id;
   double value_ram;
   double value_rom;
