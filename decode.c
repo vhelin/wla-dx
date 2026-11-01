@@ -1068,7 +1068,8 @@ static int _mc68000_parse_ea(char *code, int *index, int *reg1, int *reg2, int *
       }
     }
     
-    /* d8 OR d16 here? */
+    /* d8 or d16 here? the failed register probe may have consumed a label */
+    i = saved_i + 1;
     y = g_source_index;
     g_source_index = i;
     z = input_number();
