@@ -290,6 +290,8 @@ for that instruction; ``.SIL`` and ``.LIL`` force a long immediate. ``.S`` and
 ``.L`` are accepted as short forms for instruction-mode overrides without an
 immediate operand.
 
+Use ``adl()`` to read the current ``.ADL`` setting (0 for OFF, 1 for ON).
+
 This is not a compulsory directive.
 
 
@@ -360,6 +362,8 @@ will yield ``$29 $00 $06``.
 Note that ``SEP`` / ``REP`` again will in turn reset the accumulator/index
 register size.
 
+Use ``accu()`` to read the currently assumed accumulator width in bits.
+
 This is not a compulsory directive.
 
 
@@ -378,6 +382,9 @@ Makes it so that on the next line the address is a multiple of the supplied
 value. Currently this directive can only be given outside ``.SECTION`` s or
 inside FORCE ``.SECTION`` s or inside ``.SECTION`` s that have ALIGN that is
 a multiple of the ``.ALIGN`` here.
+
+Use ``align()`` to read the most recent successfully processed ``.ALIGN``
+argument. It returns 1 before the first ``.ALIGN``.
 
 This is not a compulsory directive.
 
@@ -2318,6 +2325,8 @@ This is not a compulsory directive.
 
 ``.INDEX 8``
 ------------
+
+Use ``index()`` to read the currently assumed X/Y register width in bits.
 
 Forces WLA to override the index (``X`` / ``Y``) register size given with
 ``SEP`` / ``REP``. ``.INDEX`` doesn't produce any code, it only affects the way
@@ -4464,4 +4473,3 @@ This is not a compulsory directive.
 ``.WORD`` is an alias for ``.DW``.
 
 This is not a compulsory directive.
-

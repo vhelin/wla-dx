@@ -125,6 +125,7 @@ int g_org_defined = 1, g_background_defined = 0;
 int g_rombanks = 0, g_rombanks_defined = 0, g_max_address = 0;
 int g_rambanks = 0, g_rambanks_defined = 0;
 int g_emptyfill = 0, g_emptyfill_defined = 0;
+int g_last_align = 1;
 int g_section_status = OFF, g_section_id = 1;
 int g_parsed_int, g_source_index, g_ifdef = 0, g_slots_amount = 0;
 int g_memorymap_defined = 0, g_bank = 0, g_base = -1, g_base_backup = -1;
@@ -3677,6 +3678,8 @@ static int _directive_align(void) {
     if (remainder != 0)
       fprintf(g_file_out_ptr, "O%d ", address - remainder + align);
   }
+
+  g_last_align = align;
 
   return SUCCEEDED;
 }

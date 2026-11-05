@@ -36,6 +36,22 @@ extern int g_operand_hint, g_operand_hint_type, g_can_calculate_a_minus_b, g_exp
 extern int g_is_file_isolated_counter, g_force_add_namespace, g_bank, g_base, g_current_slot;
 extern struct slot g_slots[256];
 extern struct section_def *g_sections_first, *g_sections_last;
+extern int g_last_align;
+
+#if defined(W65816)
+extern int g_accu_size, g_index_size;
+#endif
+
+#if defined(EZ80)
+extern int g_ez80_adl_mode;
+#endif
+
+enum assembler_state {
+  ASSEMBLER_STATE_ACCU,
+  ASSEMBLER_STATE_INDEX,
+  ASSEMBLER_STATE_ALIGN,
+  ASSEMBLER_STATE_ADL
+};
 
 int g_latest_stack = 0, g_last_stack_id = 0, g_resolve_stack_calculations = YES, s_stack_calculations_max = 0;
 int g_parsing_function_body = NO, g_fail_quetly_on_non_found_functions = NO, g_input_parse_if = NO, g_dsp_enable_label_address_conversion = YES;
@@ -333,6 +349,68 @@ int compress_stack_calculation_ids(void) {
 }
 
 
+static int _get_assembler_state(int state, int *value) {
+
+  switch (state) {
+  case ASSEMBLER_STATE_ACCU:
+#if defined(W65816)
+    *value = g_accu_size;
+    return SUCCEEDED;
+#else
+    print_error(ERROR_NUM, "accu() is only supported by WLA-65816.\n");
+    return FAILED;
+#endif
+  case ASSEMBLER_STATE_INDEX:
+#if defined(W65816)
+    *value = g_index_size;
+    return SUCCEEDED;
+#else
+    print_error(ERROR_NUM, "index() is only supported by WLA-65816.\n");
+    return FAILED;
+#endif
+  case ASSEMBLER_STATE_ALIGN:
+    *value = g_last_align;
+    return SUCCEEDED;
+  case ASSEMBLER_STATE_ADL:
+#if defined(EZ80)
+    *value = g_ez80_adl_mode != 0;
+    return SUCCEEDED;
+#else
+    print_error(ERROR_NUM, "adl() is only supported by WLA-eZ80.\n");
+    return FAILED;
+#endif
+  default:
+    print_error(ERROR_STC, "Unknown assembler state query %d. Please submit a bug report!\n", state);
+    return FAILED;
+  }
+}
+
+
+int resolve_assembler_state_queries(struct stack_item s[], int stack_item_count) {
+
+  int i, value;
+
+  for (i = 0; i < stack_item_count; i++) {
+    if (s[i].type == STACK_ITEM_TYPE_ASSEMBLER_STATE) {
+      if (_get_assembler_state((int)s[i].value, &value) == FAILED)
+        return FAILED;
+      s[i].type = STACK_ITEM_TYPE_VALUE;
+      s[i].value = value;
+    }
+    else if (s[i].type == STACK_ITEM_TYPE_STACK) {
+      struct stack *stack = find_stack_calculation((int)s[i].value, YES);
+
+      if (stack == NULL)
+        return FAILED;
+      if (resolve_assembler_state_queries(stack->stack_items, stack->stacksize) == FAILED)
+        return FAILED;
+    }
+  }
+
+  return SUCCEEDED;
+}
+
+
 static int _break_before_value_or_string(int i, struct stack_item *si) {
 
   /* we use this function to test if the previous item in the stack
@@ -344,6 +422,8 @@ static int _break_before_value_or_string(int i, struct stack_item *si) {
 
   si = &si[i-1];
   if (si->type == STACK_ITEM_TYPE_VALUE)
+    return SUCCEEDED;
+  if (si->type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
     return SUCCEEDED;
   if (si->type == STACK_ITEM_TYPE_STRING)
     return SUCCEEDED;
@@ -522,6 +602,8 @@ static void _debug_print_stack(int line_number, int stack_id, struct stack_item 
     }
     else if (ta[k].type == STACK_ITEM_TYPE_VALUE)
       print_text(YES, "V(%f)", ta[k].value);
+    else if (ta[k].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
+      print_text(YES, "STATE(%d)", (int)ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STACK)
       print_text(YES, "C(%d)", (int)ta[k].value);
     else if (ta[k].type == STACK_ITEM_TYPE_STRING)
@@ -821,6 +903,35 @@ static int _parse_function_random(char *in, int *result, int *parsed_chars) {
 
   /* output the random number */
   *result = (genrand_int32() % (max-min+1)) + min;
+
+  return SUCCEEDED;
+}
+
+
+static int _parse_function_state(char **in, struct stack_item *si, char *name, int state) {
+
+  int value;
+
+  while (**in == ' ' || **in == '\t')
+    (*in)++;
+  if (**in != ')') {
+    print_error(ERROR_NUM, "%s() takes no arguments and requires a closing parenthesis.\n", name);
+    return FAILED;
+  }
+  (*in)++;
+
+  if (_get_assembler_state(state, &value) == FAILED)
+    return FAILED;
+
+  si->sign = SI_SIGN_POSITIVE;
+  if (g_parsing_function_body == YES) {
+    si->type = STACK_ITEM_TYPE_ASSEMBLER_STATE;
+    si->value = state;
+  }
+  else {
+    si->type = STACK_ITEM_TYPE_VALUE;
+    si->value = value;
+  }
 
   return SUCCEEDED;
 }
@@ -2260,7 +2371,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       if (q > 0 && 
           ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
            si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
-           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK)) {
+           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK ||
+           si[q-1].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_LT;
@@ -2297,7 +2409,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       if (q > 0 &&
           ((si[q-1].type == STACK_ITEM_TYPE_OPERATOR && si[q-1].value == SI_OP_RIGHT) ||
            si[q-1].type == STACK_ITEM_TYPE_VALUE || si[q-1].type == STACK_ITEM_TYPE_STRING ||
-           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK)) {
+           si[q-1].type == STACK_ITEM_TYPE_LABEL || si[q-1].type == STACK_ITEM_TYPE_STACK ||
+           si[q-1].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)) {
         si[q].type = STACK_ITEM_TYPE_OPERATOR;
         si[q].sign = SI_SIGN_POSITIVE;
         si[q].value = SI_OP_COMPARE_GT;
@@ -2799,6 +2912,30 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
             return FAILED;
           in += parsed_chars;
           is_label = NO;
+          break;
+        }
+        else if (k == 4 && strcaselesscmpn(si[q].string, "accu(", 5) == 0) {
+          if (_parse_function_state(&in, &si[q], "accu", ASSEMBLER_STATE_ACCU) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "index(", 6) == 0) {
+          if (_parse_function_state(&in, &si[q], "index", ASSEMBLER_STATE_INDEX) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 5 && strcaselesscmpn(si[q].string, "align(", 6) == 0) {
+          if (_parse_function_state(&in, &si[q], "align", ASSEMBLER_STATE_ALIGN) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
+          break;
+        }
+        else if (k == 3 && strcaselesscmpn(si[q].string, "adl(", 4) == 0) {
+          if (_parse_function_state(&in, &si[q], "adl", ASSEMBLER_STATE_ADL) == FAILED)
+            return FAILED;
+          is_already_processed_function = YES;
           break;
         }
         else if (k == 3 && strcaselesscmpn(si[q].string, "min(", 4) == 0) {
@@ -3507,7 +3644,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       return SUCCEEDED;
     }
     
-    if (from_substitutor == NO) {
+    if (from_substitutor == NO && si[0].type != STACK_ITEM_TYPE_ASSEMBLER_STATE) {
       if (si[0].type == STACK_ITEM_TYPE_STACK) {
         /* update the source pointer */
         *bytes_parsed += (int)(in - in_original) - 1;
@@ -3545,8 +3682,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
   }
   
   /* check if there was data before the computation */
-  if (q > 1 && (si[0].type == STACK_ITEM_TYPE_LABEL || si[0].type == STACK_ITEM_TYPE_VALUE)) {
-    if (si[1].type == STACK_ITEM_TYPE_LABEL || si[1].type == STACK_ITEM_TYPE_VALUE)
+  if (q > 1 && (si[0].type == STACK_ITEM_TYPE_LABEL || si[0].type == STACK_ITEM_TYPE_VALUE || si[0].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)) {
+    if (si[1].type == STACK_ITEM_TYPE_LABEL || si[1].type == STACK_ITEM_TYPE_VALUE || si[1].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
       return STACK_CALCULATE_DELAY;
     if (si[1].type == STACK_ITEM_TYPE_OPERATOR) {
       if (si[1].value == SI_OP_LEFT)
@@ -3591,7 +3728,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     /* *-1 or *-LABEL? */
     if (k < q-2 && si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k].value != SI_OP_RIGHT &&
-        si[k + 1].value == SI_OP_SUB && (si[k + 2].type == STACK_ITEM_TYPE_VALUE || si[k + 2].type == STACK_ITEM_TYPE_LABEL)) {
+        si[k + 1].value == SI_OP_SUB && (si[k + 2].type == STACK_ITEM_TYPE_VALUE || si[k + 2].type == STACK_ITEM_TYPE_LABEL ||
+                                       si[k + 2].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)) {
       if (si[k + 2].sign == SI_SIGN_POSITIVE)
         si[k + 2].sign = SI_SIGN_NEGATIVE;
       else
@@ -3705,7 +3843,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       }
     }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_SUB && b == 1) {
-      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL) {        
+      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL || si[k + 1].type == STACK_ITEM_TYPE_ASSEMBLER_STATE) {
         if (si[k + 1].sign == SI_SIGN_POSITIVE)
           si[k + 1].sign = SI_SIGN_NEGATIVE;
         else
@@ -3718,12 +3856,13 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     /* remove unnecessary + */
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_ADD && b == 1) {
-      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL)
+      if (si[k + 1].type == STACK_ITEM_TYPE_VALUE || si[k + 1].type == STACK_ITEM_TYPE_LABEL || si[k + 1].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
         si[k].type = STACK_ITEM_TYPE_DELETED;
       else if (si[k + 1].type == STACK_ITEM_TYPE_OPERATOR && si[k + 1].value == SI_OP_LEFT)
         si[k].type = STACK_ITEM_TYPE_DELETED;
     }
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK ||
+             si[k].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -3748,7 +3887,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_XOR && b == 1)
       si[k].value = SI_OP_NOT;
-    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK)
+    else if (si[k].type == STACK_ITEM_TYPE_VALUE || si[k].type == STACK_ITEM_TYPE_LABEL || si[k].type == STACK_ITEM_TYPE_STACK ||
+             si[k].type == STACK_ITEM_TYPE_ASSEMBLER_STATE)
       b = 0;
     else if (si[k].type == STACK_ITEM_TYPE_OPERATOR && si[k].value == SI_OP_LEFT)
       b = 1;
@@ -3806,7 +3946,7 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
     }
     
     /* operands pass through */
-    if (type == STACK_ITEM_TYPE_VALUE) {
+    if (type == STACK_ITEM_TYPE_VALUE || type == STACK_ITEM_TYPE_ASSEMBLER_STATE) {
       out->type = in->type;
       out->value = in->value;
       out->sign = in->sign;
@@ -3977,8 +4117,8 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
       out->value = in->value;
       out->sign = in->sign;
     }
-    else if (type == STACK_ITEM_TYPE_VALUE) {
-      out->type = STACK_ITEM_TYPE_VALUE;
+    else if (type == STACK_ITEM_TYPE_VALUE || type == STACK_ITEM_TYPE_ASSEMBLER_STATE) {
+      out->type = type;
       out->value = in->value;
       out->sign = in->sign;
     }

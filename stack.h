@@ -10,6 +10,7 @@ int stack_create_value_stack(double value);
 int stack_create_label_stack(char *label);
 int stack_create_stack_stack(int stack_id);
 int resolve_stack(struct stack_item s[], int stack_item_count);
+int resolve_assembler_state_queries(struct stack_item s[], int stack_item_count);
 int compute_stack(struct stack *sta, int stack_item_count, double *result);
 int compress_stack_calculation_ids(void);
 int calculation_stack_insert(struct stack *s);
@@ -34,4 +35,3 @@ struct section_def *data_stream_parser_get_section(void);
 int data_stream_parser_get_address(void);
 
 #endif
-

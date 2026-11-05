@@ -2583,6 +2583,11 @@ int parse_function(char *in, char *name, int *found_function, int *parsed_chars)
   /* return g_source_index */
   g_source_index = source_index_original;
 
+  if (g_parsing_function_body == NO && resolve_assembler_state_queries(si, fun->stack->stacksize) == FAILED) {
+    free(si);
+    return FAILED;
+  }
+
   /* try to parse the stack calculation */
   can_remember_converted_stack_items = g_can_remember_converted_stack_items;
   g_can_remember_converted_stack_items = NO;

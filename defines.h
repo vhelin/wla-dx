@@ -29,6 +29,9 @@
 #define STACK_RETURN_LABEL  1024
 #define STACK_RETURN_STRING 2048
 
+/* assembler-only operands in function bodies; resolved before object output */
+#define STACK_ITEM_TYPE_ASSEMBLER_STATE 6
+
 #define INPUT_NUMBER_EOL           2
 #define INPUT_NUMBER_ADDRESS_LABEL 3
 #define INPUT_NUMBER_STRING        4

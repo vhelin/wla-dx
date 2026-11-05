@@ -18,7 +18,10 @@ The following built-in functions can be used where ever a number is expected:
 
 ====================== ================================================================================
 abs(exp)               Returns the positive version of the argument
+accu()                 Returns the assumed accumulator width in bits (WLA-65816 only)
 acos(exp)              The same as ANSI C90 acos()
+adl()                  Returns 1 if ADL mode is ON, 0 if OFF (WLA-eZ80 only)
+align()                Returns the most recent .ALIGN argument, or 1 before the first .ALIGN
 asc(exp)               Uses ``.ASCIITABLE`` to map the supplied value
 asin(exp)              The same as ANSI C90 asin()
 atan(exp)              The same as ANSI C90 atan()
@@ -42,6 +45,7 @@ floor(exp)             The same as ANSI C90 floor()
 get(keyword1)          Returns value/string depending on what ``keyword1`` is
 hibyte(exp)            Returns the high byte, bits 8-15 (the same as preceding ``>``)
 hiword(exp)            Returns the high word, bits 16-31
+index()                Returns the assumed X/Y register width in bits (WLA-65816 only)
 is(keyword2)           Return 0 (false) or 1 (true), see below for "keyword2"
 left(len, s)           Returns the leftmost ``len`` characters of ``s``
 lobyte(exp)            Returns the low byte, bits 0-7 (the same as preceding ``<``)
@@ -83,6 +87,42 @@ code then these functions return possibly wrong values.
 Note! ``match()``, ``xmatch()`` and ``tcount()`` operate on WLA token text supplied as strings
 or expanded macro arguments. ``match()`` compares token types, while ``xmatch()`` compares the
 token text as well.
+
+
+Assembler state queries
+-----------------------
+
+``accu()`` and ``index()`` return 8 or 16, reflecting the current ``.ACCU``,
+``.INDEX`` and ``REP`` / ``SEP`` tracking. Both initially return 8. They report
+the assembler's assumptions, not runtime CPU state or an instruction's operand
+hint.
+
+``adl()`` returns 0 (NO) initially and after ``.ADL OFF``, and 1 (YES) after
+``.ADL ON``. Per-instruction eZ80 suffixes do not change this setting.
+
+``align()`` is available on all targets. It initially returns 1, then returns
+the argument of the most recent successfully processed ``.ALIGN`` directive.
+This value persists across includes and section boundaries. It is not the
+current address's alignment or a section's ``ALIGN`` attribute; use
+``get("section.alignment")`` for the latter.
+
+All four functions take no arguments. Using ``accu()`` or ``index()`` outside
+WLA-65816, or ``adl()`` outside WLA-eZ80, is an error.
+
+These queries are evaluated at their point of use in the assembler. In a
+user-defined ``.FUNCTION``, that means when the function is called, not when it
+is defined. If the surrounding expression is deferred to the linker, the
+queried state is captured at assembly time. A ``.DEFINE`` of a query's value
+likewise captures the value at that point.
+
+For example, with WLA-65816::
+
+    .MACRO ASSERT_A_LARGE
+        .ASSERT accu() == 16
+    .ENDM
+
+    .ACCU 16
+    ASSERT_A_LARGE
 
 
 Examples of functions
