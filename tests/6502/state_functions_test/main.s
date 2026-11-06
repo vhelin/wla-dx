@@ -15,7 +15,9 @@
         .function align_plus(n) read_align()+n
         .function align_negative() -align()
         .function align_smaller() align() < 32
-        .assert align() == 1 && read_align() == 1
+        .if align() != 1 || read_align() != 1
+        .fail "Initial alignment must be 1."
+        .endif
 
         .db "01>"                       ; @BT TEST-01 01 START
         .db align(), read_align()       ; @BT 01 01
@@ -26,7 +28,10 @@
 
         .align 16
         .define saved_align align()
-        .assert read_align() == 16
+        .if align() == 16 && read_align() == 16
+        .else
+        .fail "Alignment must be 16 after .ALIGN 16."
+        .endif
         .assert align_negative() == -16
         .assert align_smaller() == 1
         .db "02>"                       ; @BT TEST-02 02 START
@@ -35,6 +40,9 @@
         .db "<02"                       ; @BT END
 
         .align 32
+        .if align() != 32
+        .fail "Alignment must be 32 after .ALIGN 32."
+        .endif
         .assert align_smaller() == 0
         .db "03>"                       ; @BT TEST-03 03 START
         .db align(), read_align()       ; @BT 20 20

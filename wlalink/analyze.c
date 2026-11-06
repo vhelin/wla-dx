@@ -2104,7 +2104,7 @@ int parse_data_blocks(void) {
   struct section *s;
   int section_id_base, i, x;
   unsigned char *t, *p;
-  char buf[256];
+  char buf[MAX_NAME_LENGTH + 1];
 
   g_obj_tmp = g_obj_first;
   section_id_base = 0;
@@ -2139,20 +2139,47 @@ int parse_data_blocks(void) {
 
           /* name */
           i = 0;
-          while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
+          while (t < p && *t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
                  *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                  *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
                  *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE &&
-                 *t != SECTION_STATUS_SEMISUPERFREE)
+                 *t != SECTION_STATUS_SEMISUPERFREE) {
+            if (i >= (int)sizeof(s->name) - 1) {
+              print_text(NO, "PARSE_DATA_BLOCKS: Section name is too long.\n");
+              free(s);
+              return FAILED;
+            }
             s->name[i++] = *(t++);
+          }
+          if (t >= p) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section name.\n");
+            free(s);
+            return FAILED;
+          }
           s->name[i] = 0;
+          if (p - t < 2) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Truncated section status/keep fields.\n");
+            free(s);
+            return FAILED;
+          }
           s->status = *(t++);
           s->keep = *(t++);
 
           /* namespace */
           i = 0;
-          while (*t != 0)
+          while (t < p && *t != 0) {
+            if (i >= (int)sizeof(buf) - 1) {
+              print_text(NO, "PARSE_DATA_BLOCKS: Section namespace is too long.\n");
+              free(s);
+              return FAILED;
+            }
             buf[i++] = *(t++);
+          }
+          if (t >= p) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section namespace.\n");
+            free(s);
+            return FAILED;
+          }
           buf[i] = 0;
           t++;
           if (buf[0] == 0)
@@ -2165,6 +2192,7 @@ int parse_data_blocks(void) {
               nspace = calloc(1, sizeof(struct namespace_def));
               if (nspace == NULL) {
                 print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
+                free(s);
                 return FAILED;
               }
               nspace->label_map = hashmap_new();
@@ -2178,16 +2206,38 @@ int parse_data_blocks(void) {
           /* banks */
           if (s->status == SECTION_STATUS_SEMISUPERFREE) {
             i = 0;
-            while (*t != 0)
+            while (t < p && *t != 0) {
+              if (i >= (int)sizeof(s->banks) - 1) {
+                print_text(NO, "PARSE_DATA_BLOCKS: Section bank list is too long.\n");
+                free(s);
+                return FAILED;
+              }
               s->banks[i++] = *(t++);
+            }
+            if (t >= p) {
+              print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section bank list.\n");
+              free(s);
+              return FAILED;
+            }
             s->banks[i] = 0;
             t++;
           }
 
           /* SPAN banks */
           i = 0;
-          while (*t != 0)
+          while (t < p && *t != 0) {
+            if (i >= (int)sizeof(s->span_banks) - 1) {
+              print_text(NO, "PARSE_DATA_BLOCKS: Section span bank list is too long.\n");
+              free(s);
+              return FAILED;
+            }
             s->span_banks[i++] = *(t++);
+          }
+          if (t >= p) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section span bank list.\n");
+            free(s);
+            return FAILED;
+          }
           s->span_banks[i] = 0;
           t++;
           
@@ -2239,19 +2289,46 @@ int parse_data_blocks(void) {
 
         /* name */
         i = 0;
-        while (*t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
+        while (t < p && *t != SECTION_STATUS_FREE && *t != SECTION_STATUS_FORCE && *t != SECTION_STATUS_OVERWRITE &&
                *t != SECTION_STATUS_HEADER && *t != SECTION_STATUS_SEMIFREE && *t != SECTION_STATUS_ABSOLUTE &&
                *t != SECTION_STATUS_RAM_FREE && *t != SECTION_STATUS_SUPERFREE && *t != SECTION_STATUS_SEMISUBFREE &&
-               *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE)
+               *t != SECTION_STATUS_RAM_FORCE && *t != SECTION_STATUS_RAM_SEMIFREE && *t != SECTION_STATUS_RAM_SEMISUBFREE) {
+          if (i >= (int)sizeof(s->name) - 1) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Section name is too long.\n");
+            free(s);
+            return FAILED;
+          }
           s->name[i++] = *(t++);
+        }
+        if (t >= p) {
+          print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section name.\n");
+          free(s);
+          return FAILED;
+        }
         s->name[i] = 0;
+        if (p - t < 2) {
+          print_text(NO, "PARSE_DATA_BLOCKS: Truncated section status/keep fields.\n");
+          free(s);
+          return FAILED;
+        }
         s->status = *(t++);
         s->keep = *(t++);
           
         /* namespace */
         i = 0;
-        while (*t != 0)
+        while (t < p && *t != 0) {
+          if (i >= (int)sizeof(buf) - 1) {
+            print_text(NO, "PARSE_DATA_BLOCKS: Section namespace is too long.\n");
+            free(s);
+            return FAILED;
+          }
           buf[i++] = *(t++);
+        }
+        if (t >= p) {
+          print_text(NO, "PARSE_DATA_BLOCKS: Unterminated section namespace.\n");
+          free(s);
+          return FAILED;
+        }
         buf[i] = 0;
         t++;
         if (buf[0] == 0)
@@ -2264,6 +2341,7 @@ int parse_data_blocks(void) {
             nspace = calloc(1, sizeof(struct namespace_def));
             if (nspace == NULL) {
               print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
+              free(s);
               return FAILED;
             }
             nspace->label_map = hashmap_new();
