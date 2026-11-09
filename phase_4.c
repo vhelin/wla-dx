@@ -2808,6 +2808,20 @@ int phase_4(void) {
       }
       else if (y == -2) {
         /* end of .DSTRUCT. make sure all memory is claimed. */
+        /* NOTE: "s_dstruct_start + x" is the end of the .DSTRUCT as declared by the .STRUCT
+           definition, and nothing limits it to the size of the ROM. When the .DSTRUCT is not
+           inside a .SECTION the bytes are claimed in g_rom_banks_usage_table[] and g_rom_banks[],
+           which are exactly g_max_address bytes long (see the calloc()s in phase_1.c), so a
+           .DSTRUCT started near the end of the ROM whose fields add up to more bytes than the ROM
+           has left used to keep this loop running past g_max_address and wrote both arrays out of
+           bounds (buffer overflow / heap corruption). A .DSTRUCT inside a .SECTION uses the
+           section's own data buffer instead and must not be limited to the ROM size. */
+        if (g_section_status == OFF && s_dstruct_start + x > g_max_address) {
+          print_text(NO, "%s:%d: INTERNAL_PHASE_2: .DSTRUCT ($%x + $%x = $%x bytes) does not fit into the ROM ($%x bytes).\n",
+                  get_file_name(s_filename_id), s_line_number, s_dstruct_start, x, s_dstruct_start + x, g_max_address);
+          return FAILED;
+        }
+
         while (s_pc_full < s_dstruct_start + x) {
           if (g_section_status == OFF && g_rom_banks_usage_table[s_pc_full] == 0) {
             g_rom_banks_usage_table[s_pc_full] = 2;
@@ -4161,7 +4175,12 @@ int mem_insert_padding(void) {
 
 int mem_insert_absolute(int add, unsigned char x) {
 
-  if (add >= g_max_address) {
+  /* NOTE: "add >= g_max_address" alone lets negative addresses through, and g_rom_banks[] and
+     g_rom_banks_usage_table[] are exactly g_max_address bytes long, so a negative "add" (e.g. from
+     a negative .SMSHEADER BASEADDRESS, which phase_2.c only checks against the upper limit) used
+     to index both arrays before their beginning (buffer underflow / heap corruption). Also check
+     the lower limit. */
+  if (add < 0 || add >= g_max_address) {
     print_text(NO, "MEM_INSERT_ABSOLUTE: The current address ($%.8x) exceeds the size of the ROM ($%.8x).\n", add, g_max_address);
     if (g_mem_insert_action[0] != 0)
       print_text(NO, "   ^ %s\n", g_mem_insert_action);

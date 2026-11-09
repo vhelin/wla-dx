@@ -996,8 +996,33 @@ static int _smc_create_and_write(FILE *f) {
 
 struct section *find_section(int id) {
 
+  struct pointer_array *pointer_array;
+  int table;
+
   /* NOTE! this function doesn't return bankheader sections */
-  return (struct section *)g_section_table_table[id >> 16]->ptr[id & 0xffff];
+
+  /* NOTE: "id" comes straight out of the object file - analyze.c does
+     "r->section = READ_T", "l->section = READ_T" and "s->section = READ_T",
+     then adds a per-file section_id_base. It was used unchecked as
+     g_section_table_table[id >> 16] and then as that table's ptr[id & 0xffff],
+     so a crafted .o/.lib file indexed both heap-allocated pointer arrays out
+     of range (heap buffer over-read; the table lookup could also load a
+     pointer from past the array and dereference it). The first caller to run
+     on such an id is discard.c:discard_iteration(), which reaches here long
+     before fix_references() would. Validate the id and report "not found"
+     for anything outside the tables that were actually built. */
+  table = id >> 16;
+  if (table < 0 || table > g_section_table_table_max)
+    return NULL;
+
+  pointer_array = g_section_table_table[table];
+  if (pointer_array == NULL)
+    return NULL;
+
+  if ((id & 0xffff) > pointer_array->max)
+    return NULL;
+
+  return (struct section *)pointer_array->ptr[id & 0xffff];
 }
 
 
@@ -3605,8 +3630,11 @@ int write_symbol_file(char *outname, int mode, int output_addr_to_line) {
 
         /* skip all dropped section labels */
         if (l->section_status == ON) {
+          /* NOTE: find_section() now returns NULL for an out-of-range section
+             id coming from a crafted object file, so this dereference needs a
+             NULL check (an unknown section is not a dropped one). */
           s = find_section(l->section);
-          if (s->alive == NO) {
+          if (s != NULL && s->alive == NO) {
             l = l->next;
             continue;
           }
@@ -3857,11 +3885,18 @@ int write_rom_file(char *outname) {
       return FAILED;
   }
 
-  if (g_program_address_start > g_romsize) {
+  /* NOTE: g_rom[] holds exactly g_romsize bytes, so the last valid address is
+     g_romsize - 1. These checks used ">" and therefore accepted an address of
+     exactly g_romsize ("-bE 32768" with a 32768 byte ROM). That value is stored
+     in g_program_end, and the code below then does
+     "fwrite(g_rom + b, 1, e - b + 1, f)" - a heap buffer over-read of one byte
+     past g_rom[] - while main.c's _show_rom_ram_information() reads
+     g_rom_usage[g_program_end] out of bounds as well. Reject the equal value. */
+  if (g_program_address_start >= g_romsize) {
     print_text(NO, "WRITE_ROM_FILE: The supplied -bS ($%x) overflows from the ROM!\n", g_program_address_start);
     return FAILED;
   }
-  if (g_program_address_end > g_romsize) {
+  if (g_program_address_end >= g_romsize) {
     print_text(NO, "WRITE_ROM_FILE: The supplied -bE ($%x) overflows from the ROM!\n", g_program_address_end);
     return FAILED;
   }
@@ -5685,9 +5720,22 @@ int write_bank_header_references(struct reference *r) {
   unsigned char *t;
   int a;
 
+  /* NOTE: this walk ran off the end of the bankheader section list (and then
+     read s->id through a NULL pointer) whenever r->section referred to no
+     bankheader section at all. fix_references() calls us for every reference
+     whose section could not be found, and r->section is just a dword from the
+     object file, so a crafted .o/.lib file reached this NULL dereference as
+     soon as find_section() stopped reading out of bounds for such ids. Stop at
+     the end of the list and report a proper error instead. */
   s = g_sec_bankhd_first;
-  while (r->section != s->id)
+  while (s != NULL && r->section != s->id)
     s = s->next;
+
+  if (s == NULL) {
+    print_text(NO, "%s: %s:%d: WRITE_BANK_HEADER_REFERENCES: Reference \"%s\" claims to be inside section %d, but no bankheader section has that id.\n",
+            get_file_name(r->file_id), get_source_file_name(r->file_id, r->file_id_source), r->linenumber, r->name, r->section);
+    return FAILED;
+  }
 
   t = s->data + r->address;
 

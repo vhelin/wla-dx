@@ -34,7 +34,7 @@
   #define WLALINK_DEBUG 1
 */
 
-char g_version_string[] = "$VER: wlalink 5.24a (6.11.2026)";
+char g_version_string[] = "$VER: wlalink 5.24a (9.11.2026)";
 
 #if defined(AMIGA)
 __near long __stack = 200000;
@@ -432,22 +432,42 @@ void print_text_using_args(int is_stdout, const char *format, va_list args) {
         s_line_y++;
 
         /* print the line */
-        saved1 = s_print_text_buffer[i+1];
-        saved2 = s_print_text_buffer[i+2];
-        s_print_text_buffer[i+1] = 0xA;
-        s_print_text_buffer[i+2] = 0;
-          
-        _print_text(is_stdout, &s_print_text_buffer[start_index]);
+        /* NOTE: s_print_text_buffer[] is exactly 4096 bytes (see its declaration above).
+           vsnprintf() may fill all of it (4095 characters + the NUL), so the loop index
+           can reach 4094. The temporary sentinel below writes to [i+1] and [i+2], i.e.
+           bytes 4095 and 4096 - and byte 4096 is one past the end of the array, a stack
+           buffer overflow of the static buffer (SIGSEGV when the following page is not
+           mapped, silent corruption of the neighbouring data otherwise). Only use the
+           sentinel trick while the whole pair still lies inside the buffer; otherwise
+           print the remaining tail as it is, since vsnprintf() already NUL terminated it. */
+        if (i + 2 < (int)sizeof(s_print_text_buffer)) {
+          saved1 = s_print_text_buffer[i+1];
+          saved2 = s_print_text_buffer[i+2];
+          s_print_text_buffer[i+1] = 0xA;
+          s_print_text_buffer[i+2] = 0;
 
-        if (s_line_y >= s_screen_dy-1)
-          _pause();
-          
-        s_print_text_buffer[i+1] = saved1;
-        s_print_text_buffer[i+2] = saved2;
-        start_index = i+1;
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
 
-        if (saved1 == 0xA && saved2 == 0) {
-          start_index++;
+          if (s_line_y >= s_screen_dy-1)
+            _pause();
+
+          s_print_text_buffer[i+1] = saved1;
+          s_print_text_buffer[i+2] = saved2;
+          start_index = i+1;
+
+          if (saved1 == 0xA && saved2 == 0) {
+            start_index++;
+            break;
+          }
+        }
+        else {
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+
+          if (s_line_y >= s_screen_dy-1)
+            _pause();
+
+          /* everything has been printed, don't let the tail print below repeat it */
+          start_index = length;
           break;
         }
       }
@@ -709,7 +729,14 @@ static int _show_rom_ram_information(void) {
       print_text(YES, "-------------------------------------------------\n");
     }
     
-    for (a = g_program_start, used_bytes = 0; a <= g_program_end; a++) {
+    /* NOTE: g_rom_usage[] holds exactly g_romsize bytes (see _allocate_rom()).
+       g_program_end here comes from write_rom_file(), which lets a "-bE" value
+       equal to g_romsize through its "> g_romsize" check ("-bE 32768" with a
+       32768 byte ROM), and "-bS" can set g_program_start to g_romsize as well.
+       The loops below used "<=" / "<" against those unbounded values, so
+       g_rom_usage[g_program_end] and g_rom_usage[g_program_start] were read one
+       byte past the end of the heap buffer. Keep both indexes inside the ROM. */
+    for (a = g_program_start, used_bytes = 0; a <= g_program_end && a < g_romsize; a++) {
       if (g_rom_usage[a] != 0)
         used_bytes++;
     }
@@ -1486,15 +1513,25 @@ int main(int argc, char *argv[]) {
   /* if ROM size < 32KBs, correct SDSC tag sections' addresses */
   if (g_smstag_defined != 0) {
     int tag_address = get_sms_tag_address();
-    struct section *s = g_sec_first;
+    struct section *s;
 
-    while (s != NULL) {
-      if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0)
-        s->address = tag_address - 6;
-      else if (strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0)
-        s->address = tag_address - 16;
+    /* NOTE: get_sms_tag_address() returns -1 when the BASEADDRESS in the object header
+       does not fit inside the ROM. Writing "@tag_address - 6" / "- 16" would then assign
+       negative addresses to these sections, so skip the fix-up in that case. */
+    if (tag_address < 0) {
+      print_text(NO, "MAIN: Cannot place the SDSC tag sections, the SMS ROM header does not fit inside the ROM.\n");
+    }
+    else {
+      s = g_sec_first;
 
-      s = s->next;
+      while (s != NULL) {
+        if (strcmp(s->name, "!__WLA_SDSCTAG_STRINGS") == 0)
+          s->address = tag_address - 6;
+        else if (strcmp(s->name, "!__WLA_SDSCTAG_TIMEDATE") == 0)
+          s->address = tag_address - 16;
+
+        s = s->next;
+      }
     }
   }
 

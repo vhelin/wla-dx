@@ -449,7 +449,10 @@ int phase_2(void) {
 
     /* BASEADDRESS override */
     if (g_romheader_baseaddress_defined != 0) {
-      if (g_romheader_baseaddress + 16 > g_max_address) {
+      /* NOTE: only the upper limit was checked, so a negative BASEADDRESS produced a negative
+         tag_address and mem_insert_absolute() then wrote before the beginning of the ROM buffers
+         (buffer underflow). Reject negative base addresses here as well. */
+      if (g_romheader_baseaddress < 0 || g_romheader_baseaddress + 16 > g_max_address) {
         print_text(NO, "PHASE_2: Baseaddress ($%x) for SMS ROM header is too large, it overflows from the ROM ($%x bytes)!\n", g_romheader_baseaddress, g_max_address);
         return FAILED;
       }

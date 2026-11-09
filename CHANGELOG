@@ -4,7 +4,7 @@
            6809/8008/8080/HUC6280/SH-2/CP1610/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
-v10.8 (05-Nov-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
+v10.8 (09-Nov-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] .MACRO calls should now work properly in listfiles.
                     [ALL] WLA assembles now "WLAK" library files and "WLAo"
                       object files.
@@ -23,6 +23,7 @@ v10.8 (05-Nov-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] Added .length_utf8.
                     [ALL] Fixed naked _sizeof_* references inside namespaced
                       .INCLUDE file.
+                    [ALL] Buffer over- and underflow fixes.
                     [658] Added .SNESEXPANDEDHEADER.
                     [161] Added support for GI CP1610 CPU.
                     [68k] Fixed parenthesized expressions with labels starting
@@ -1624,15 +1625,12 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.24 (06-Nov-2026) Added support for paword(a).
+v5.24 (09-Nov-2026) Added support for paword(a).
                     -C removes duplicate definitions in symbol file.
                     WLALINK now places same-size sections in a stable
                       order (object-file order) so packing does not depend
                       on the host C library's qsort().
-                    Fixed buffer overflows when parsing section namespaces,
-                      names and bank lists in objects and libraries. Reject
-                      overlong or unterminated fields without limiting valid
-                      namespaces to 255 bytes (thanks to Deus Rex / Cyrex)
+                    Buffer over- and underflow fixes.
 
 v5.23 (22-Jul-2026) .MACRO calls should now work properly in listfiles.
                     Added support for SPAN in .SECTIONs.

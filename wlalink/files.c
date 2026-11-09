@@ -865,7 +865,18 @@ int load_files(char *argv[], int argc) {
       }
 
       strcpy(g_sec_fix_tmp->name, token);
-      strcpy(g_sec_fix_tmp->file_name, argv[argc - 2]);
+      /* NOTE: file_name is char[MAX_NAME_LENGTH + 1] (2048 bytes) but
+         argv[argc - 2] is the linkfile path exactly as it was typed on the
+         command line, and nothing bounds it to MAX_NAME_LENGTH - Cygwin/Linux
+         happily hand over paths of several thousand characters. A linkfile in
+         such a directory that contains a [sections]/[ramsections] entry made
+         this strcpy run past the end of file_name: first over the following
+         slot_name and banks/span_banks members of the same heap block, and
+         past the end of the allocation with only a slightly longer path (the
+         stock binary aborts with heap corruption). Copy at most the field can
+         hold and keep the terminator. */
+      strncpy(g_sec_fix_tmp->file_name, argv[argc - 2], sizeof(g_sec_fix_tmp->file_name) - 1);
+      g_sec_fix_tmp->file_name[sizeof(g_sec_fix_tmp->file_name) - 1] = 0;
       strcpy(g_sec_fix_tmp->slot_name, slot_name);
       g_sec_fix_tmp->line_number = line;
       g_sec_fix_tmp->bank = bank;

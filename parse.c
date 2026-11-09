@@ -145,6 +145,26 @@ int compare_next_token(char *token) {
           break;
       }
 
+      /* NOTE: if the '\' isn't followed by any digit (e.g. "\.", a documented macro expansion,
+         or a lone '\' at the end of the token), the loop above leaves d == 0 and
+         argument_data[d - 1] would be argument_data[-1], i.e. an element before the beginning
+         of the argument pointer array (buffer underflow). Fall back to the plain, non-macro
+         comparison in that case instead of indexing the array with -1. */
+      if (d == 0) {
+        for (t = 0; t < length && e != ' ' && e != ',' && e != 0x0A; ) {
+          if (toupper((int)token[t]) != toupper((int)e))
+            return FAILED;
+          t++;
+          e = g_buffer[++ii];
+        }
+
+        if (t == length && e != ' ' && e != ',' && e != 0x0A)
+          return FAILED;
+        if (t == length)
+          return SUCCEEDED;
+        return FAILED;
+      }
+
       if (d > g_macro_runtime_current->supplied_arguments) {
         if (g_input_number_error_msg == YES) {
           print_error(ERROR_NONE, "COMPARE_NEXT_SYMBOL: Macro \"%s\" wasn't called with enough arguments.\n", g_macro_runtime_current->macro->name);
@@ -472,13 +492,35 @@ static int _input_number_return_definition(struct definition *def) {
       g_string_size = def->size + 1;
     }
     else {
+      /* NOTE: a definition can hold a longer string than g_label[MAX_NAME_LENGTH + 1] can
+         (e.g. one coming from the command line), so the size has to be clamped before the
+         memcpy() and the closing NUL would otherwise be written past the end of g_label
+         (buffer overflow). */
       g_string_size = def->size;
+
+      if (g_string_size >= (int)sizeof(g_label)) {
+        if (g_input_number_error_msg == YES) {
+          print_error(ERROR_NUM, "The label is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+        }
+        return FAILED;
+      }
+
       memcpy(g_label, def->string, g_string_size);
       g_label[g_string_size] = 0;
     }
   }
   else {
+    /* NOTE: same as above - the definition's string can be longer than g_label can hold,
+       so refuse it instead of copying past the end of g_label (buffer overflow). */
     g_string_size = def->size;
+
+    if (g_string_size >= (int)sizeof(g_label)) {
+      if (g_input_number_error_msg == YES) {
+        print_error(ERROR_NUM, "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+      }
+      return FAILED;
+    }
+
     memcpy(g_label, def->string, g_string_size);
     g_label[g_string_size] = 0;
     
@@ -1210,6 +1252,14 @@ int input_number(void) {
 
       if (e == '\\' && g_buffer[g_source_index] == '\\') {
         /* let process_string_for_special_characters() handle '\\' */
+        /* NOTE: this branch writes two characters in a single loop iteration, so when only
+           one byte is left in g_label[] (k == MAX_NAME_LENGTH - 1) the second write would go
+           to g_label[MAX_NAME_LENGTH], which is one byte past the end of the buffer
+           (buffer overflow). Stop and flag the string as too long instead. */
+        if (k + 1 >= MAX_NAME_LENGTH) {
+          k = MAX_NAME_LENGTH;
+          break;
+        }
         g_label[k++] = '\\';
         g_label[k++] = '\\';
         g_source_index++;
@@ -1548,7 +1598,18 @@ int parse_string_length(char *end, int utf8) {
       return FAILED;
     }
     else {
+      /* NOTE: the definition's string can be longer than g_label[MAX_NAME_LENGTH + 1] can
+         hold (e.g. a string definition that came from the command line), so the size has to
+         be clamped before the memcpy() - otherwise the copy and the closing NUL would run
+         past the end of g_label (buffer overflow). */
       g_string_size = tmp_def->size;
+
+      if (g_string_size >= (int)sizeof(g_label)) {
+        if (g_input_number_error_msg == YES)
+          print_error(ERROR_NUM, "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+        return FAILED;
+      }
+
       memcpy(g_label, tmp_def->string, g_string_size);
       g_label[g_string_size] = 0;
 
@@ -1655,13 +1716,29 @@ int get_next_token(void) {
   
   /* "string"? */
   if (g_buffer[g_source_index] == '"') {
+    int too_long = NO;
+
+    /* NOTE: the loop below used to be unbounded, so a quoted string longer than g_tmp
+       (g_sizeof_g_tmp bytes) kept writing past the end of the buffer (buffer overflow) and
+       the g_tmp[g_ss] = 0 terminator went even further out of bounds. Bound the copy to the
+       size of the destination buffer. */
     for (g_ss = 0, g_source_index++; g_buffer[g_source_index] != 0xA && g_buffer[g_source_index] != '"'; ) {
+      if (g_ss >= g_sizeof_g_tmp - 1) {
+        too_long = YES;
+        break;
+      }
+
       if (g_buffer[g_source_index] == '\\' && g_buffer[g_source_index + 1] == '"') {
         g_tmp[g_ss++] = '"';
         g_source_index += 2;
       }
       else
         g_tmp[g_ss++] = g_buffer[g_source_index++];
+    }
+
+    if (too_long == YES) {
+      print_error(ERROR_NONE, "GET_NEXT_TOKEN: Too long for a string.\n");
+      return FAILED;
     }
 
     if (g_buffer[g_source_index] == 0xA) {
@@ -1757,6 +1834,14 @@ int get_next_token(void) {
   hashmap_get(g_defines_map, g_tmp, (void*)&tmp_def);
   if (tmp_def != NULL) {
     if (tmp_def->type == DEFINITION_TYPE_STRING) {
+      /* NOTE: a definition string can be longer than g_tmp (g_sizeof_g_tmp bytes), e.g. one
+         given on the command line, so copying it blindly would overflow g_tmp (buffer
+         overflow). Refuse the ones that don't fit. */
+      if ((int)strlen(tmp_def->string) >= g_sizeof_g_tmp) {
+        print_error(ERROR_NONE, "GET_NEXT_TOKEN: Too long for a token.\n");
+        return FAILED;
+      }
+
       strcpy(g_tmp, tmp_def->string);
       g_ss = (int)strlen(g_tmp);
     }

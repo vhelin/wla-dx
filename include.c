@@ -88,6 +88,10 @@ static int _try_open_file(char *directory, char *partial_name, FILE **out_result
     return FAILED;
 
   /* remember the latest successful directory */
+  /* NOTE: g_latest_include_dir[] is MAX_NAME_LENGTH + 1 bytes but g_full_name can be longer
+     (it is sized from the actual directory + file name), so the directory prefix must be
+     clamped before it is copied or the stack buffer overflows. A too long prefix cannot be
+     used as an include directory anyway, so drop it in that case. */
   g_latest_include_dir[0] = 0;
 
   len = (int)strlen(g_full_name) - 1;
@@ -97,7 +101,7 @@ static int _try_open_file(char *directory, char *partial_name, FILE **out_result
     len--;
   }
 
-  if (len >= 0) {
+  if (len >= 0 && len < MAX_NAME_LENGTH) {
     for (i = 0; i <= len; i++)
       g_latest_include_dir[i] = g_full_name[i];
     g_latest_include_dir[i] = 0;
@@ -377,6 +381,15 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
         return FAILED;
       }
 
+      /* NOTE: a negative SKIP would make the later "*read = file_size - *skip" computation
+         produce a read size larger than the file and "*skip + *read" would then pass the
+         overread check, making .INCBIN read past the end of the cached file data (buffer
+         overflow) and, in phase_4, read before the start of it (buffer underflow). */
+      if (g_parsed_int < 0) {
+        print_error(ERROR_DIR, ".INCBIN SKIP must be positive or zero, a negative value doesn't make sense.\n");
+        return FAILED;
+      }
+
       *skip = g_parsed_int;
     }
     /* READ bytes? */
@@ -466,12 +479,24 @@ int incbin_file(char *name, int *id, int *swap, int *skip, int *read, struct mac
       is_full_path = YES;
     }
     else if (compare_next_token("RELATIVEDIR") == SUCCEEDED) {
-      char tmp[MAX_NAME_LENGTH + 1], *full_path = get_file_name(g_active_file_info_last->filename_id);
+      /* NOTE: get_dir() copies the whole directory prefix of the active source file, whose
+         name is not limited to MAX_NAME_LENGTH, so tmp must not be a fixed size
+         MAX_NAME_LENGTH + 1 stack buffer - that overflows the stack. Size it to match the
+         source file name instead. */
+      char *full_path = get_file_name(g_active_file_info_last->filename_id), *tmp;
+
+      tmp = calloc(strlen(full_path) + 2, 1);
+      if (tmp == NULL) {
+        print_error(ERROR_INB, "Out of memory while resolving the RELATIVEDIR path of \"%s\".\n", name);
+        return FAILED;
+      }
 
       skip_next_token();
 
       get_dir(full_path, tmp);
       use_dir(tmp, name);
+
+      free(tmp);
 
       is_full_path = YES;
     }
@@ -761,7 +786,10 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       }
       break;
     case '/':
-      if (*(input + 1) == '*') {
+      /* NOTE: the two lookaheads below read past the end of the input buffer when the file
+         ends with '/' - the buffer is exactly file_size bytes long, so the lookahead must be
+         bounded by input_end. */
+      if (input + 1 < input_end && *(input + 1) == '*') {
         /* remove an ANSI C -style block comment */
         got_chars_on_line = 0;
         input += 2;
@@ -789,7 +817,7 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
         else if (*output != ' ')
           output++;
       }
-      else if (*(input + 1) == '/') {
+      else if (input + 1 < input_end && *(input + 1) == '/') {
         /* C++ style comment -> clear a commented line */
         input += 2;
         for ( ; input < input_end && *input != 0x0A && *input != 0x0D; input++)
@@ -824,13 +852,15 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       output++;
       for ( ; input < input_end && (*input == ' ' || *input == 0x09); input++)
         ;
-      if (got_chars_on_line == 0 && (*input == '-' || *input == '+')) {
+      /* NOTE: the white space run above can end exactly at input_end, so *input must not be
+         dereferenced before checking that we are still inside the input buffer. */
+      if (input < input_end && got_chars_on_line == 0 && (*input == '-' || *input == '+')) {
         /* special case - -/--/--- or +/++/+++, but not at the beginning of the line, but after some white space */
         output--;
         for ( ; input < input_end && (*input == '+' || *input == '-'); input++, output++)
           *output = *input;     
       }
-      else if (got_chars_on_line == 0 && *input == '_') {
+      else if (input < input_end && got_chars_on_line == 0 && *input == '_') {
         /* special case - _/__, but not at the beginning of the line, but after some white space */
         output--;
         for ( ; input < input_end && *input == '_'; input++, output++)
@@ -860,7 +890,10 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       input++;
       break;
     case '\'':
-      if (*(input + 2) == '\'') {
+      /* NOTE: *(input + 2) is read past the end of the input buffer when the file ends with
+         a single quote (or a quote followed by one more byte). The two byte lookahead has to
+         stay inside the buffer. */
+      if (input + 2 < input_end && *(input + 2) == '\'') {
         *output = '\'';
         input++;
         output++;
@@ -941,7 +974,10 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
 #endif
     case ')':
       /* go back? */
-      if (got_chars_on_line == 1 && *(output - 1) == ' ')
+      /* NOTE: output can still be at out_buffer here (e.g. an empty block comment followed
+         by a closing parenthesis leaves the output empty), so *(output - 1) would read
+         before the beginning of the output buffer. */
+      if (got_chars_on_line == 1 && output > out_buffer && *(output - 1) == ' ')
         output--;
       *output = ')';
       input++;
@@ -968,11 +1004,17 @@ int preprocess_file(char *input, char *input_end, char *out_buffer, int *out_siz
       else {
 #if defined(W65816) || defined(SPC700)
         /* go back? */
-        if (*(output - 1) == ' ' && square_bracket_open == 1)
+        /* NOTE: output can be at out_buffer here (e.g. an empty block comment followed by a
+           comma leaves the output empty), so *(output - 1) would read before the beginning
+           of the output buffer. */
+        if (output > out_buffer && *(output - 1) == ' ' && square_bracket_open == 1)
           output--;
 #else
         /* go back? */
-        if ((z == 3 || *input == ',') && *(output - 1) == ' ' && *(output - 2) == ' ')
+        /* NOTE: output can be at out_buffer or out_buffer + 1 here (e.g. an empty block
+           comment followed by a comma, or a comma right after white space), so *(output - 1)
+           and *(output - 2) would read before the beginning of the output buffer. */
+        if ((z == 3 || *input == ',') && output > out_buffer + 1 && *(output - 1) == ' ' && *(output - 2) == ' ')
           output--;
 #endif
         *output = *input;

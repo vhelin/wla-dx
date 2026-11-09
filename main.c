@@ -34,7 +34,7 @@ FILE *g_file_out_ptr = NULL;
 __near long __stack = 200000;
 #endif
 
-char s_version_string[] = "$VER: wla-" WLA_NAME " 10.8a (5.11.2026)";
+char s_version_string[] = "$VER: wla-" WLA_NAME " 10.8a (9.11.2026)";
 char s_wla_version[] = "10.8";
 
 extern struct incbin_file_data *g_incbin_file_data_first, *g_ifd_tmp;
@@ -177,22 +177,40 @@ void print_text_using_args(int is_stdout, const char *format, va_list args) {
         s_line_y++;
 
         /* print the line */
-        saved1 = s_print_text_buffer[i+1];
-        saved2 = s_print_text_buffer[i+2];
-        s_print_text_buffer[i+1] = 0xA;
-        s_print_text_buffer[i+2] = 0;
-          
-        _print_text(is_stdout, &s_print_text_buffer[start_index]);
+        /* NOTE: s_print_text_buffer[] is exactly 4096 bytes. When the formatted text fills
+           the whole buffer (4095 characters + the vsnprintf() NUL), the loop index can be
+           4094 and the temporary sentinel writes to [i+1] and [i+2] then reach byte 4096,
+           which is one byte past the end of the buffer (buffer overflow). Only use the
+           sentinel trick when the buffer still has room for it, otherwise print the tail
+           as is - it is already terminated by the vsnprintf() NUL. */
+        if (i + 2 < (int)sizeof(s_print_text_buffer)) {
+          saved1 = s_print_text_buffer[i+1];
+          saved2 = s_print_text_buffer[i+2];
+          s_print_text_buffer[i+1] = 0xA;
+          s_print_text_buffer[i+2] = 0;
+            
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
 
-        if (s_line_y >= s_screen_dy-1)
-          _pause();
-          
-        s_print_text_buffer[i+1] = saved1;
-        s_print_text_buffer[i+2] = saved2;
-        start_index = i+1;
+          if (s_line_y >= s_screen_dy-1)
+            _pause();
+            
+          s_print_text_buffer[i+1] = saved1;
+          s_print_text_buffer[i+2] = saved2;
+          start_index = i+1;
 
-        if (saved1 == 0xA && saved2 == 0) {
-          start_index++;
+          if (saved1 == 0xA && saved2 == 0) {
+            start_index++;
+            break;
+          }
+        }
+        else {
+          _print_text(is_stdout, &s_print_text_buffer[start_index]);
+
+          if (s_line_y >= s_screen_dy-1)
+            _pause();
+
+          /* everything has been printed, don't let the tail print below repeat it */
+          start_index = length;
           break;
         }
       }
@@ -1100,7 +1118,11 @@ int main(int argc, char *argv[]) {
       if (parse_flags_result == SUCCEEDED) {
         /* assume object file output name */
         g_output_format = OUTPUT_OBJECT;
-        g_final_name = calloc(strlen(g_asm_name)+1, 1);
+        /* NOTE: the buffer must also have room for the "." and the "o" that are appended
+           before the terminating NUL, so one extra byte is not enough - a source file name
+           without an extension would write "o" and the NUL past the end of the allocation
+           (buffer overflow). */
+        g_final_name = calloc(strlen(g_asm_name) + 3, 1);
         for (n_ctr = 0; n_ctr < (int)strlen(g_asm_name) && *((g_asm_name) + n_ctr) != '.'; n_ctr++)
           g_final_name[n_ctr] = *((g_asm_name) + n_ctr);
         g_final_name[n_ctr++] = '.';

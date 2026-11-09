@@ -33,8 +33,24 @@ int get_sms_tag_address(void) {
     tag_address = 0x3FF0;
 
   /* BASEADDRESS override */
-  if (g_romheader_baseaddress != -1)
+  if (g_romheader_baseaddress != -1) {
+    /* NOTE: a BASEADDRESS coming from a crafted .o header could be negative or point
+       past the end of the ROM. The assembler validates its own BASEADDRESS, but wlalink
+       trusts whatever dword the object file carries, and every caller below indexes
+       tag_address + 0xF inside g_rom[]/g_rom_usage[] (mem_insert() does not check
+       g_romsize at all). Report once and refuse instead of returning an unusable
+       address - the callers all treat -1 as "do not touch the ROM". */
+    if (g_romheader_baseaddress < 0 || g_romheader_baseaddress + 16 > g_romsize) {
+      static int s_reported = 0;
+
+      if (s_reported == 0) {
+        print_text(NO, "GET_SMS_TAG_ADDRESS: Baseaddress ($%x) for the SMS ROM header does not fit inside the ROM ($%x bytes).\n", g_romheader_baseaddress, g_romsize);
+        s_reported = 1;
+      }
+      return -1;
+    }
     tag_address = g_romheader_baseaddress;
+  }
 
   return tag_address;
 }
@@ -46,6 +62,12 @@ int reserve_checksum_bytes(void) {
   
   if (g_sms_checksum_already_written == 0 && (g_sms_checksum != 0 || g_sms_header != 0)) {
     int tag_address = get_sms_tag_address();
+
+    /* NOTE: get_sms_tag_address() returns -1 when the BASEADDRESS in the object
+       header does not fit inside the ROM. Continuing would make mem_insert() write
+       outside g_rom[]/g_rom_usage[]. */
+    if (tag_address < 0)
+      return FAILED;
     
     if (g_romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -81,6 +103,10 @@ int reserve_checksum_bytes(void) {
 
   if (g_smstag_defined != 0 || g_sms_header != 0) {
     int tag_address = get_sms_tag_address();
+
+    /* NOTE: see the comment above - refuse an unusable BASEADDRESS. */
+    if (tag_address < 0)
+      return FAILED;
     
     if (g_romsize >= 0x2000) {
       /* create a what-we-are-doing message for mem_insert*() warnings/errors */
@@ -437,6 +463,12 @@ int compute_snes_checksum(void) {
 int add_tmr_sega(void) {
 
   int tag_address = get_sms_tag_address();
+
+  /* NOTE: get_sms_tag_address() returns -1 when the BASEADDRESS in the object header
+     does not fit inside the ROM, and mem_insert_allow_overwrite() never checks
+     g_romsize, so writing tag_address + 0x0..0x7 below would go out of bounds. */
+  if (tag_address < 0)
+    return FAILED;
   
   if (g_romsize < 0x2000) {
     print_text(NO, "ADD_TMR_SEGA: A ROM of at least 8KBs is required.\n");
@@ -477,6 +509,12 @@ int compute_sms_checksum(void) {
   }
 
   tag_address = get_sms_tag_address();
+
+  /* NOTE: get_sms_tag_address() returns -1 when the BASEADDRESS from the object header
+     does not fit inside the ROM. The very first statement below indexes
+     g_rom_usage[tag_address + 0xF], so an unusable base address has to be rejected here. */
+  if (tag_address < 0)
+    return FAILED;
 
   /* NOTE: this is one only if we have nothing written there as we've then reserved the byte (one write). if we had written to that
      previously then it would be > 1 as reserving it would increase the counter by one... */
@@ -531,8 +569,17 @@ int compute_sms_checksum(void) {
     }
 
     /* BASEADDRESS override */
-    if (g_romheader_baseaddress != -1)
+    if (g_romheader_baseaddress != -1) {
+      /* NOTE: this assignment bypassed get_sms_tag_address(), which is where the new
+         range check lives, so an out-of-range BASEADDRESS reached the mem_insert_*()
+         calls at the end of this function (they never look at g_romsize). Re-check it
+         against the ROM size the same way. */
+      if (g_romheader_baseaddress < 0 || g_romheader_baseaddress + 16 > g_romsize) {
+        print_text(NO, "COMPUTE_SMS_CHECKSUM: Baseaddress ($%x) for the SMS ROM header does not fit inside the ROM ($%x bytes).\n", g_romheader_baseaddress, g_romsize);
+        return FAILED;
+      }
       tag_address = g_romheader_baseaddress;
+    }
   }
   else {
     /* no ROM size defined in the header, calculate until the header */
@@ -540,9 +587,44 @@ int compute_sms_checksum(void) {
   }
 
   /* OVERRIDE from CHECKSUMSIZE! */
-  if (g_sms_checksum_size_defined != 0)
-    checksum_max = g_sms_checksum_size;
+  if (g_sms_checksum_size_defined != 0) {
+    /* NOTE: CHECKSUMSIZE (g_sms_checksum_size) is never compared against g_romsize.
+       The assembler cannot easily validate it because the runtime ROM size is decided
+       by the linkfile's ROMBANKMAP, but a crafted .o header can carry any dword, and
+       the loop below then read g_rom[j] for j up to checksum_max - well past the end
+       of the calloc()ed g_rom[] buffer (heap buffer over-read).
+       Clamp the scan to the ROM: only bytes that exist can be summed. */
+    if (g_sms_checksum_size < 0 || g_sms_checksum_size > g_romsize) {
+      static int s_reported = 0;
+
+      if (s_reported == 0) {
+        print_text(NO, "COMPUTE_SMS_CHECKSUM: CHECKSUMSIZE ($%x) does not fit inside the ROM ($%x bytes), using the ROM size instead.\n", g_sms_checksum_size, g_romsize);
+        s_reported = 1;
+      }
+      checksum_max = g_romsize;
+    }
+    else
+      checksum_max = g_sms_checksum_size;
+  }
+
+  /* NOTE: "checksum_max" can also come from the ROM size byte in the SMS header or from
+     tag_address, neither of which the checks above necessarily compared with g_romsize
+     (the ROMSIZE check is inside an "if" that a header-less ROM skips). Bound the scan
+     unconditionally, just before it is used. */
+  if (checksum_max < 0)
+    checksum_max = 0;
+  else if (checksum_max > g_romsize)
+    checksum_max = g_romsize;
   
+  /* NOTE: the ROMSIZE branch above can reassign tag_address to a fixed value (0x1FF0 ..
+     0x7FF0) that is checked against checksum_max but never against g_romsize, while the
+     header-less branch sets tag_address from get_sms_tag_address(). mem_insert_allow_overwrite()
+     does not verify the address at all, so make sure the two bytes written below exist. */
+  if (tag_address < 0 || tag_address + 16 > g_romsize) {
+    print_text(NO, "COMPUTE_SMS_CHECKSUM: The SMS/GG ROM header at $%x does not fit inside the ROM ($%x bytes).\n", tag_address, g_romsize);
+    return FAILED;
+  }
+
   /* add together ROM SIZE minus SMS/GG header */
   checksum = 0;
   for (j = 0; j < checksum_max; j++) {

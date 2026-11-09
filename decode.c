@@ -2193,7 +2193,9 @@ int evaluate_token(void) {
   }
 
   /* is it a label? */
-  if (g_tmp[g_ss - 1] == ':' && g_newline_beginning == ON) {
+  /* NOTE: g_ss can be 0 (e.g. a stray '}' makes get_next_token() return an empty token), so the
+     buffer must never be indexed with g_ss - 1 in that case. */
+  if (g_ss > 0 && g_tmp[g_ss - 1] == ':' && g_newline_beginning == ON) {
     g_tmp[g_ss - 1] = 0;
     g_newline_beginning = OFF;
 
@@ -2215,7 +2217,9 @@ int evaluate_token(void) {
     }
 
     /* check for \@-symbols */
-    if (g_macro_active != 0) {
+    /* NOTE: g_ss >= 3 is required, otherwise g_tmp[g_ss - 3] reads before the start of the
+       buffer and snprintf() would write outside of it. */
+    if (g_macro_active != 0 && g_ss >= 3) {
       if (g_tmp[g_ss - 3] == '\\' && g_tmp[g_ss - 2] == '@')
         snprintf(&g_tmp[g_ss - 3], g_sizeof_g_tmp - (g_ss - 3), "%d", g_macro_runtime_current->macro->calls - 1);
     }

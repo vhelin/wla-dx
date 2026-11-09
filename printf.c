@@ -377,6 +377,14 @@ static size_t _ftoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, d
     prec--;
   }
 
+  /* NOTE: the loop above stops as soon as buf[] is full, so it still leaves prec > 9 when the
+     requested precision is large (e.g. "%.42f" leaves prec == 10). pow10[] only has ten elements
+     (valid indices 0..9), so the pow10[prec] lookups below then read past the end of that array
+     (buffer over-read; the address can be invalid and crash). Clamp prec to the largest index
+     pow10[] supports. */
+  if (prec > 9U)
+    prec = 9U;
+
   whole = (int)value;
   tmp = (value - whole) * pow10[prec];
   frac = (unsigned long)tmp;

@@ -18,7 +18,7 @@ extern struct section *g_sec_first, *g_sec_last, *g_sec_bankhd_first, *g_sec_ban
 extern struct slot g_slots[256];
 extern unsigned char *g_rom;
 extern int *g_bankaddress;
-extern int g_listfile_next_to_object;
+extern int g_listfile_next_to_object, g_romsize, g_rombanks;
 extern char g_version_string[];
 
 
@@ -978,6 +978,38 @@ static int _get_pc(int slot, int offset) {
 }
 
 
+/* NOTE: returns how many bytes of a listfile item may safely be read starting
+   at "address" from a buffer of "buffer_size" bytes. Both the item length and
+   the item address come from the object file (length is a dword of the
+   listfile block, address is derived from another such dword), and the code
+   that writes the hex bytes blindly ran "for (o = 0; o < item->length; o++)"
+   while indexing g_rom[item->address + o] / section->data[item->address + o].
+   A crafted length or offset therefore walked far past the end of the ROM
+   buffer (SIGSEGV inside listfile_write_listfiles()). Report a length that
+   keeps the whole read inside the buffer, 0 if the start is already outside. */
+static int _listfile_safe_byte_count(int length, int address, int buffer_size) {
+
+  int safe_length;
+
+  if (length <= 0)
+    return 0;
+
+  if (address < 0 || address >= buffer_size) {
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: A listfile entry points at address %d, outside of a %d byte buffer. Skipping its data.\n", address, buffer_size);
+    return 0;
+  }
+
+  safe_length = length;
+  if (safe_length > buffer_size - address)
+    safe_length = buffer_size - address;
+
+  if (safe_length != length)
+    print_text(NO, "LISTFILE_WRITE_LISTFILES: A listfile entry is %d bytes long but only %d fit into the buffer. Writing the bytes that fit.\n", length, safe_length);
+
+  return safe_length;
+}
+
+
 static int _write_listfile_item_header(FILE *f, struct listfileitem *item, int byte_offset, char cpu_65816) {
 
   int p = 0, offset = item->offset + byte_offset;
@@ -1003,7 +1035,7 @@ static int _write_listfile_item_header(FILE *f, struct listfileitem *item, int b
 
 static void _write_listfile_item(FILE *f, struct listfileitem *item, struct listfile_source_context *source_context, struct listfile_macro_source_context *macro_context, char *real_source_file, int real_file_size, int chars, int source_prefix, char cpu_65816) {
 
-  int is_behind = NO, o, p, wrote_line, source_linenumber;
+  int is_behind = NO, o, p, wrote_line, source_linenumber, byte_count, read_address;
 
   source_linenumber = _listfile_item_source_linenumber(macro_context, item, source_context != NULL ? source_context->current_linenumber : 0);
 
@@ -1022,30 +1054,43 @@ static void _write_listfile_item(FILE *f, struct listfileitem *item, struct list
   p = _write_listfile_item_header(f, item, 0, cpu_65816);
 
   wrote_line = NO;
-  for (o = 0; o < item->length; o++) {
+
+  /* NOTE: item->length and item->address are dwords read from the object file's
+     listfile block, and for an appended section the address below is rebuilt
+     from more object file data. None of it was bounded by the size of the
+     buffer that is indexed (g_rom[], which is g_romsize bytes, or the
+     bankheader section's data[] buffer), so a crafted length or offset walked
+     far past the end of the allocation and crashed right here. Resolve the
+     address first, then trim the count to what actually fits in that buffer. */
+  if (item->section != NULL && item->section->is_bankheader_section == YES) {
+    read_address = item->address;
+    byte_count = _listfile_safe_byte_count(item->length, read_address, item->section->size);
+  }
+  else if (item->section != NULL && item->section->appended_to == YES) {
+    struct section *s3 = item->section->appended_to_section;
+    read_address = item->address - item->section->output_address + s3->output_address + item->section->appended_to_offset;
+    while (s3->appended_to == YES) {
+      struct section *s4 = s3->appended_to_section;
+      read_address = read_address - s3->output_address + s4->output_address + s3->appended_to_offset;
+      s3 = s4;
+    }
+    byte_count = _listfile_safe_byte_count(item->length, read_address, g_romsize);
+  }
+  else {
+    read_address = item->address;
+    byte_count = _listfile_safe_byte_count(item->length, read_address, g_romsize);
+  }
+
+  for (o = 0; o < byte_count; o++) {
     struct section *s2 = item->section;
 
     if (s2 != NULL && s2->is_bankheader_section == YES) {
-      _listfile_write_hex(f, item->section->data[item->address + o] >> 4);
-      _listfile_write_hex(f, item->section->data[item->address + o] & 15);
+      _listfile_write_hex(f, item->section->data[read_address + o] >> 4);
+      _listfile_write_hex(f, item->section->data[read_address + o] & 15);
     }
     else {
-      if (s2 != NULL && s2->appended_to == YES) {
-        struct section *s3 = s2->appended_to_section;
-        int address_new = item->address - s2->output_address + s3->output_address + s2->appended_to_offset;
-        while (s3->appended_to == YES) {
-          struct section *s4 = s3->appended_to_section;
-          address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
-          s3 = s4;
-        }
-
-        _listfile_write_hex(f, g_rom[address_new + o] >> 4);
-        _listfile_write_hex(f, g_rom[address_new + o] & 15);
-      }
-      else {
-        _listfile_write_hex(f, g_rom[item->address + o] >> 4);
-        _listfile_write_hex(f, g_rom[item->address + o] & 15);
-      }
+      _listfile_write_hex(f, g_rom[read_address + o] >> 4);
+      _listfile_write_hex(f, g_rom[read_address + o] & 15);
     }
     fprintf(f, " ");
     p += 3;
@@ -1206,7 +1251,7 @@ int listfile_write_listfiles(void) {
   struct listfile_output_name *output_names = NULL;
   struct section *s, **selected_sections;
   struct object_file *obj;
-  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, wrote_line, listfile_item_count = 0, section_count = 0, chars = 60;
+  int count, i, j, current_linenumber, m, o, p, source_file_id = -1, wrote_line, byte_count, read_address, listfile_item_count = 0, section_count = 0, chars = 60;
   int output_name_count = 0;
   char command, *source_file, *source_file_name, *output_file_name, cpu_65816 = NO;
 
@@ -1340,6 +1385,26 @@ int listfile_write_listfiles(void) {
             listfileitems[count].slot = s3->slot;
           }
 
+          /* NOTE: the item's bank and slot end up here either from s->bank and
+             s->slot - dwords taken straight out of the object file, see
+             analyze.c "s->bank = READ_T" and "s->slot = *(t++)" - or, for an
+             appended section, from the target section they were pulled from.
+             Neither was ever checked against g_rombanks (g_bankaddress[] has
+             exactly g_rombanks entries) or against the 256 entries of
+             g_slots[]. Later in this very function "g_bankaddress[bank]" and,
+             through _get_pc(), "g_slots[slot]" therefore indexed those arrays
+             out of bounds: a heap buffer over-read for a large value and a
+             buffer underflow for a negative one. The check sits after the
+             appendto fixup so it covers both sources. */
+          if (listfileitems[count].bank < 0 || listfileitems[count].bank >= g_rombanks) {
+            print_text(NO, "LISTFILE_WRITE_LISTFILES: Section \"%s\" has an invalid bank %d, using bank 0.\n", s->name, listfileitems[count].bank);
+            listfileitems[count].bank = 0;
+          }
+          if (listfileitems[count].slot < 0 || listfileitems[count].slot >= 256) {
+            print_text(NO, "LISTFILE_WRITE_LISTFILES: Section \"%s\" has an invalid slot %d, using slot 0.\n", s->name, listfileitems[count].slot);
+            listfileitems[count].slot = 0;
+          }
+
           count++;
           /*
           print_text(NO, "LFI: k %s %d %d %x\n", listfileitems[count-1].sourcefilename, listfileitems[count-1].linenumber, listfileitems[count-1].length, listfileitems[count-1].address);
@@ -1395,6 +1460,23 @@ int listfile_write_listfiles(void) {
           listfileitems[count].bank = obj->listfile_ints[j*10 + 4];
           listfileitems[count].slot = obj->listfile_ints[j*10 + 5];
           listfileitems[count].offset = obj->listfile_ints[j*10 + 2];
+          /* NOTE: "base", "bank" and "slot" above are dwords copied straight out
+             of the object file's global listfile block with no validation at all
+             (see listfile_block_read_global()). g_bankaddress[] holds exactly
+             g_rombanks entries and g_slots[] 256, so a crafted .o file made the
+             subscript below read far past the end of g_bankaddress[] (SIGSEGV in
+             this very function) and later made _write_listfile_item_header()'s
+             g_slots[item->slot] do the same - a heap buffer over-read for a
+             positive value and a buffer underflow for a negative one. Clamp both
+             before the first use. */
+          if (listfileitems[count].bank < 0 || listfileitems[count].bank >= g_rombanks) {
+            print_text(NO, "LISTFILE_WRITE_LISTFILES: An object file listfile entry has an invalid bank %d, using bank 0.\n", listfileitems[count].bank);
+            listfileitems[count].bank = 0;
+          }
+          if (listfileitems[count].slot < 0 || listfileitems[count].slot >= 256) {
+            print_text(NO, "LISTFILE_WRITE_LISTFILES: An object file listfile entry has an invalid slot %d, using slot 0.\n", listfileitems[count].slot);
+            listfileitems[count].slot = 0;
+          }
           listfileitems[count].address = g_bankaddress[listfileitems[count].bank] + listfileitems[count].offset;
           listfileitems[count].running_id = obj->listfile_ints[j*10 + 6];
           listfileitems[count].real_linenumber = obj->listfile_ints[j*10 + 7];
@@ -1572,31 +1654,40 @@ int listfile_write_listfiles(void) {
 
           /* write the bytes */
           wrote_line = NO;
-          for (o = 0; o < listfileitems_ptr[j]->length; o++) {
+          /* NOTE: same unchecked object file length/address pair as in
+             _write_listfile_item(), plus the same rebuilt address for an
+             appended section. Resolve the address and trim the count so that
+             neither g_rom[] (g_romsize bytes) nor the bankheader section's
+             data[] buffer (its own size) is read out of bounds. */
+          if (listfileitems_ptr[j]->section != NULL && listfileitems_ptr[j]->section->is_bankheader_section == YES) {
+            read_address = listfileitems_ptr[j]->address;
+            byte_count = _listfile_safe_byte_count(listfileitems_ptr[j]->length, read_address, listfileitems_ptr[j]->section->size);
+          }
+          else if (listfileitems_ptr[j]->section != NULL && listfileitems_ptr[j]->section->appended_to == YES) {
+            struct section *s3 = listfileitems_ptr[j]->section->appended_to_section;
+            read_address = listfileitems_ptr[j]->address - listfileitems_ptr[j]->section->output_address + s3->output_address + listfileitems_ptr[j]->section->appended_to_offset;
+            while (s3->appended_to == YES) {
+              struct section *s4 = s3->appended_to_section;
+              read_address = read_address - s3->output_address + s4->output_address + s3->appended_to_offset;
+              s3 = s4;
+            }
+            byte_count = _listfile_safe_byte_count(listfileitems_ptr[j]->length, read_address, g_romsize);
+          }
+          else {
+            read_address = listfileitems_ptr[j]->address;
+            byte_count = _listfile_safe_byte_count(listfileitems_ptr[j]->length, read_address, g_romsize);
+          }
+
+          for (o = 0; o < byte_count; o++) {
             struct section *s2 = listfileitems_ptr[j]->section;
             
             if (s2 != NULL && s2->is_bankheader_section == YES) {
-              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] >> 4);
-              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[listfileitems_ptr[j]->address + o] & 15);
+              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[read_address + o] >> 4);
+              _listfile_write_hex(f, listfileitems_ptr[j]->section->data[read_address + o] & 15);
             }
             else {
-              if (s2 != NULL && s2->appended_to == YES) {
-                /* this loop finds the target of possibly chained appendto secions */
-                struct section *s3 = s2->appended_to_section;
-                int address_new = listfileitems_ptr[j]->address - s2->output_address + s3->output_address + s2->appended_to_offset;
-                while (s3->appended_to == YES) {
-                  struct section *s4 = s3->appended_to_section;
-                  address_new = address_new - s3->output_address + s4->output_address + s3->appended_to_offset;
-                  s3 = s4;
-                }
-                
-                _listfile_write_hex(f, g_rom[address_new + o] >> 4);
-                _listfile_write_hex(f, g_rom[address_new + o] & 15);
-              }
-              else {
-                _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] >> 4);
-                _listfile_write_hex(f, g_rom[listfileitems_ptr[j]->address + o] & 15);
-              }
+              _listfile_write_hex(f, g_rom[read_address + o] >> 4);
+              _listfile_write_hex(f, g_rom[read_address + o] & 15);
             }
             fprintf(f, " ");
             p += 3;

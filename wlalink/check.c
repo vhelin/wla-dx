@@ -15,6 +15,14 @@
 #define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
 #define READ_T_FINAL (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24));
 
+/* NOTE: the largest byte check_headers() reads out of an object file header is
+   OBJ_SMS_CHECKSUM_SIZE + 7 = 15 (the SNES ROM header base address, read by
+   READ_T_FINAL after t has been advanced by four), so an object file must be at
+   least 16 bytes long. The equivalent for a library is LIB_MISC_BITS = 4, i.e. 5
+   bytes. See the per-file length check inside check_headers(). */
+#define CHECK_HEADERS_OBJ_MIN_SIZE 16
+#define CHECK_HEADERS_LIB_MIN_SIZE 5
+
 extern struct object_file *g_obj_first;
 extern int g_emptyfill, g_sms_checksum, g_smstag_defined, g_snes_rom_mode, g_snes_rom_speed, g_smc_status, g_sms_header;
 extern int g_gb_checksum, g_gb_complement_check, g_snes_checksum, g_snes_mode, g_snes_sramsize, g_sms_checksum_already_written;
@@ -27,6 +35,15 @@ int check_file_types(void) {
   
   o = g_obj_first;
   while (o != NULL) {
+    /* NOTE: strncmp() below reads four bytes from o->data and the error message
+       reads o->data[0..3], but o->size is whatever the file happened to be, and
+       load_file_data() allocates exactly that many bytes. A file shorter than
+       four bytes therefore made this read past the end of the heap allocation
+       (heap buffer over-read); the format is unknowable anyway, so reject it. */
+    if (o->size < 4) {
+      print_text(NO, "CHECK_FILE_TYPES: File \"%s\" is too short to be a WLA object or library file (%d bytes, need at least 4).\n", o->name, o->size);
+      return FAILED;
+    }
     if (strncmp((char *)o->data, "WLAo", 4) == 0)
       o->format = WLA_VERSION_OBJ;
     else if (strncmp((char *)o->data, "WLAK", 4) == 0)
@@ -76,6 +93,21 @@ int check_headers(void) {
   
   o = g_obj_first;
   while (o != NULL) {
+    /* NOTE: the header fields below are read from fixed offsets of o->data
+       (OBJ_MISC_BITS = 5 .. OBJ_SMS_CHECKSUM_SIZE + 7 = 15 for objects, and
+       LIB_MISC_BITS = 4 for libraries) with no regard for o->size. A truncated
+       file that still carries a valid "WLAo"/"WLAK" magic therefore made these
+       reads run past the end of the heap buffer, crashing the linker on a
+       shortened .o/.lib file. Validate the length before touching the bytes. */
+    if (o->format == WLA_VERSION_OBJ && o->size < CHECK_HEADERS_OBJ_MIN_SIZE) {
+      print_text(NO, "CHECK_HEADERS: Object file \"%s\" is too short (%d bytes, need at least %d).\n", o->name, o->size, CHECK_HEADERS_OBJ_MIN_SIZE);
+      return FAILED;
+    }
+    if (o->format == WLA_VERSION_LIB && o->size < CHECK_HEADERS_LIB_MIN_SIZE) {
+      print_text(NO, "CHECK_HEADERS: Library file \"%s\" is too short (%d bytes, need at least %d).\n", o->name, o->size, CHECK_HEADERS_LIB_MIN_SIZE);
+      return FAILED;
+    }
+
     if (o->format == WLA_VERSION_OBJ) {
       int extr_bits, more_bits;
 

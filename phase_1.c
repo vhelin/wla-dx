@@ -420,7 +420,20 @@ static int _call_stack_item_push(void) {
   }
 
   csi->line_number = g_active_file_info_last->line_current;
-  strcpy(csi->filename, get_file_name(g_active_file_info_last->filename_id));
+  /* NOTE: the source file name is not limited to MAX_NAME_LENGTH, but csi->filename[] is only
+     MAX_NAME_LENGTH + 1 bytes, so a source file living deep inside a directory tree used to
+     overflow this heap buffer (buffer overflow). Clamp the copy and terminate it. */
+  {
+    char *source_filename = get_file_name(g_active_file_info_last->filename_id);
+
+    if ((int)strlen(source_filename) >= (int)sizeof(csi->filename)) {
+      print_error(ERROR_ERR, "The source file name \"%s\" is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", source_filename, MAX_NAME_LENGTH);
+      free(csi);
+      return FAILED;
+    }
+
+    strcpy(csi->filename, source_filename);
+  }
   csi->next = NULL;
   csi->prev = g_call_stack_items_last;
 
@@ -1192,7 +1205,16 @@ static int _run_macro_replacements(void) {
             toupper((int)g_buffer[s+5]) == 'T' &&
             toupper((int)g_buffer[s+6]) == 'H')
           add_quotes = YES;
-      
+
+        /* NOTE: the macro argument can be as long as MAX_NAME_LENGTH, while
+           s_replacement_memory[] is only 1024 bytes, so the strcpy() below used to write past
+           the end of the buffer (buffer overflow) whenever an argument was expanded near the
+           end of a long line. Refuse the replacements that cannot fit. */
+        if (i + (int)strlen(ma->string) + (add_quotes == YES ? 2 : 0) >= (int)sizeof(s_replacement_memory)) {
+          print_error(ERROR_LOG, "Out of s_replacement_memory buffer size (buffer %d bytes, got %d bytes) in phase_1.c!\n", (int)sizeof(s_replacement_memory), i + (int)strlen(ma->string) + (add_quotes == YES ? 2 : 0));
+          return FAILED;
+        }
+
         if (add_quotes == YES)
           s_replacement_memory[i++] = '"';
 
@@ -1257,14 +1279,23 @@ int process_label_inside_macro(int add_namespace, char *buffer, int sizeof_buffe
   if (st->child_labels == YES) {
     char new_label[MAX_NAME_LENGTH + 1];
 
+    /* skip initial '?' ? */
+    if (buffer[0] == '?')
+      start = 1;
+
+    /* NOTE: child_label_level can be up to 255 (see add_label_to_label_stack()), so this loop
+       can place 256 '@' prefixes in new_label[] before the label itself is appended. The
+       label can already be MAX_NAME_LENGTH long, which means new_label[f] below ran past the
+       end of new_label (stack buffer overflow). Make room for the prefixes first. */
+    if ((int)strlen(&buffer[start]) + rt->child_label_level + 1 >= (int)sizeof(new_label)) {
+      print_error(ERROR_DIR, "The label \"%s\" with the child label prefix is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", &buffer[start], MAX_NAME_LENGTH);
+      return FAILED;
+    }
+
     /* prefix the label with enough @s */
     for (f = 0; f < rt->child_label_level + 1; f++)
       new_label[f] = '@';
 
-    /* skip initial '?' ? */
-    if (buffer[0] == '?')
-      start = 1;
-    
     strcpy(&new_label[f], &buffer[start]);
     strcpy(buffer, new_label);
   }
@@ -5080,12 +5111,24 @@ static int _directive_include(int is_real) {
       is_full_path = YES;
     }
     else if (compare_next_token("RELATIVEDIR") == SUCCEEDED) {
-      char tmp[MAX_NAME_LENGTH + 1], *full_path = get_file_name(g_active_file_info_last->filename_id);
+      /* NOTE: get_dir() copies the whole directory prefix of the active source file, whose
+         name is not limited to MAX_NAME_LENGTH, into tmp, so a fixed size MAX_NAME_LENGTH + 1
+         stack buffer is overrun (stack buffer overflow) when the source file lives in a deep
+         directory. Size the buffer to match the source file name. */
+      char *full_path = get_file_name(g_active_file_info_last->filename_id), *tmp;
+
+      tmp = calloc(strlen(full_path) + 2, 1);
+      if (tmp == NULL) {
+        print_error(ERROR_DIR, "Out of memory while resolving the RELATIVEDIR path of \"%s\".\n", path);
+        return FAILED;
+      }
 
       skip_next_token();
 
       get_dir(full_path, tmp);
       use_dir(tmp, path);
+
+      free(tmp);
 
       is_full_path = YES;
     }
@@ -6717,6 +6760,17 @@ static int _directive_block(void) {
   b = calloc(1, sizeof(struct block_name));
   if (b == NULL) {
     print_error(ERROR_DIR, "Out of memory while allocating block name.\n");
+    return FAILED;
+  }
+
+  /* NOTE: g_tmp holds the .BLOCK name string and it can be longer than MAX_NAME_LENGTH
+     characters (the string token buffer is g_sizeof_g_tmp bytes), while b->name[] is only
+     MAX_NAME_LENGTH + 1 bytes. strcpy() therefore wrote past the end of b->name (buffer
+     overflow) and left the name without a terminating NUL, which later made phase_3.c read
+     past the end of this array as well. Reject the names that do not fit. */
+  if ((int)strlen(g_tmp) >= (int)sizeof(b->name)) {
+    print_error(ERROR_DIR, ".BLOCK name \"%s\" is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", g_tmp, MAX_NAME_LENGTH);
+    free(b);
     return FAILED;
   }
 
@@ -8514,7 +8568,11 @@ static int _directive_function(void) {
 
 int directive_define_def_equ(void) {
   
-  char k[256], label[MAX_NAME_LENGTH+1];
+  /* NOTE: get_new_definition_data() concatenates every string of the definition into this
+     buffer, and a single string can already be MAX_NAME_LENGTH characters long, so a
+     256 byte buffer was overrun (stack buffer overflow) by longer .DEFINE/.EQU values and by
+     string definitions coming from the command line. Size it like the other buffers. */
+  char k[MAX_NAME_LENGTH * 2 + 5], label[MAX_NAME_LENGTH+1];
   int j, export, q, size;
   struct definition *d;
   double dou;
@@ -8549,7 +8607,7 @@ int directive_define_def_equ(void) {
 
   g_input_float_mode = ON;
   g_dsp_enable_label_address_conversion = NO;
-  q = get_new_definition_data(&j, k, &size, &dou, &export);
+  q = get_new_definition_data(&j, k, (int)sizeof(k), &size, &dou, &export);
   g_input_float_mode = OFF;
   g_dsp_enable_label_address_conversion = YES;
   if (q == FAILED)
@@ -8972,7 +9030,10 @@ static int _directive_input(void) {
 
 static int _directive_redefine_redef(void) {
   
-  char k[256], label[MAX_NAME_LENGTH+1];
+  /* NOTE: same as directive_define_def_equ() - get_new_definition_data() writes every string
+     of the new definition in here and a string can be up to MAX_NAME_LENGTH characters long,
+     so a 256 byte buffer was overrun (stack buffer overflow). */
+  char k[MAX_NAME_LENGTH * 2 + 5], label[MAX_NAME_LENGTH+1];
   int j, export, q, size;
   double dou;
 
@@ -8997,7 +9058,7 @@ static int _directive_redefine_redef(void) {
 
   g_input_float_mode = ON;
   g_dsp_enable_label_address_conversion = NO;
-  q = get_new_definition_data(&j, k, &size, &dou, &export);
+  q = get_new_definition_data(&j, k, (int)sizeof(k), &size, &dou, &export);
   g_input_float_mode = OFF;
   g_dsp_enable_label_address_conversion = YES;
   if (q == FAILED)
@@ -13748,7 +13809,11 @@ static int _directive_fail(void) {
       break;
     }
     else if (q == INPUT_NUMBER_STRING || q == INPUT_NUMBER_ADDRESS_LABEL) {
-      if ((int)strlen(s) + (int)strlen(g_label) < (int)sizeof(s)+1)
+      /* NOTE: sizeof(s) includes the terminating NUL, but the check below compares the two
+         string lengths against it and strcat() writes a NUL too, so the sum must stay one
+         below sizeof(s). With "< sizeof(s)+1" an exact fit wrote the NUL one byte past the end
+         of s[1024] (stack buffer overflow). */
+      if ((int)strlen(s) + (int)strlen(g_label) < (int)sizeof(s))
         strcat(s, g_label);
       strings++;
     }
@@ -15786,7 +15851,7 @@ int is_reserved_definition(char *t) {
 }
 
 
-int get_new_definition_data(int *b, char *c, int *size, double *data, int *export) {
+int get_new_definition_data(int *b, char *c, int sizeof_c, int *size, double *data, int *export) {
 
   int a, x, n, s;
 
@@ -15834,6 +15899,14 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
       if (x == SUCCEEDED)
         *b = g_parsed_int;
       else if (x == INPUT_NUMBER_STRING) {
+        /* NOTE: c[] is a fixed size caller supplied buffer, while the definition string can be
+           up to MAX_NAME_LENGTH characters long, so copying blindly used to overflow it
+           (buffer overflow). */
+        if (g_string_size >= sizeof_c) {
+          print_error(ERROR_INP, "The string is too long (max %d characters allowed). Please adjust MAX_NAME_LENGTH in shared.h and recompile WLA.\n", MAX_NAME_LENGTH);
+          return FAILED;
+        }
+
         memcpy(c, g_label, g_string_size);
         s = g_string_size;
       }
@@ -15857,6 +15930,13 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
     }
     /* the next fetches will produce strings */
     else if (n == 1 && (a == SUCCEEDED || a == INPUT_NUMBER_FLOAT)) {
+      /* NOTE: this seeds the string that the loop below keeps appending to, so it needs the
+         same room check as the appends (two value bytes + NUL). */
+      if (s + 3 >= sizeof_c) {
+        print_error(ERROR_INP, "The definition string is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n");
+        return FAILED;
+      }
+
       if (*b > 255) {
         c[0] = (*b & 255);
         c[1] = (*b >> 8) & 255;
@@ -15878,10 +15958,24 @@ int get_new_definition_data(int *b, char *c, int *size, double *data, int *expor
     }
 
     if (x == INPUT_NUMBER_STRING) {
+      /* NOTE: this keeps appending the strings of the definition to c[], but the accumulated
+         length is not limited to anything, so a definition made of several long strings used to
+         run past the end of c[] (stack buffer overflow). Refuse it when it no longer fits. */
+      if (s + g_string_size >= sizeof_c) {
+        print_error(ERROR_INP, "The definition string is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n");
+        return FAILED;
+      }
+
       memcpy(&c[s], g_label, g_string_size);
       s += g_string_size;
     }
     else if (x == SUCCEEDED) {
+      /* NOTE: the two byte value plus its NUL terminator need room in c[] as well. */
+      if (s + 3 >= sizeof_c) {
+        print_error(ERROR_INP, "The definition string is too long. Increase MAX_NAME_LENGTH in shared.h and recompile WLA.\n");
+        return FAILED;
+      }
+
       if (g_parsed_int > 255) {
         c[s] = (g_parsed_int & 255);
         c[s + 1] = (g_parsed_int >> 8) & 255;

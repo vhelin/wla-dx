@@ -94,8 +94,17 @@ int discard_iteration(void) {
       continue;
     }
 
-    if (r->section_status != 0)
+    /* NOTE: r->section is a dword taken from the object file. Before
+       find_section() range-checked its argument, a crafted id made this call
+       index the section lookup tables out of bounds. It now returns NULL for
+       such an id, so treat that as "no section" and skip the reference. */
+    if (r->section_status != 0) {
       s = find_section(r->section);
+      if (s == NULL) {
+        r = r->next;
+        continue;
+      }
+    }
     else
       s = NULL;
 
@@ -114,7 +123,10 @@ int discard_iteration(void) {
           ss = ss->next;
         if (ss == NULL)
           ss = find_section(r->section);
-        if (ss->alive == YES)
+        /* NOTE: find_section() returns NULL for an out-of-range section id
+           (see the note above), so this NULL check is required - it used to
+           dereference the result unconditionally. */
+        if (ss != NULL && ss->alive == YES)
           s->referenced++;
       }
     }
@@ -124,8 +136,15 @@ int discard_iteration(void) {
   /* loop through computations */
   st = g_stacks_first;
   while (st != NULL) {
-    if (st->section_status != 0)
+    if (st->section_status != 0) {
+      /* NOTE: same unvalidated object-file section id as above - find_section()
+         now returns NULL instead of indexing out of bounds. */
       ss = find_section(st->section);
+      if (ss == NULL) {
+        st = st->next;
+        continue;
+      }
+    }
     else
       ss = NULL;
 
@@ -166,7 +185,15 @@ int discard_dropped_labels(void) {
   while (l != NULL) {
     if (l->section_status == ON) {
       /* find the section */
+      /* NOTE: l->section is an object-file dword; find_section() returns NULL
+         for an out-of-range value instead of indexing the lookup tables out of
+         bounds. Such a label references no section we know about, so leave it
+         alive rather than dereferencing NULL. */
       s = find_section(l->section);
+      if (s == NULL) {
+        l = l->next;
+        continue;
+      }
 
       /* is it dead? */
       if (s->alive == NO) {

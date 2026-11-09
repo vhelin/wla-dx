@@ -2498,6 +2498,19 @@ static int _stack_calculate(char *in, int *value, int *bytes_parsed, unsigned ch
         if (q > 0) {
           unsigned int mask;
 
+          /* NOTE: the ".size" hint expands the previous stack item into "(item & mask)", which
+             claims four (4) slots in si[] and ta[] (see the mix of q++ and si[q] writes below),
+             but the only guard in this loop is the "q >= MAX_STACK_CALCULATOR_ITEMS-1" check at
+             the top of the iteration, which accounts for a single item. si[] and ta[] are exactly
+             MAX_STACK_CALCULATOR_ITEMS (256) items long (see the calloc()s in
+             _stack_calculate_get_array()), so an expression whose infix form already fills the
+             array up to its last slot used to keep writing past the end of si[] for up to three
+             more items (heap buffer overflow). Make sure all four items fit. */
+          if (q + 3 >= MAX_STACK_CALCULATOR_ITEMS) {
+            print_error(ERROR_STC, "Out of stack space. Adjust MAX_STACK_CALCULATOR_ITEMS in defines.h and recompile WLA!\n");
+            return FAILED;
+          }
+
           if (*in == 'b' || *in == 'B')
             mask = 0xff;
           else if (*in == 'w' || *in == 'W')
@@ -4963,11 +4976,27 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
     else {
       switch ((int)s->value) {
       case SI_OP_ADD:
+        /* NOTE: ADD is a binary operator and needs two operands, but unlike SI_OP_MULTIPLY and the
+           other binary operators below it had no "t" check. A malformed calculation like "(+)" or
+           "-(-)" arrives here with t == 0, so the "v[t - 2]" and "sp[t - 2]" accesses below index
+           v[] and sp[] two elements before their beginning, i.e. below the local arrays (stack
+           buffer underflow / stack buffer overflow of whatever precedes them). */
+        if (t <= 1) {
+          print_text(NO, "%s:%d: COMPUTE_STACK: Addition is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          return FAILED;
+        }
         v[t - 2] += v[t - 1];
         sp[t - 2] = NULL;
         t--;
         break;
       case SI_OP_SUB:
+        /* NOTE: see the note on SI_OP_ADD above - SUB also needs two operands, and a calculation such
+           as "(-)" arrives here with t == 0, making "v[t - 2]" and "sp[t - 2]" underflow v[] and
+           sp[] in exactly the same way. */
+        if (t <= 1) {
+          print_text(NO, "%s:%d: COMPUTE_STACK: Subtraction is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          return FAILED;
+        }
         v[t - 2] -= v[t - 1];
         sp[t - 2] = NULL;
         t--;
@@ -5199,6 +5228,15 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         sp[t - 1] = NULL;
         break;
       case SI_OP_LOGICAL_OR:
+        /* NOTE: LOGICAL_OR takes two operands, but it was the only binary operator without the usual
+           "t" check. A calculation that starts with the operator (e.g. "||1") leaves only one item
+           on the stack, so "v[t - 2]" and "sp[t - 2]" below read and wrote one element before the
+           beginning of the local v[] and sp[] arrays (stack buffer underflow, -8 bytes in front of
+           v[0]). */
+        if (t <= 1) {
+          print_text(NO, "%s:%d: COMPUTE_STACK: Logical or is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          return FAILED;
+        }
         if (v[t-1] != 0 || v[t-2] != 0)
           v[t-2] = 1;
         else
@@ -5207,6 +5245,12 @@ int compute_stack(struct stack *sta, int stack_item_count, double *result) {
         t--;
         break;
       case SI_OP_LOGICAL_AND:
+        /* NOTE: see the note on SI_OP_LOGICAL_OR above - LOGICAL_AND needs two operands as well,
+           and "&&1" underflowed v[] and sp[] in the same way. */
+        if (t <= 1) {
+          print_text(NO, "%s:%d: COMPUTE_STACK: Logical and is missing an operand.\n", get_file_name(sta->filename_id), sta->linenumber);
+          return FAILED;
+        }
         if (v[t-1] != 0 && v[t-2] != 0)
           v[t-2] = 1;
         else

@@ -428,7 +428,20 @@ int phase_3(void) {
         b->line_number = line_number;
         b->next = s_blocks;
         s_blocks = b;
-        strcpy(b->name, bn->name);
+        /* NOTE: bn->name is only MAX_NAME_LENGTH + 1 bytes, but the .BLOCK name can fill it
+           completely and then leave no terminating NUL inside that array (see
+           _directive_block() in phase_1.c). strcpy() therefore read past the end of bn->name
+           and wrote MAX_NAME_LENGTH + 2 bytes into the equally sized b->name (buffer
+           overflow). Copy at most sizeof(b->name) - 1 characters and terminate it. */
+        {
+          int block_name_length = 0;
+
+          while (block_name_length < (int)sizeof(b->name) - 1 && bn->name[block_name_length] != 0) {
+            b->name[block_name_length] = bn->name[block_name_length];
+            block_name_length++;
+          }
+          b->name[block_name_length] = 0;
+        }
         b->address = address;
         continue;
 
@@ -1225,7 +1238,19 @@ int phase_3(void) {
       b->line_number = line_number;
       b->next = s_blocks;
       s_blocks = b;
-      strcpy(b->name, bn->name);
+      /* NOTE: same as the first loop above - a .BLOCK name that fills bn->name[] completely
+         leaves no terminating NUL in it, so strcpy() used to read past bn->name and write
+         MAX_NAME_LENGTH + 2 bytes into the MAX_NAME_LENGTH + 1 byte b->name (buffer overflow).
+         Copy at most sizeof(b->name) - 1 characters and terminate it. */
+      {
+        int block_name_length = 0;
+
+        while (block_name_length < (int)sizeof(b->name) - 1 && bn->name[block_name_length] != 0) {
+          b->name[block_name_length] = bn->name[block_name_length];
+          block_name_length++;
+        }
+        b->name[block_name_length] = 0;
+      }
       b->address = address;
       continue;
 

@@ -245,6 +245,61 @@ static int _read_bounded_string(unsigned char **tp, char *out, const char *descr
 }
 
 
+/* NOTE: definitions, labels/symbols/breakpoints end their names with the raw
+   bytes 0, 1 and 2 instead of a NUL, so they need their own bounded reader.
+   Without the "q < MAX_NAME_LENGTH" limit the caller's loop kept writing past
+   the end of the destination name field (char[MAX_NAME_LENGTH + 1]) for as
+   long as the object file kept feeding non-marker bytes - a heap buffer
+   overflow driven by a crafted .o/.lib file.  All three markers terminate the
+   name; the byte that stopped the copy is what selects the entry type. */
+#define NAME_MARKERS_DEFINE 1
+#define NAME_MARKERS_LABEL  2
+
+static int _read_bounded_name(unsigned char **tp, char *out, const char *description) {
+
+  unsigned char *t = *tp;
+  int q;
+
+  for (q = 0; q < MAX_NAME_LENGTH && *t != 0 && *t != NAME_MARKERS_DEFINE && *t != NAME_MARKERS_LABEL; t++, q++)
+    out[q] = *t;
+  out[q] = 0;
+
+  if (!(*t == 0 || *t == NAME_MARKERS_DEFINE || *t == NAME_MARKERS_LABEL)) {
+    print_text(NO, "COLLECT_DLR: %s is too long or missing a terminator.\n", description);
+    return FAILED;
+  }
+
+  /* NOTE: leave *tp pointing AT the terminating marker. The callers used to do
+     their own "t++" after an unbounded copy loop, but the marker byte is also
+     the entry type (0 = define/label, 1 = stack/symbol, 2 = breakpoint), so the
+     helper must let the caller inspect it and advance over it itself. */
+  *tp = t;
+
+  return SUCCEEDED;
+}
+
+
+static int _read_bounded_slot_name(unsigned char **tp, char *out, int slot_id, const char *description) {
+
+  unsigned char *t = *tp;
+  int q;
+
+  for (q = 0; q < MAX_NAME_LENGTH && *t != 0; t++, q++)
+    out[q] = *t;
+  out[q] = 0;
+
+  if (*t != 0) {
+    print_text(NO, "OBTAIN_MEMORYMAP: %s of SLOT %d is too long or missing a NUL terminator.\n", description, slot_id);
+    return FAILED;
+  }
+
+  t++;
+  *tp = t;
+
+  return SUCCEEDED;
+}
+
+
 static int _read_stack_items(unsigned char **tp, struct stack *s) {
 
   unsigned char *t = *tp, *dtmp;
@@ -777,7 +832,7 @@ int obtain_source_file_names(void) {
 int obtain_memorymap(void) {
 
   struct object_file *o;
-  int map_found = OFF, i, x, y;
+  int map_found = OFF, i, x;
   unsigned char *t;
   struct slot s[256];
 
@@ -802,10 +857,12 @@ int obtain_memorymap(void) {
         g_slots[x].usage = ON;
         g_slots[x].address =  READ_T;
         g_slots[x].size =  READ_T;
-        for (y = 0; *t != 0; t++, y++)
-          g_slots[x].name[y] = *t;
-        g_slots[x].name[y] = 0;
-        t++;
+        /* NOTE: this loop used to copy the slot name straight out of the
+           object file into g_slots[x].name (char[MAX_NAME_LENGTH + 1]) with
+           no length limit, so a crafted .MEMORYMAP slot name ran past the end
+           of the 256 element g_slots[] array and corrupted the heap. */
+        if (_read_bounded_slot_name(&t, g_slots[x].name, x, "Slot name") == FAILED)
+          return FAILED;
       }
 
       o->source_file_names = t;
@@ -837,10 +894,10 @@ int obtain_memorymap(void) {
         s[x].usage = ON;
         s[x].address =  READ_T;
         s[x].size =  READ_T;
-        for (y = 0; *t != 0; t++, y++)
-          s[x].name[y] = *t;
-        s[x].name[y] = 0;
-        t++;
+        /* NOTE: see the note on the g_slots[] copy above - this comparison
+           buffer copy was unbounded in exactly the same way. */
+        if (_read_bounded_slot_name(&t, s[x].name, x, "Slot name") == FAILED)
+          return FAILED;
       }
 
       o->source_file_names = t;
@@ -894,7 +951,7 @@ int collect_dlr(void) {
   struct stack *s;
   struct label *l;
   struct label_sizeof *ls;
-  int section_id_base, x, i, n, q;
+  int section_id_base, x, i, n;
   unsigned char *t, *dtmp;
   double dou;
   
@@ -916,9 +973,15 @@ int collect_dlr(void) {
         }
 
         /* copy the name */
-        for (x = 0; !(*t == 0 || *t == 1); t++, x++)
-          l->name[x] = *t;
-        l->name[x] = 0;
+        /* NOTE: l->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) but this
+           loop had no length limit, so a crafted object file whose definition
+           name ran long kept writing past the field and past the end of the
+           heap-allocated struct label (heap buffer overflow). Make the copy
+           stop at the field size and reject a name that never terminates. */
+        if (_read_bounded_name(&t, l->name, "Definition name") == FAILED) {
+          free(l);
+          return FAILED;
+        }
         if (*t == 0)
           l->status = LABEL_STATUS_DEFINE;
         else if (*t == 1)
@@ -950,9 +1013,12 @@ int collect_dlr(void) {
           return FAILED;
         }
         
-        for (x = 0; !(*t == 0 || *t == 1 || *t == 2); t++, x++)
-          l->name[x] = *t;
-        l->name[x] = 0;
+        /* NOTE: same unbounded copy as the definitions above, into the same
+           2048 byte l->name field (heap buffer overflow). */
+        if (_read_bounded_name(&t, l->name, "Label name") == FAILED) {
+          free(l);
+          return FAILED;
+        }
         
         if (*t == 0)
           l->status = LABEL_STATUS_LABEL;
@@ -996,10 +1062,13 @@ int collect_dlr(void) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
-        for (x = 0; *t != 0; t++, x++)
-          r->name[x] = *t;
-        r->name[x] = 0;
-        t++;
+        /* NOTE: r->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
+           copy was unbounded, so a long reference name in a crafted object
+           file overran the heap-allocated struct reference. */
+        if (_read_bounded_string(&t, r->name, "Reference name") == FAILED) {
+          free(r);
+          return FAILED;
+        }
         r->type = *(t++);
         r->special_id = *(t++);
         r->file_id_source = READ_T;
@@ -1090,10 +1159,12 @@ int collect_dlr(void) {
           s->stack_items[n].type = *(t++);
           s->stack_items[n].sign = *(t++);
           if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            for (q = 0; *t != 0; t++, q++)
-              s->stack_items[n].string[q] = *t;
-            s->stack_items[n].string[q] = 0;
-            t++;
+            /* NOTE: string is char[MAX_NAME_LENGTH + 1] (2048 bytes), but
+               this copy had no length limit, so a long stack item string in a
+               crafted object file wrote past the last element of the
+               calloc()ed stack_items[] array (heap buffer overflow). */
+            if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
+              return FAILED;
           }
           else {
             READ_DOU;
@@ -1119,10 +1190,13 @@ int collect_dlr(void) {
         }
 
         /* copy the name */
-        for (x = 0; *t != 0; t++, x++)
-          ls->name[x] = *t;
-        ls->name[x] = 0;
-        t++;
+        /* NOTE: ls->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
+           copy was unbounded, so a long .SIZEOF name in a crafted object or
+           library file overran the heap-allocated struct label_sizeof. */
+        if (_read_bounded_string(&t, ls->name, "Label sizeof name") == FAILED) {
+          free(ls);
+          return FAILED;
+        }
 
         ls->size = READ_T;
         ls->file_id = g_obj_tmp->id;
@@ -1154,14 +1228,18 @@ int collect_dlr(void) {
         g_after_tmp->is_appendto = *(t++);
         
         /* copy the names */
-        for (x = 0; *t != 0; t++, x++)
-          g_after_tmp->section[x] = *t;
-        g_after_tmp->section[x] = 0;
-        t++;
-        for (x = 0; *t != 0; t++, x++)
-          g_after_tmp->after[x] = *t;
-        g_after_tmp->after[x] = 0;
-        t++;
+        /* NOTE: section and after are both char[MAX_NAME_LENGTH + 1] (2048
+           bytes) and both copies were unbounded, so long APPENDTO/AFTER
+           section names in a crafted object file wrote past the end of the
+           heap-allocated struct after_section (heap buffer overflow). */
+        if (_read_bounded_string(&t, g_after_tmp->section, "Appendto/after section name") == FAILED) {
+          free(g_after_tmp);
+          return FAILED;
+        }
+        if (_read_bounded_string(&t, g_after_tmp->after, "Appendto/after target name") == FAILED) {
+          free(g_after_tmp);
+          return FAILED;
+        }
 
         g_after_tmp->section_s = NULL;
         g_after_tmp->after_s = NULL;
@@ -1187,9 +1265,13 @@ int collect_dlr(void) {
         }
 
         /* copy the name */
-        for (x = 0; !(*t == 0 || *t == 1); t++, x++)
-          l->name[x] = *t;
-        l->name[x] = 0;
+        /* NOTE: same unbounded copy as the object file path above - l->name
+           is only 2048 bytes, so a long definition name in a crafted library
+           file overflowed the heap-allocated struct label. */
+        if (_read_bounded_name(&t, l->name, "Definition name") == FAILED) {
+          free(l);
+          return FAILED;
+        }
         if (*t == 0)
           l->status = LABEL_STATUS_DEFINE;
         else if (*t == 1)
@@ -1222,9 +1304,13 @@ int collect_dlr(void) {
           return FAILED;
         }
         
-        for (x = 0; !(*t == 0 || *t == 1 || *t == 2); t++, x++)
-          l->name[x] = *t;
-        l->name[x] = 0;
+        /* NOTE: see the object file path - this unbounded copy into the 2048
+           byte l->name overflowed the heap-allocated struct label when a
+           crafted library file supplied a long label name. */
+        if (_read_bounded_name(&t, l->name, "Label name") == FAILED) {
+          free(l);
+          return FAILED;
+        }
         
         if (*t == 0)
           l->status = LABEL_STATUS_LABEL;
@@ -1262,10 +1348,13 @@ int collect_dlr(void) {
           print_text(NO, "COLLECT_DLR: Out of memory.\n");
           return FAILED;
         }
-        for (x = 0; *t != 0; t++, x++)
-          r->name[x] = *t;
-        r->name[x] = 0;
-        t++;
+        /* NOTE: see the object file path - this unbounded copy into the 2048
+           byte r->name overflowed the heap-allocated struct reference when a
+           crafted library file supplied a long reference name. */
+        if (_read_bounded_string(&t, r->name, "Reference name") == FAILED) {
+          free(r);
+          return FAILED;
+        }
         r->type = *(t++);
         r->special_id = *(t++);
         r->section = READ_T;
@@ -1353,10 +1442,11 @@ int collect_dlr(void) {
           s->stack_items[n].type = *(t++);
           s->stack_items[n].sign = *(t++);
           if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            for (q = 0; *t != 0; t++, q++)
-              s->stack_items[n].string[q] = *t;
-            s->stack_items[n].string[q] = 0;
-            t++;
+            /* NOTE: see the object file path - this unbounded copy into the
+               2048 byte string field wrote past the last element of the
+               calloc()ed stack_items[] array for a crafted library file. */
+            if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
+              return FAILED;
           }
           else {
             READ_DOU;
@@ -1382,10 +1472,13 @@ int collect_dlr(void) {
         }
 
         /* copy the name */
-        for (x = 0; *t != 0; t++, x++)
-          ls->name[x] = *t;
-        ls->name[x] = 0;
-        t++;
+        /* NOTE: ls->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
+           copy was unbounded, so a long .SIZEOF name in a crafted object or
+           library file overran the heap-allocated struct label_sizeof. */
+        if (_read_bounded_string(&t, ls->name, "Label sizeof name") == FAILED) {
+          free(ls);
+          return FAILED;
+        }
 
         ls->size = READ_T;
         ls->file_id = g_obj_tmp->id;
@@ -1417,14 +1510,18 @@ int collect_dlr(void) {
         g_after_tmp->is_appendto = *(t++);
         
         /* copy the names */
-        for (x = 0; *t != 0; t++, x++)
-          g_after_tmp->section[x] = *t;
-        g_after_tmp->section[x] = 0;
-        t++;
-        for (x = 0; *t != 0; t++, x++)
-          g_after_tmp->after[x] = *t;
-        g_after_tmp->after[x] = 0;
-        t++;
+        /* NOTE: see the object file path above - both of these copies into
+           char[MAX_NAME_LENGTH + 1] fields were unbounded, so long
+           APPENDTO/AFTER names in a crafted library file overflowed the
+           heap-allocated struct after_section. */
+        if (_read_bounded_string(&t, g_after_tmp->section, "Appendto/after section name") == FAILED) {
+          free(g_after_tmp);
+          return FAILED;
+        }
+        if (_read_bounded_string(&t, g_after_tmp->after, "Appendto/after target name") == FAILED) {
+          free(g_after_tmp);
+          return FAILED;
+        }
 
         g_after_tmp->section_s = NULL;
         g_after_tmp->after_s = NULL;

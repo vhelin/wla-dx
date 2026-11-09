@@ -4,6 +4,7 @@
 
 #include "defines.h"
 #include "files.h"
+#include "main.h"
 #include "write.h"
 #include "dbgmodel.h"
 
@@ -150,6 +151,8 @@ static int _count_sections(struct section *s) {
 
 static void _copy_section(struct debug_section *dst, struct section *src) {
 
+  int slot = src->slot;
+
   strcpy(dst->name, src->name);
   dst->id = src->id;
   dst->status = src->status;
@@ -157,12 +160,23 @@ static void _copy_section(struct debug_section *dst, struct section *src) {
   dst->file_id_source = src->file_id_source;
   dst->address = src->address;
   dst->output_address = src->output_address;
-  dst->pc_address = g_slots[src->slot].address + src->address;
+  /* NOTE: src->slot is a raw byte taken from the object file (analyze.c does
+     "s->slot = *(t++)"), and analyze.c sets library RAM section slots to -1
+     before the linkfile [ramsections]/[sections] fixup assigns a real one.
+     Neither value was range-checked against g_slots[256] before being used as
+     a subscript, so the two lookups below could read outside the array: the
+     -1 produced by a library RAM section is a buffer underflow if the fixup
+     ever fails to replace it. Clamp it once and use the clamped value for both.
+     (The byte the object file supplies can also be 0..255, which is why the
+     over-read side is guarded too - see dbgmodel.c's mapping collectors.) */
+  if (slot < 0 || slot >= 256)
+    slot = 0;
+  dst->pc_address = g_slots[slot].address + src->address;
   dst->size = src->size;
   dst->bank = src->bank;
   dst->base = src->base;
   dst->slot = src->slot;
-  dst->slot_address = g_slots[src->slot].address;
+  dst->slot_address = g_slots[slot].address;
   dst->is_ram = debug_model_is_ram_section_status(src->status);
   dst->is_bankheader = src->is_bankheader_section;
 }
@@ -374,6 +388,16 @@ static int _collect_section_mappings(struct debug_model *model, struct section *
             mapping.source_id = source_id;
             mapping.section = s->id;
             mapping.output_address = output_address;
+            /* NOTE: "slot" starts as s->slot (a raw byte from the object file, and -1 for
+               library RAM sections) and can also be overwritten by
+               _fix_appended_section_addresses(), which copies the parent section's
+               slot. Nothing range-checked it against g_slots[256] before this
+               subscript, so a section carrying -1 read before the start of the
+               array (buffer underflow). */
+            if (slot < 0 || slot >= 256) {
+              print_text(NO, "DEBUG_MODEL: Section \"%s\" has an invalid slot %d, using slot 0.\n", s->name, slot);
+              slot = 0;
+            }
             mapping.pc_address = g_slots[slot].address + offset;
             mapping.offset = offset;
             mapping.length = length;
@@ -424,6 +448,20 @@ static int _collect_global_mappings(struct debug_model *model, int *count, int *
           mapping.base = obj->listfile_ints[j*10 + 3];
           mapping.bank = obj->listfile_ints[j*10 + 4];
           mapping.slot = obj->listfile_ints[j*10 + 5];
+          /* NOTE: "bank" and "slot" are raw dwords read straight out of the object
+             file's global listfile block (listfile.c listfile_block_read_global()). The
+             linker never range-checked them: g_bankaddress[] has exactly g_rombanks
+             entries and g_slots[] has 256, so a crafted .o file produced a heap buffer
+             over-read (huge value) or a buffer underflow (negative value) at both
+             subscripts. Clamp both before indexing. */
+          if (mapping.bank < 0 || mapping.bank >= g_rombanks) {
+            print_text(NO, "DEBUG_MODEL: An object file listfile entry has an invalid bank %d, using bank 0.\n", mapping.bank);
+            mapping.bank = 0;
+          }
+          if (mapping.slot < 0 || mapping.slot >= 256) {
+            print_text(NO, "DEBUG_MODEL: An object file listfile entry has an invalid slot %d, using slot 0.\n", mapping.slot);
+            mapping.slot = 0;
+          }
           mapping.output_address = g_bankaddress[mapping.bank] + mapping.offset;
           mapping.pc_address = g_slots[mapping.slot].address + mapping.offset;
           mapping.linenumber = obj->listfile_ints[j*10 + 0];
