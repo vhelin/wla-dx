@@ -1,5 +1,6 @@
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -772,50 +773,81 @@ int obtain_rombankmap(void) {
 }
 
 
+static unsigned long _read_be32(const unsigned char *t) {
+
+  return ((unsigned long)t[0] << 24) | ((unsigned long)t[1] << 16) |
+         ((unsigned long)t[2] << 8) | (unsigned long)t[3];
+}
+
+
 int obtain_source_file_names(void) {
 
+  enum { field_size = 4, entry_trailer_size = 2 * field_size, min_entry_size = 1 + entry_trailer_size };
   struct source_file_name *s, **p;
   struct object_file *o;
-  unsigned char *t, *m;
-  int x, z;
+  unsigned char *t, *m, *end;
+  unsigned long count, id;
+  size_t name_size;
 
   
   o = g_obj_first;
   while (o != NULL) {
+    end = o->data + o->size;
     if (o->format == WLA_VERSION_OBJ)
       t = o->source_file_names;
-    else
+    else if (o->size >= LIB_SOURCE_FILE_NAMES)
       t = o->data + LIB_SOURCE_FILE_NAMES;
+    else
+      t = NULL;
 
-    x = READ_T;
+    /* reserve four bytes for the exported-definition count that follows this table */
+    if (t == NULL || t < o->data || t > end || end - t < 2 * field_size) {
+      print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Truncated source-file table in \"%s\".\n", o->name);
+      return FAILED;
+    }
+    end -= field_size;
+    count = _read_be32(t);
+    t += field_size;
+    if (count > (size_t)(end - t) / min_entry_size) {
+      print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Invalid source-file count in \"%s\".\n", o->name);
+      return FAILED;
+    }
 
     p = &(o->source_file_names_list);
-    for (; x > 0; x--) {
+    for (; count > 0; count--) {
+      if (end - t < min_entry_size) {
+        print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Truncated source-file entry in \"%s\".\n", o->name);
+        return FAILED;
+      }
+      m = memchr(t, 0, (size_t)(end - t) - entry_trailer_size);
+      if (m == NULL) {
+        print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Unterminated source-file name or truncated entry in \"%s\".\n", o->name);
+        return FAILED;
+      }
+      id = _read_be32(m + 1);
+      if (id > INT_MAX) {
+        print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Invalid source-file ID in \"%s\".\n", o->name);
+        return FAILED;
+      }
+
       s = calloc(1, sizeof(struct source_file_name));
       if (s == NULL) {
-        print_text(NO, "COLLECT_DLR: Out of memory.\n");
+        print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Out of memory.\n");
         return FAILED;
       }
 
-      /* compute the length of the name */
-      for (m = t, z = 0; *m != 0; m++, z++)
-        ;
-
-      s->name = calloc(z+1, 1);
+      name_size = (size_t)(m - t) + 1;
+      s->name = calloc(name_size, 1);
       if (s->name == NULL) {
         free(s);
-        print_text(NO, "COLLECT_DLR: Out of memory.\n");
+        print_text(NO, "OBTAIN_SOURCE_FILE_NAMES: Out of memory.\n");
         return FAILED;
       }
 
-      /* get the name */
-      for (z = 0; *t != 0; t++, z++)
-        s->name[z] = *t;
-      s->name[z] = 0;
-
-      t++;
-      s->id = READ_T;
-      s->checksum = (unsigned long)READ_T;
+      memcpy(s->name, t, name_size);
+      s->id = (int)id;
+      s->checksum = _read_be32(m + 1 + field_size);
+      t = m + min_entry_size;
       s->next = NULL;
       *p = s;
       p = &(s->next);
