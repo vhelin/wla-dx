@@ -1625,7 +1625,7 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
-v5.24 (19-Nov-2026) Added support for paword(a).
+v5.24 (20-Nov-2026) Added support for paword(a).
                     -C removes duplicate definitions in symbol file.
                     WLALINK now places same-size sections in a stable
                       order (object-file order) so packing does not depend
@@ -1635,6 +1635,8 @@ v5.24 (19-Nov-2026) Added support for paword(a).
                     Other Buffer over- and underflow fixes.
                     Reject malformed source-file name tables in object and
                       library files (thanks to jak01lr).
+                    Validate bank maps, metadata, section IDs, and data and
+                      listfile blocks when reading object and library files.
 
 v5.23 (22-Jul-2026) .MACRO calls should now work properly in listfiles.
                     Added support for SPAN in .SECTIONs.

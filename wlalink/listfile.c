@@ -11,6 +11,7 @@
 #include "listfile.h"
 #include "files.h"
 #include "main.h"
+#include "file_reader.h"
 
 
 extern struct object_file *g_obj_first, *g_obj_last, *g_obj_tmp;
@@ -20,10 +21,6 @@ extern unsigned char *g_rom;
 extern int *g_bankaddress;
 extern int g_listfile_next_to_object, g_romsize, g_rombanks;
 extern char g_version_string[];
-
-
-/* read an integer from t */
-#define READ_T t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24); t += 4;
 
 
 static int _strings_equal(const char *a, const char *b) {
@@ -1795,146 +1792,77 @@ int listfile_write_listfiles(void) {
 }
 
 
-int listfile_block_read(unsigned char **d, struct section *s) {
+static int _read_listfile_block(unsigned char **d, const unsigned char *end, int width, int has_flag,
+                                int *item_count, char **item_cmds, int **item_values) {
 
-  unsigned char *t;
-  int i;
+  unsigned char *t = *d;
+  char *cmds = NULL;
+  int *values = NULL;
+  int count, i, j, fields;
 
-  if (d == NULL || s == NULL)
-    return FAILED;
-
-  if (**d == 0) {
-    /* no listfile information! */
-    s->listfile_items = 0;
-    s->listfile_cmds = NULL;
-    s->listfile_ints = NULL;
-    (*d)++;
-    return SUCCEEDED;
-  }
-
-  /* we have listfile information */
-  t = *d;
-  t++;
-  s->listfile_items = READ_T;
-  if (s->listfile_items <= 0 || s->listfile_items > INT_MAX / 7) {
-    s->listfile_items = 0;
-    print_text(NO, "LISTFILE_BLOCK_READ: Invalid listfile item count.\n");
-    return FAILED;
-  }
-
-  s->listfile_cmds = calloc((size_t)s->listfile_items, 1);
-  s->listfile_ints = calloc((size_t)s->listfile_items, sizeof(int) * 7);
-
-  if (s->listfile_cmds == NULL || s->listfile_ints == NULL) {
-    if (s->listfile_cmds != NULL)
-      free(s->listfile_cmds);
-    if (s->listfile_ints != NULL)
-      free(s->listfile_ints);
-    s->listfile_cmds = NULL;
-    s->listfile_ints = NULL;
-    s->listfile_items = 0;
-    print_text(NO, "LISTFILE_BLOCK_READ: Out of memory error.\n");
-    return FAILED;
-  }
-
-  /* read the items */
-  for (i = 0; i < s->listfile_items; i++) {
-    s->listfile_cmds[i] = *(t++);
-    if (s->listfile_cmds[i] == 'k') {
-      /* new line */
-      s->listfile_ints[i*7 + 0] = READ_T;
-      s->listfile_ints[i*7 + 1] = READ_T;
-      s->listfile_ints[i*7 + 2] = READ_T;
-      s->listfile_ints[i*7 + 3] = READ_T;
-      s->listfile_ints[i*7 + 4] = READ_T;
-      s->listfile_ints[i*7 + 5] = READ_T;
-      s->listfile_ints[i*7 + 6] = READ_T;
-    }
-    else if (s->listfile_cmds[i] == 'f') {
-      /* file name */
-      s->listfile_ints[i*7 + 0] = READ_T;
-    }
-    else {
-      s->listfile_items = 0;
-      print_text(NO, "LISTFILE_BLOCK_READ: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", s->listfile_cmds[i]);
-      return FAILED;
+  if (has_flag == YES) {
+    if (!_file_has_bytes(t, end, 1))
+      goto invalid_block;
+    if (*(t++) == 0) {
+      count = 0;
+      goto done;
     }
   }
+  if (!_file_has_bytes(t, end, 4))
+    goto invalid_block;
+  count = _read_file_int(&t);
+  if (count < 0 || (has_flag == YES && count == 0) || count > INT_MAX / width ||
+      (size_t)count > (size_t)(end - t) / 5 ||
+      (size_t)count > (size_t)-1 / (sizeof(*values) * width))
+    goto invalid_block;
+  if (count == 0)
+    goto done;
 
+  cmds = calloc(count, sizeof(*cmds));
+  values = calloc(count, sizeof(*values) * width);
+  if (cmds == NULL || values == NULL) {
+    print_text(NO, "LISTFILE_BLOCK_READ: Out of memory.\n");
+    goto error;
+  }
+  for (i = 0; i < count; i++) {
+    if (!_file_has_bytes(t, end, 1))
+      goto invalid_block;
+    cmds[i] = *(t++);
+    if (cmds[i] == 'k')
+      fields = width;
+    else if (cmds[i] == 'f')
+      fields = 1;
+    else
+      goto invalid_block;
+    if (!_file_has_bytes(t, end, (size_t)fields * 4))
+      goto invalid_block;
+    for (j = 0; j < fields; j++)
+      values[i * width + j] = _read_file_int(&t);
+  }
+
+done:
   *d = t;
-
+  *item_count = count;
+  *item_cmds = cmds;
+  *item_values = values;
   return SUCCEEDED;
+
+invalid_block:
+  print_text(NO, "LISTFILE_BLOCK_READ: Invalid or truncated listfile block.\n");
+error:
+  free(cmds);
+  free(values);
+  return FAILED;
 }
 
 
-int listfile_block_read_global(unsigned char **d, struct object_file *obj) {
+int listfile_block_read(unsigned char **d, const unsigned char *end, struct section *s) {
 
-  unsigned char *t;
-  int i;
+  return _read_listfile_block(d, end, 7, YES, &s->listfile_items, &s->listfile_cmds, &s->listfile_ints);
+}
 
-  if (d == NULL || obj == NULL)
-    return FAILED;
 
-  t = *d;
-  obj->listfile_items = READ_T;
-  if (obj->listfile_items == 0) {
-    /* no listfile information! */
-    obj->listfile_cmds = NULL;
-    obj->listfile_ints = NULL;
-    *d = t;
-    return SUCCEEDED;
-  }
+int listfile_block_read_global(unsigned char **d, const unsigned char *end, struct object_file *obj) {
 
-  /* we have listfile information */
-  if (obj->listfile_items < 0 || obj->listfile_items > INT_MAX / 10) {
-    obj->listfile_items = 0;
-    print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Invalid listfile item count.\n");
-    return FAILED;
-  }
-
-  obj->listfile_cmds = calloc((size_t)obj->listfile_items, 1);
-  obj->listfile_ints = calloc((size_t)obj->listfile_items, sizeof(int) * 10);
-
-  if (obj->listfile_cmds == NULL || obj->listfile_ints == NULL) {
-    if (obj->listfile_cmds != NULL)
-      free(obj->listfile_cmds);
-    if (obj->listfile_ints != NULL)
-      free(obj->listfile_ints);
-    obj->listfile_cmds = NULL;
-    obj->listfile_ints = NULL;
-    obj->listfile_items = 0;
-    print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Out of memory error.\n");
-    return FAILED;
-  }
-
-  /* read the items */
-  for (i = 0; i < obj->listfile_items; i++) {
-    obj->listfile_cmds[i] = *(t++);
-    if (obj->listfile_cmds[i] == 'k') {
-      /* new line */
-      obj->listfile_ints[i*10 + 0] = READ_T;
-      obj->listfile_ints[i*10 + 1] = READ_T;
-      obj->listfile_ints[i*10 + 2] = READ_T;
-      obj->listfile_ints[i*10 + 3] = READ_T;
-      obj->listfile_ints[i*10 + 4] = READ_T;
-      obj->listfile_ints[i*10 + 5] = READ_T;
-      obj->listfile_ints[i*10 + 6] = READ_T;
-      obj->listfile_ints[i*10 + 7] = READ_T;
-      obj->listfile_ints[i*10 + 8] = READ_T;
-      obj->listfile_ints[i*10 + 9] = READ_T;
-    }
-    else if (obj->listfile_cmds[i] == 'f') {
-      /* file name */
-      obj->listfile_ints[i*10 + 0] = READ_T;
-    }
-    else {
-      obj->listfile_items = 0;
-      print_text(NO, "LISTFILE_BLOCK_READ_GLOBAL: Unknown command '%c'. Internal error. Only known commands are 'k' and 'f'.\n", obj->listfile_cmds[i]);
-      return FAILED;
-    }
-  }
-
-  *d = t;
-
-  return SUCCEEDED;
+  return _read_listfile_block(d, end, 10, NO, &obj->listfile_items, &obj->listfile_cmds, &obj->listfile_ints);
 }

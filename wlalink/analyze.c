@@ -11,6 +11,7 @@
 #include "listfile.h"
 #include "files.h"
 #include "main.h"
+#include "file_reader.h"
 
 #if defined(AMIGA)
 #include "/printf.h"
@@ -20,7 +21,7 @@
 
 
 /* read an integer from t */
-#define READ_T (t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24)); t += 4;
+#define READ_T _read_file_int(&t)
 
 /* read a double from t */
 #define READ_DOU {                              \
@@ -63,32 +64,32 @@ int is_label_anonymous(char *label);
 
 int add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, int *array_max, int size_increase) {
 
-  if (id > *max)
-    *max = id;
+  int i, j;
+  void **new_array;
 
-  while (id >= *array_max) {
-    int i, j;
-
-    i = *array_max;
-    j = i + size_increase;
-
-    /* increase the pointer array size */
-    *array_max = j;
-
-    *array = realloc(*array, sizeof(void **) * j);
-    if (*array == NULL) {
-      print_text(NO, "add_pointer_to_a_pointer_array(): Out of memory error!\n");
-      *array_max = 0;
-      
+  if (id < 0 || size_increase <= 0 || id >= INT_MAX - INT_MAX % size_increase) {
+    print_text(NO, "ADD_POINTER: Invalid table ID %d.\n", id);
+    return FAILED;
+  }
+  if (id >= *array_max) {
+    j = (id / size_increase + 1) * size_increase;
+    if ((unsigned long)j > (size_t)-1 / sizeof(*new_array)) {
+      print_text(NO, "ADD_POINTER: Table size is too large.\n");
       return FAILED;
     }
-
-    while (i < j) {
-      (*array)[i] = NULL;
-      i++;
+    new_array = realloc(*array, (size_t)j * sizeof(*new_array));
+    if (new_array == NULL) {
+      print_text(NO, "add_pointer_to_a_pointer_array(): Out of memory error!\n");
+      return FAILED;
     }
+    for (i = *array_max; i < j; i++)
+      new_array[i] = NULL;
+    *array = new_array;
+    *array_max = j;
   }
 
+  if (id > *max)
+    *max = id;
   (*array)[id] = ptr;
   
   return SUCCEEDED;
@@ -177,6 +178,10 @@ int add_reference(struct reference *r) {
 
 int add_stack(struct stack *sta) {
 
+  /* Register before linking it into the list so a failed insert leaves ownership with the caller. */
+  if (add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max, 1024) == FAILED)
+    return FAILED;
+
   /* parse the type */
   if ((sta->type & (1 << 7)) != 0)
     sta->relative_references = YES;
@@ -200,10 +205,6 @@ int add_stack(struct stack *sta) {
     g_stacks_last = sta;
   }
 
-  /* add the pointer also to a pointer array for quick discovery with the ID */
-  if (add_pointer_to_a_pointer_array((void *)sta, sta->id, (void ***)&g_obj_tmp->stacks, &g_obj_tmp->stacks_max, &g_obj_tmp->stacks_array_max, 1024) == FAILED)
-    return FAILED;
-
   return SUCCEEDED;
 }
 
@@ -225,16 +226,16 @@ static int _add_assertion(struct assertion *assertion) {
 }
 
 
-static int _read_bounded_string(unsigned char **tp, char *out, const char *description) {
+static int _read_bounded_string(unsigned char **tp, const unsigned char *end, char *out, const char *description) {
 
   unsigned char *t = *tp;
   int q;
 
-  for (q = 0; q < MAX_NAME_LENGTH && *t != 0; t++, q++)
+  for (q = 0; q < MAX_NAME_LENGTH && t < end && *t != 0; t++, q++)
     out[q] = *t;
   out[q] = 0;
 
-  if (*t != 0) {
+  if (t >= end || *t != 0) {
     print_text(NO, "COLLECT_DLR: %s is too long or missing a NUL terminator.\n", description);
     return FAILED;
   }
@@ -256,16 +257,16 @@ static int _read_bounded_string(unsigned char **tp, char *out, const char *descr
 #define NAME_MARKERS_DEFINE 1
 #define NAME_MARKERS_LABEL  2
 
-static int _read_bounded_name(unsigned char **tp, char *out, const char *description) {
+static int _read_bounded_name(unsigned char **tp, const unsigned char *end, char *out, const char *description) {
 
   unsigned char *t = *tp;
   int q;
 
-  for (q = 0; q < MAX_NAME_LENGTH && *t != 0 && *t != NAME_MARKERS_DEFINE && *t != NAME_MARKERS_LABEL; t++, q++)
+  for (q = 0; q < MAX_NAME_LENGTH && t < end && *t != 0 && *t != NAME_MARKERS_DEFINE && *t != NAME_MARKERS_LABEL; t++, q++)
     out[q] = *t;
   out[q] = 0;
 
-  if (!(*t == 0 || *t == NAME_MARKERS_DEFINE || *t == NAME_MARKERS_LABEL)) {
+  if (t >= end || !(*t == 0 || *t == NAME_MARKERS_DEFINE || *t == NAME_MARKERS_LABEL)) {
     print_text(NO, "COLLECT_DLR: %s is too long or missing a terminator.\n", description);
     return FAILED;
   }
@@ -280,16 +281,16 @@ static int _read_bounded_name(unsigned char **tp, char *out, const char *descrip
 }
 
 
-static int _read_bounded_slot_name(unsigned char **tp, char *out, int slot_id, const char *description) {
+static int _read_bounded_slot_name(unsigned char **tp, const unsigned char *end, char *out, int slot_id, const char *description) {
 
   unsigned char *t = *tp;
   int q;
 
-  for (q = 0; q < MAX_NAME_LENGTH && *t != 0; t++, q++)
+  for (q = 0; q < MAX_NAME_LENGTH && t < end && *t != 0; t++, q++)
     out[q] = *t;
   out[q] = 0;
 
-  if (*t != 0) {
+  if (t >= end || *t != 0) {
     print_text(NO, "OBTAIN_MEMORYMAP: %s of SLOT %d is too long or missing a NUL terminator.\n", description, slot_id);
     return FAILED;
   }
@@ -301,13 +302,37 @@ static int _read_bounded_slot_name(unsigned char **tp, char *out, int slot_id, c
 }
 
 
-static int _read_stack_items(unsigned char **tp, struct stack *s) {
+static int _read_record_count(unsigned char **tp, const unsigned char *end, size_t min_record_size, int *count) {
+
+  if (!_file_has_bytes(*tp, end, 4))
+    return FAILED;
+  *count = _read_file_int(tp);
+  if (*count < 0 || (size_t)*count > (size_t)(end - *tp) / min_record_size)
+    return FAILED;
+  return SUCCEEDED;
+}
+
+
+static int _rebase_section_id(int *id, int base) {
+
+  if (*id < 0 || *id >= 0x10000) {
+    print_text(NO, "%s: Invalid section ID %d.\n", g_obj_tmp->name, *id);
+    return FAILED;
+  }
+  *id += base;
+  return SUCCEEDED;
+}
+
+
+static int _read_stack_items(unsigned char **tp, const unsigned char *end, struct stack *s) {
 
   unsigned char *t = *tp, *dtmp;
   double dou;
   int n;
 
   for (n = 0; n != s->stacksize; n++) {
+    if (!_file_has_bytes(t, end, 2))
+      return FAILED;
     s->stack_items[n].slot = -1;
     s->stack_items[n].base = -1;
     s->stack_items[n].bank = -1;
@@ -315,10 +340,12 @@ static int _read_stack_items(unsigned char **tp, struct stack *s) {
     s->stack_items[n].type = *(t++);
     s->stack_items[n].sign = *(t++);
     if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-      if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
+      if (_read_bounded_string(&t, end, s->stack_items[n].string, "Stack item string") == FAILED)
         return FAILED;
     }
     else {
+      if (!_file_has_bytes(t, end, 8))
+        return FAILED;
       READ_DOU;
       s->stack_items[n].value_ram = dou;
       s->stack_items[n].value_rom = dou;
@@ -331,16 +358,82 @@ static int _read_stack_items(unsigned char **tp, struct stack *s) {
 }
 
 
-static int _read_assertions(unsigned char **tp, int section_id_base, int include_slot_bank_base) {
+static int _read_stack(unsigned char **tp, const unsigned char *end, struct stack *s, int section_id_base, int is_object, int is_assertion) {
+
+  unsigned char *t = *tp;
+  int type, special_size, bits_size;
+
+  if (!_file_has_bytes(t, end, 5))
+    return FAILED;
+  type = t[4] & ~(1 << 7);
+  special_size = (is_assertion == YES && type == STACK_TYPE_ASSERT) ? 0 : 1;
+  bits_size = type == STACK_TYPE_BITS ? 2 : 0;
+  /* id/type, optional special ID, section/source IDs, count/position, optional
+     bit fields, address/line, and object-only slot/bank/base. */
+  if (!_file_has_bytes(t, end, 23 + special_size + bits_size + (is_object == YES ? 9 : 0)))
+    return FAILED;
+
+  s->id = READ_T;
+  s->type = *(t++);
+  if (special_size != 0)
+    s->special_id = *(t++);
+  else
+    s->type = STACK_TYPE_UNKNOWN;
+
+  s->section = READ_T;
+  s->section_status = s->section == 0 ? OFF : ON;
+  if (s->section_status == ON && _rebase_section_id(&s->section, section_id_base) == FAILED)
+    return FAILED;
+  s->file_id_source = READ_T;
+  s->stacksize = *(t++);
+  s->position = *(t++);
+  if (bits_size != 0) {
+    s->bits_position = *(t++);
+    s->bits_to_define = *(t++);
+  }
+  s->slot = is_object == YES ? *(t++) : g_obj_tmp->slot;
+  s->address = READ_T;
+  s->linenumber = READ_T;
+  if (is_object == YES) {
+    s->bank = READ_T;
+    s->base = READ_T;
+  }
+  else {
+    s->bank = g_obj_tmp->bank;
+    s->base = g_obj_tmp->base;
+  }
+
+  if (s->id < 0 || !_file_has_bytes(t, end, (size_t)s->stacksize * 3))
+    return FAILED;
+  s->is_assertion_body = is_assertion;
+  if (s->stacksize > 0) {
+    s->stack_items = calloc(s->stacksize, sizeof(struct stack_item));
+    if (s->stack_items == NULL) {
+      print_text(NO, "COLLECT_DLR: Out of memory.\n");
+      return FAILED;
+    }
+  }
+  if (_read_stack_items(&t, end, s) == FAILED || add_stack(s) == FAILED)
+    return FAILED;
+
+  *tp = t;
+  return SUCCEEDED;
+}
+
+
+static int _read_assertions(unsigned char **tp, const unsigned char *end, int section_id_base, int is_object) {
 
   unsigned char *t = *tp;
   struct assertion *assertion;
   struct stack *s;
-  int i, x;
+  int i;
 
-  i = READ_T;
+  if (_read_record_count(&t, end, 25 + (is_object == YES ? 9 : 0), &i) == FAILED)
+    return FAILED;
 
   for (; i > 0; i--) {
+    if (!_file_has_bytes(t, end, 1))
+      return FAILED;
     assertion = calloc(1, sizeof(struct assertion));
     if (assertion == NULL) {
       print_text(NO, "COLLECT_DLR: Out of memory.\n");
@@ -348,7 +441,7 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
     }
 
     assertion->action = *(t++);
-    if (_read_bounded_string(&t, assertion->message, "Assertion message") == FAILED) {
+    if (_read_bounded_string(&t, end, assertion->message, "Assertion message") == FAILED) {
       free(assertion);
       return FAILED;
     }
@@ -360,69 +453,7 @@ static int _read_assertions(unsigned char **tp, int section_id_base, int include
       return FAILED;
     }
 
-    s->id = READ_T;
-    s->type = *(t++);
-    if ((s->type & ~(1 << 7)) == STACK_TYPE_ASSERT) {
-      s->type = STACK_TYPE_UNKNOWN;
-      s->relative_references = NO;
-      s->special_id = 0;
-    }
-    else
-      s->special_id = *(t++);
-    s->section = READ_T;
-    if (s->section == 0)
-      s->section_status = OFF;
-    else {
-      s->section_status = ON;
-      s->section += section_id_base;
-    }
-    s->file_id_source = READ_T;
-    x = *(t++);
-    s->position = *(t++);
-
-    if (s->type == STACK_TYPE_BITS) {
-      s->bits_position = *(t++);
-      s->bits_to_define = *(t++);
-    }
-    else {
-      s->bits_position = 0;
-      s->bits_to_define = 0;
-    }
-
-    if (include_slot_bank_base == YES)
-      s->slot = *(t++);
-
-    s->address = READ_T;
-    s->linenumber = READ_T;
-    s->stacksize = x;
-
-    if (include_slot_bank_base == YES) {
-      s->bank = READ_T;
-      s->base = READ_T;
-    }
-    else {
-      s->bank = g_obj_tmp->bank;
-      s->slot = g_obj_tmp->slot;
-      s->base = g_obj_tmp->base;
-    }
-
-    s->is_assertion_body = YES;
-    s->stack_items = calloc(x, sizeof(struct stack_item));
-    if (s->stack_items == NULL) {
-      print_text(NO, "COLLECT_DLR: Out of memory.\n");
-      free(s);
-      free(assertion);
-      return FAILED;
-    }
-
-    if (_read_stack_items(&t, s) == FAILED) {
-      free(s->stack_items);
-      free(s);
-      free(assertion);
-      return FAILED;
-    }
-
-    if (add_stack(s) == FAILED) {
+    if (_read_stack(&t, end, s, section_id_base, is_object, YES) == FAILED) {
       free(s->stack_items);
       free(s);
       free(assertion);
@@ -474,10 +505,44 @@ static void _print_section_id_tables(void) {
 int add_section(struct section *s) {
 
   struct pointer_array *pointer_array;
-  unsigned char *data;
+  unsigned char *data = NULL;
   struct section *ss;
-  int table = s->id >> 16, id = s->id, add_pointer_array = NO;
-  
+  int table, id = s->id;
+
+  if (id < 0) {
+    print_text(NO, "ADD_SECTION: Invalid section ID %d.\n", id);
+    return FAILED;
+  }
+  table = id >> 16;
+  s->is_bankheader_section = strcmp(s->name, "BANKHEADER") == 0 ? YES : NO;
+  if (s->is_bankheader_section == YES) {
+    for (ss = g_sec_bankhd_first; ss != NULL; ss = ss->next) {
+      if (ss->bank == s->bank) {
+        print_text(NO, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", g_obj_tmp->name, s->bank);
+        return FAILED;
+      }
+    }
+  }
+
+  if (table > g_section_table_table_max)
+    pointer_array = NULL;
+  else
+    pointer_array = g_section_table_table[table];
+
+  if (pointer_array == NULL) {
+    pointer_array = calloc(1, sizeof(struct pointer_array));
+    if (pointer_array == NULL) {
+      print_text(NO, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
+      return FAILED;
+    }
+    pointer_array->max = -1;
+    if (add_pointer_to_a_pointer_array(pointer_array, table, (void ***)&g_section_table_table,
+                                       &g_section_table_table_max, &s_section_table_table_array_max, 256) == FAILED) {
+      free(pointer_array);
+      return FAILED;
+    }
+  }
+
   /* create a local copy of the data */
   if (s->size > 0) {
     data = calloc(s->size, 1);
@@ -487,11 +552,15 @@ int add_section(struct section *s) {
     }
 
     memcpy(data, s->data, s->size);
-    s->data = data;
   }
-  else
-    s->data = NULL;
+  /* bank headers are kept out of the section lookup table */
+  if (add_pointer_to_a_pointer_array(s->is_bankheader_section == YES ? NULL : s, id & 0xffff,
+                                     &pointer_array->ptr, &pointer_array->max, &pointer_array->array_max, 256) == FAILED) {
+    free(data);
+    return FAILED;
+  }
 
+  s->data = data;
   s->file_id = g_obj_tmp->id;
   s->next = NULL;
   s->prev = NULL;
@@ -502,18 +571,7 @@ int add_section(struct section *s) {
   s->appended_to_section = NULL;
   s->appended_to_offset = 0;
 
-  if (s->name[0] == 'B' && strcmp(s->name, "BANKHEADER") == 0) {
-    ss = g_sec_bankhd_first;
-    while (ss != NULL) {
-      if (ss->bank == s->bank) {
-        print_text(NO, "%s: ADD_SECTION: BANKHEADER section for bank %d was defined for the second time.\n", g_obj_tmp->name, s->bank);
-        return FAILED;
-      }
-      ss = ss->next;
-    }
-
-    s->is_bankheader_section = YES;
-
+  if (s->is_bankheader_section == YES) {
     if (g_sec_bankhd_first == NULL) {
       g_sec_bankhd_first = s;
       g_sec_bankhd_last = s;
@@ -525,8 +583,6 @@ int add_section(struct section *s) {
     }
   }
   else {
-    s->is_bankheader_section = NO;
-
     if (g_sec_first == NULL) {
       g_sec_first = s;
       g_sec_last = s;
@@ -537,41 +593,6 @@ int add_section(struct section *s) {
       g_sec_last = s;
     }
   }
-
-  /* add the pointer also to a pointer array for quick discovery with the ID */
-
-  if (table > g_section_table_table_max)
-    pointer_array = NULL;
-  else
-    pointer_array = g_section_table_table[table];
-
-  if (pointer_array == NULL) {
-    /* allocate container for this table */
-    pointer_array = calloc(1, sizeof(struct pointer_array));
-    if (pointer_array == NULL) {
-      print_text(NO, "%s: ADD_SECTION: Out of memory with section \"%s\".\n", g_obj_tmp->name, s->name);
-      return FAILED;
-    }
-
-    pointer_array->ptr = NULL;
-    pointer_array->max = -1;
-    pointer_array->array_max = 0;
-
-    add_pointer_array = YES;
-  }
-  
-  if (table > g_section_table_table_max || add_pointer_array == YES) {
-    /* expand pointer array (table) */
-    if (add_pointer_to_a_pointer_array((void *)pointer_array, table, (void ***)&g_section_table_table, &g_section_table_table_max, &s_section_table_table_array_max, 256) == FAILED)
-      return FAILED;
-  }
-
-  /* WARNING: bankheader sections don't go into this speedup array, but there must be a NULL there */
-  if (s->is_bankheader_section == YES)
-    s = NULL;
-  
-  if (add_pointer_to_a_pointer_array((void *)s, id & 0xffff, (void ***)&pointer_array->ptr, &pointer_array->max, &pointer_array->array_max, 256) == FAILED)
-    return FAILED;
 
   return SUCCEEDED;
 }
@@ -709,6 +730,7 @@ int obtain_rombankmap(void) {
   int map_found = OFF, i, x, a;
   struct object_file *o;
   unsigned char *t;
+  const unsigned char *end;
 
   
   /* initialize values */
@@ -718,7 +740,10 @@ int obtain_rombankmap(void) {
   o = g_obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
+      if (o->size <= OBJ_ROMBANKMAP)
+        goto invalid_bankmap;
       t = o->data + OBJ_ROMBANKMAP;
+      end = o->data + o->size;
 
       /* obtain status */
       i = *t;
@@ -727,7 +752,11 @@ int obtain_rombankmap(void) {
       /* general rombanksize? */
       if (i == 0) {
         /* obtain banksize */
+        if (!_file_has_bytes(t, end, 4))
+          goto invalid_bankmap;
         g_banksize = READ_T;
+        if (g_banksize <= 0 || g_banksize > INT_MAX / o->rom_banks)
+          goto invalid_bankmap;
 
         o->memorymap = t;
         map_found = ON;
@@ -743,8 +772,12 @@ int obtain_rombankmap(void) {
         }
       }
       else {
+        if (i != 1 || (size_t)o->rom_banks > (size_t)(end - t) / 4)
+          goto invalid_bankmap;
         for (a = 0, x = 0; x < o->rom_banks; x++) {
           g_banksize = READ_T;
+          if (g_banksize <= 0 || g_banksize > INT_MAX - a)
+            goto invalid_bankmap;
           if (g_banksizes[x] == 0) {
             g_banksizes[x] = g_banksize;
             g_bankaddress[x] = a;
@@ -770,13 +803,10 @@ int obtain_rombankmap(void) {
   }
 
   return SUCCEEDED;
-}
 
-
-static unsigned long _read_be32(const unsigned char *t) {
-
-  return ((unsigned long)t[0] << 24) | ((unsigned long)t[1] << 16) |
-         ((unsigned long)t[2] << 8) | (unsigned long)t[3];
+invalid_bankmap:
+  print_text(NO, "OBTAIN_ROMBANKMAP: Invalid or truncated ROM bank map in \"%s\".\n", o->name);
+  return FAILED;
 }
 
 
@@ -861,11 +891,40 @@ int obtain_source_file_names(void) {
 }
 
 
+static int _read_memorymap_slots(struct object_file *o, struct slot *slots) {
+
+  unsigned char *t = o->memorymap;
+  const unsigned char *end = o->data + o->size;
+  int count, i;
+
+  if (!_file_has_bytes(t, end, 1))
+    goto truncated_memorymap;
+  count = *(t++);
+  if ((size_t)count > (size_t)(end - t) / 9)
+    goto truncated_memorymap;
+
+  for (i = 0; i < count; i++) {
+    if (!_file_has_bytes(t, end, 8))
+      goto truncated_memorymap;
+    slots[i].usage = ON;
+    slots[i].address = READ_T;
+    slots[i].size = READ_T;
+    if (_read_bounded_slot_name(&t, end, slots[i].name, i, "Slot name") == FAILED)
+      return FAILED;
+  }
+  o->source_file_names = t;
+  return SUCCEEDED;
+
+truncated_memorymap:
+  print_text(NO, "OBTAIN_MEMORYMAP: Truncated memory map in \"%s\".\n", o->name);
+  return FAILED;
+}
+
+
 int obtain_memorymap(void) {
 
   struct object_file *o;
   int map_found = OFF, i, x;
-  unsigned char *t;
   struct slot s[256];
 
   
@@ -879,25 +938,8 @@ int obtain_memorymap(void) {
   o = g_obj_first;
   while (o != NULL) {
     if (o->format == WLA_VERSION_OBJ) {
-      t = o->memorymap;
-
-      /* obtain slots */
-      i = *t;
-      t++;
-
-      for (x = 0; i > 0; i--, x++) {
-        g_slots[x].usage = ON;
-        g_slots[x].address =  READ_T;
-        g_slots[x].size =  READ_T;
-        /* NOTE: this loop used to copy the slot name straight out of the
-           object file into g_slots[x].name (char[MAX_NAME_LENGTH + 1]) with
-           no length limit, so a crafted .MEMORYMAP slot name ran past the end
-           of the 256 element g_slots[] array and corrupted the heap. */
-        if (_read_bounded_slot_name(&t, g_slots[x].name, x, "Slot name") == FAILED)
-          return FAILED;
-      }
-
-      o->source_file_names = t;
+      if (_read_memorymap_slots(o, g_slots) == FAILED)
+        return FAILED;
       map_found = ON;
       break;
     }
@@ -916,23 +958,8 @@ int obtain_memorymap(void) {
     if (o->format == WLA_VERSION_OBJ) {
       for (i = 0; i < 256; i++)
         s[i].usage = OFF;
-      t = o->memorymap;
-
-      /* obtain slots */
-      i = *t;
-      t++;
-
-      for (x = 0; i > 0; i--, x++) {
-        s[x].usage = ON;
-        s[x].address =  READ_T;
-        s[x].size =  READ_T;
-        /* NOTE: see the note on the g_slots[] copy above - this comparison
-           buffer copy was unbounded in exactly the same way. */
-        if (_read_bounded_slot_name(&t, s[x].name, x, "Slot name") == FAILED)
-          return FAILED;
-      }
-
-      o->source_file_names = t;
+      if (_read_memorymap_slots(o, s) == FAILED)
+        return FAILED;
 
       for (x = 0, i = 0; i < 256; i++) {
         if (s[i].usage == ON) {
@@ -977,24 +1004,37 @@ int obtain_memorymap(void) {
 }
 
 
+static size_t _reference_extra_bytes(unsigned char type) {
+
+  if (type == REFERENCE_TYPE_BITS)
+    return 2;
+  if (type == REFERENCE_TYPE_DIRECT_8BIT_MAX_BITS)
+    return 1;
+  return 0;
+}
+
+
 int collect_dlr(void) {
 
   struct reference *r;
   struct stack *s;
   struct label *l;
   struct label_sizeof *ls;
-  int section_id_base, x, i, n;
+  int section_id_base, i;
   unsigned char *t, *dtmp;
+  const unsigned char *end;
   double dou;
   
   section_id_base = 0;
   g_obj_tmp = g_obj_first;
 
   while (g_obj_tmp != NULL) {
+    end = g_obj_tmp->data + g_obj_tmp->size;
     /* OBJECT FILE */
     if (g_obj_tmp->format == WLA_VERSION_OBJ) {
       t = g_obj_tmp->exported_defines;
-      i = READ_T;
+      if (_read_record_count(&t, end, 9, &i) == FAILED)
+        goto invalid_metadata;
 
       /* load defines */
       for (; i > 0; i--) {
@@ -1010,9 +1050,9 @@ int collect_dlr(void) {
            name ran long kept writing past the field and past the end of the
            heap-allocated struct label (heap buffer overflow). Make the copy
            stop at the field size and reject a name that never terminates. */
-        if (_read_bounded_name(&t, l->name, "Definition name") == FAILED) {
+        if (_read_bounded_name(&t, end, l->name, "Definition name") == FAILED || !_file_has_bytes(t, end, 9)) {
           free(l);
-          return FAILED;
+          goto invalid_metadata;
         }
         if (*t == 0)
           l->status = LABEL_STATUS_DEFINE;
@@ -1036,7 +1076,8 @@ int collect_dlr(void) {
       }
 
       /* load labels */
-      i = READ_T;
+      if (_read_record_count(&t, end, 26, &i) == FAILED)
+        goto invalid_metadata;
 
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
@@ -1047,9 +1088,9 @@ int collect_dlr(void) {
         
         /* NOTE: same unbounded copy as the definitions above, into the same
            2048 byte l->name field (heap buffer overflow). */
-        if (_read_bounded_name(&t, l->name, "Label name") == FAILED) {
+        if (_read_bounded_name(&t, end, l->name, "Label name") == FAILED || !_file_has_bytes(t, end, 26)) {
           free(l);
-          return FAILED;
+          goto invalid_metadata;
         }
         
         if (*t == 0)
@@ -1073,7 +1114,10 @@ int collect_dlr(void) {
           l->section_status = OFF;
         else {
           l->section_status = ON;
-          l->section += section_id_base;
+          if (_rebase_section_id(&l->section, section_id_base) == FAILED) {
+            free(l);
+            return FAILED;
+          }
         }
         l->address = READ_T;
         l->linenumber = READ_T;
@@ -1085,7 +1129,8 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      i = READ_T;
+      if (_read_record_count(&t, end, 28, &i) == FAILED)
+        goto invalid_metadata;
 
       /* load references */
       for (; i > 0; i--) {
@@ -1097,9 +1142,10 @@ int collect_dlr(void) {
         /* NOTE: r->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
            copy was unbounded, so a long reference name in a crafted object
            file overran the heap-allocated struct reference. */
-        if (_read_bounded_string(&t, r->name, "Reference name") == FAILED) {
+        if (_read_bounded_string(&t, end, r->name, "Reference name") == FAILED ||
+            !_file_has_bytes(t, end, 27) || !_file_has_bytes(t, end, 27 + _reference_extra_bytes(*t))) {
           free(r);
-          return FAILED;
+          goto invalid_metadata;
         }
         r->type = *(t++);
         r->special_id = *(t++);
@@ -1124,7 +1170,10 @@ int collect_dlr(void) {
           r->section_status = OFF;
         else {
           r->section_status = ON;
-          r->section += section_id_base;
+          if (_rebase_section_id(&r->section, section_id_base) == FAILED) {
+            free(r);
+            return FAILED;
+          }
         }
         r->linenumber = READ_T;
         r->address = READ_T;
@@ -1134,7 +1183,8 @@ int collect_dlr(void) {
         add_reference(r);
       }
 
-      i = READ_T;
+      if (_read_record_count(&t, end, 33, &i) == FAILED)
+        goto invalid_metadata;
 
       /* load pending calculations */
       for (; i > 0; i--) {
@@ -1144,73 +1194,19 @@ int collect_dlr(void) {
           return FAILED;
         }
 
-        s->id = READ_T;
-        s->type = *(t++);
-        s->special_id = *(t++);
-        s->section = READ_T;
-        if (s->section == 0)
-          s->section_status = OFF;
-        else {
-          s->section_status = ON;
-          s->section += section_id_base;
-        }
-        s->file_id_source = READ_T;
-        x = *(t++);
-        s->position = *(t++);
-
-        if (s->type == STACK_TYPE_BITS) {
-          s->bits_position = *(t++);
-          s->bits_to_define = *(t++);
-        }
-        else {
-          s->bits_position = 0;
-          s->bits_to_define = 0;
-        }
-        
-        s->slot = *(t++);
-        s->address = READ_T;
-        s->linenumber = READ_T;
-        s->bank = READ_T;
-        s->base = READ_T;
-        s->stacksize = x;
-        
-        s->stack_items = calloc(x, sizeof(struct stack_item));
-        if (s->stack_items == NULL) {
-          print_text(NO, "COLLECT_DLR: Out of memory.\n");
+        if (_read_stack(&t, end, s, section_id_base, YES, NO) == FAILED) {
+          free(s->stack_items);
           free(s);
-          return FAILED;
-        }
-        
-        add_stack(s);
-
-        for (n = 0; n != x; n++) {
-          s->stack_items[n].slot = -1;
-          s->stack_items[n].base = -1;
-          s->stack_items[n].bank = -1;
-          s->stack_items[n].stack_file_id = -1;
-          s->stack_items[n].type = *(t++);
-          s->stack_items[n].sign = *(t++);
-          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            /* NOTE: string is char[MAX_NAME_LENGTH + 1] (2048 bytes), but
-               this copy had no length limit, so a long stack item string in a
-               crafted object file wrote past the last element of the
-               calloc()ed stack_items[] array (heap buffer overflow). */
-            if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
-              return FAILED;
-          }
-          else {
-            READ_DOU;
-            s->stack_items[n].value_ram = dou;
-            s->stack_items[n].value_rom = dou;
-          }
+          goto invalid_metadata;
         }
       }
 
-      if (_read_assertions(&t, section_id_base, YES) == FAILED)
-        return FAILED;
+      if (_read_assertions(&t, end, section_id_base, YES) == FAILED)
+        goto invalid_metadata;
 
       /* label sizeofs */
-      i = READ_T;
+      if (_read_record_count(&t, end, 5, &i) == FAILED)
+        goto invalid_metadata;
 
       while (i > 0) {
         i--;
@@ -1225,9 +1221,9 @@ int collect_dlr(void) {
         /* NOTE: ls->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
            copy was unbounded, so a long .SIZEOF name in a crafted object or
            library file overran the heap-allocated struct label_sizeof. */
-        if (_read_bounded_string(&t, ls->name, "Label sizeof name") == FAILED) {
+        if (_read_bounded_string(&t, end, ls->name, "Label sizeof name") == FAILED || !_file_has_bytes(t, end, 4)) {
           free(ls);
-          return FAILED;
+          goto invalid_metadata;
         }
 
         ls->size = READ_T;
@@ -1238,14 +1234,18 @@ int collect_dlr(void) {
       }
 
       /* global listfile block */
-      if (listfile_block_read_global(&t, g_obj_tmp) == FAILED)
-        return FAILED;
+      if (listfile_block_read_global(&t, end, g_obj_tmp) == FAILED)
+        goto invalid_metadata;
       
       /* appendto/after sections */
-      i = READ_T;
+      if (_read_record_count(&t, end, 7, &i) == FAILED)
+        goto invalid_metadata;
 
       while (i > 0) {
         i--;
+
+        if (!_file_has_bytes(t, end, 5))
+          goto invalid_metadata;
 
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {
@@ -1264,11 +1264,11 @@ int collect_dlr(void) {
            bytes) and both copies were unbounded, so long APPENDTO/AFTER
            section names in a crafted object file wrote past the end of the
            heap-allocated struct after_section (heap buffer overflow). */
-        if (_read_bounded_string(&t, g_after_tmp->section, "Appendto/after section name") == FAILED) {
+        if (_read_bounded_string(&t, end, g_after_tmp->section, "Appendto/after section name") == FAILED) {
           free(g_after_tmp);
           return FAILED;
         }
-        if (_read_bounded_string(&t, g_after_tmp->after, "Appendto/after target name") == FAILED) {
+        if (_read_bounded_string(&t, end, g_after_tmp->after, "Appendto/after target name") == FAILED) {
           free(g_after_tmp);
           return FAILED;
         }
@@ -1286,7 +1286,8 @@ int collect_dlr(void) {
     /* LIBRARY FILE */
     else if (g_obj_tmp->format == WLA_VERSION_LIB) {
       t = g_obj_tmp->exported_defines;
-      i = READ_T;
+      if (_read_record_count(&t, end, 9, &i) == FAILED)
+        goto invalid_metadata;
 
       /* load definitions */
       for (; i > 0; i--) {
@@ -1300,9 +1301,9 @@ int collect_dlr(void) {
         /* NOTE: same unbounded copy as the object file path above - l->name
            is only 2048 bytes, so a long definition name in a crafted library
            file overflowed the heap-allocated struct label. */
-        if (_read_bounded_name(&t, l->name, "Definition name") == FAILED) {
+        if (_read_bounded_name(&t, end, l->name, "Definition name") == FAILED || !_file_has_bytes(t, end, 9)) {
           free(l);
-          return FAILED;
+          goto invalid_metadata;
         }
         if (*t == 0)
           l->status = LABEL_STATUS_DEFINE;
@@ -1326,9 +1327,9 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      i = READ_T;
-
       /* load labels and symbols */
+      if (_read_record_count(&t, end, 17, &i) == FAILED)
+        goto invalid_metadata;
       for (; i > 0; i--) {
         l = calloc(1, sizeof(struct label));
         if (l == NULL) {
@@ -1339,9 +1340,9 @@ int collect_dlr(void) {
         /* NOTE: see the object file path - this unbounded copy into the 2048
            byte l->name overflowed the heap-allocated struct label when a
            crafted library file supplied a long label name. */
-        if (_read_bounded_name(&t, l->name, "Label name") == FAILED) {
+        if (_read_bounded_name(&t, end, l->name, "Label name") == FAILED || !_file_has_bytes(t, end, 17)) {
           free(l);
-          return FAILED;
+          goto invalid_metadata;
         }
         
         if (*t == 0)
@@ -1358,7 +1359,10 @@ int collect_dlr(void) {
 
         t++;
         l->section = READ_T;
-        l->section += section_id_base;
+        if (_rebase_section_id(&l->section, section_id_base) == FAILED) {
+          free(l);
+          return FAILED;
+        }
         l->file_id_source = READ_T;
         l->linenumber = READ_T;
         l->section_status = ON;
@@ -1371,9 +1375,9 @@ int collect_dlr(void) {
         add_label(l);
       }
 
-      i = READ_T;
-
       /* load references */
+      if (_read_record_count(&t, end, 19, &i) == FAILED)
+        goto invalid_metadata;
       for (; i > 0; i--) {
         r = calloc(1, sizeof(struct reference));
         if (r == NULL) {
@@ -1383,14 +1387,18 @@ int collect_dlr(void) {
         /* NOTE: see the object file path - this unbounded copy into the 2048
            byte r->name overflowed the heap-allocated struct reference when a
            crafted library file supplied a long reference name. */
-        if (_read_bounded_string(&t, r->name, "Reference name") == FAILED) {
+        if (_read_bounded_string(&t, end, r->name, "Reference name") == FAILED ||
+            !_file_has_bytes(t, end, 18) || !_file_has_bytes(t, end, 18 + _reference_extra_bytes(*t))) {
           free(r);
-          return FAILED;
+          goto invalid_metadata;
         }
         r->type = *(t++);
         r->special_id = *(t++);
         r->section = READ_T;
-        r->section += section_id_base;
+        if (_rebase_section_id(&r->section, section_id_base) == FAILED) {
+          free(r);
+          return FAILED;
+        }
         r->file_id_source = READ_T;
 
         if (r->type == REFERENCE_TYPE_BITS) {
@@ -1417,9 +1425,9 @@ int collect_dlr(void) {
         add_reference(r);
       }
 
-      i = READ_T;
-
       /* load pending calculations */
+      if (_read_record_count(&t, end, 24, &i) == FAILED)
+        goto invalid_metadata;
       for (; i > 0; i--) {
         s = calloc(1, sizeof(struct stack));
         if (s == NULL) {
@@ -1427,72 +1435,19 @@ int collect_dlr(void) {
           return FAILED;
         }
 
-        s->id = READ_T;
-        s->type = *(t++);
-        s->special_id = *(t++);
-        s->section = READ_T;
-        if (s->section == 0)
-          s->section_status = OFF;
-        else {
-          s->section_status = ON;
-          s->section += section_id_base;
-        }
-        s->file_id_source = READ_T;
-        x = *(t++);
-        s->position = *(t++);
-
-        if (s->type == STACK_TYPE_BITS) {
-          s->bits_position = *(t++);
-          s->bits_to_define = *(t++);
-        }
-        else {
-          s->bits_position = 0;
-          s->bits_to_define = 0;
-        }
-
-        s->address = READ_T;
-        s->linenumber = READ_T;
-        s->stacksize = x;
-        s->bank = g_obj_tmp->bank;
-        s->slot = g_obj_tmp->slot;
-        s->base = g_obj_tmp->base;
-        
-        s->stack_items = calloc(x, sizeof(struct stack_item));
-        if (s->stack_items == NULL) {
-          print_text(NO, "COLLECT_DLR: Out of memory.\n");
+        if (_read_stack(&t, end, s, section_id_base, NO, NO) == FAILED) {
+          free(s->stack_items);
           free(s);
-          return FAILED;
-        }
-
-        add_stack(s);
-
-        for (n = 0; n != x; n++) {
-          s->stack_items[n].slot = -1;
-          s->stack_items[n].base = -1;
-          s->stack_items[n].bank = -1;
-          s->stack_items[n].stack_file_id = -1;
-          s->stack_items[n].type = *(t++);
-          s->stack_items[n].sign = *(t++);
-          if (s->stack_items[n].type == STACK_ITEM_TYPE_LABEL || s->stack_items[n].type == STACK_ITEM_TYPE_STRING) {
-            /* NOTE: see the object file path - this unbounded copy into the
-               2048 byte string field wrote past the last element of the
-               calloc()ed stack_items[] array for a crafted library file. */
-            if (_read_bounded_string(&t, s->stack_items[n].string, "Stack item string") == FAILED)
-              return FAILED;
-          }
-          else {
-            READ_DOU;
-            s->stack_items[n].value_ram = dou;
-            s->stack_items[n].value_rom = dou;
-          }
+          goto invalid_metadata;
         }
       }
 
-      if (_read_assertions(&t, section_id_base, NO) == FAILED)
-        return FAILED;
+      if (_read_assertions(&t, end, section_id_base, NO) == FAILED)
+        goto invalid_metadata;
 
       /* label sizeofs */
-      i = READ_T;
+      if (_read_record_count(&t, end, 5, &i) == FAILED)
+        goto invalid_metadata;
 
       while (i > 0) {
         i--;
@@ -1507,9 +1462,9 @@ int collect_dlr(void) {
         /* NOTE: ls->name is char[MAX_NAME_LENGTH + 1] (2048 bytes) and this
            copy was unbounded, so a long .SIZEOF name in a crafted object or
            library file overran the heap-allocated struct label_sizeof. */
-        if (_read_bounded_string(&t, ls->name, "Label sizeof name") == FAILED) {
+        if (_read_bounded_string(&t, end, ls->name, "Label sizeof name") == FAILED || !_file_has_bytes(t, end, 4)) {
           free(ls);
-          return FAILED;
+          goto invalid_metadata;
         }
 
         ls->size = READ_T;
@@ -1520,14 +1475,18 @@ int collect_dlr(void) {
       }
       
       /* global listfile block */
-      if (listfile_block_read_global(&t, g_obj_tmp) == FAILED)
-        return FAILED;
+      if (listfile_block_read_global(&t, end, g_obj_tmp) == FAILED)
+        goto invalid_metadata;
 
       /* appendto/after sections */
-      i = READ_T;
+      if (_read_record_count(&t, end, 7, &i) == FAILED)
+        goto invalid_metadata;
 
       while (i > 0) {
         i--;
+
+        if (!_file_has_bytes(t, end, 5))
+          goto invalid_metadata;
 
         g_after_tmp = calloc(1, sizeof(struct after_section));
         if (g_after_tmp == NULL) {
@@ -1546,11 +1505,11 @@ int collect_dlr(void) {
            char[MAX_NAME_LENGTH + 1] fields were unbounded, so long
            APPENDTO/AFTER names in a crafted library file overflowed the
            heap-allocated struct after_section. */
-        if (_read_bounded_string(&t, g_after_tmp->section, "Appendto/after section name") == FAILED) {
+        if (_read_bounded_string(&t, end, g_after_tmp->section, "Appendto/after section name") == FAILED) {
           free(g_after_tmp);
           return FAILED;
         }
-        if (_read_bounded_string(&t, g_after_tmp->after, "Appendto/after target name") == FAILED) {
+        if (_read_bounded_string(&t, end, g_after_tmp->after, "Appendto/after target name") == FAILED) {
           free(g_after_tmp);
           return FAILED;
         }
@@ -1567,10 +1526,18 @@ int collect_dlr(void) {
     }
 
     g_obj_tmp = g_obj_tmp->next;
-    section_id_base += 0x10000;
+    if (g_obj_tmp != NULL) {
+      if (section_id_base > INT_MAX - 0x10000)
+        goto invalid_metadata;
+      section_id_base += 0x10000;
+    }
   }
 
   return SUCCEEDED;
+
+invalid_metadata:
+  print_text(NO, "COLLECT_DLR: Invalid or truncated metadata in \"%s\".\n", g_obj_tmp->name);
+  return FAILED;
 }
 
 
@@ -2228,6 +2195,53 @@ int append_sections(void) {
 }
 
 
+static int _finish_section(unsigned char **cursor, const unsigned char *end, struct section *s, char *namespace_name) {
+
+  struct namespace_def *nspace = NULL;
+  unsigned char *t = *cursor;
+
+  if (s->size < 0 || !_file_has_bytes(t, end, (size_t)s->size + 1)) {
+    print_text(NO, "PARSE_DATA_BLOCKS: Invalid section size in \"%s\".\n", g_obj_tmp->name);
+    free(s);
+    return FAILED;
+  }
+  s->data = t;
+  t += s->size;
+  if (listfile_block_read(&t, end, s) == FAILED || add_section(s) == FAILED) {
+    free(s->listfile_cmds);
+    free(s->listfile_ints);
+    free(s);
+    return FAILED;
+  }
+
+  s->label_map = hashmap_new();
+  if (s->label_map == NULL)
+    goto out_of_memory;
+  if (namespace_name[0] != 0) {
+    if (hashmap_get(g_namespace_map, namespace_name, (void*)&nspace) != MAP_OK) {
+      nspace = calloc(1, sizeof(struct namespace_def));
+      if (nspace == NULL)
+        goto out_of_memory;
+      strcpy(nspace->name, namespace_name);
+      nspace->label_map = hashmap_new();
+      if (nspace->label_map == NULL || hashmap_put(g_namespace_map, nspace->name, nspace) != MAP_OK) {
+        if (nspace->label_map != NULL)
+          hashmap_free(nspace->label_map);
+        free(nspace);
+        goto out_of_memory;
+      }
+    }
+    s->nspace = nspace;
+  }
+  *cursor = t;
+  return SUCCEEDED;
+
+out_of_memory:
+  print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
+  return FAILED;
+}
+
+
 int parse_data_blocks(void) {
 
   struct section *s;
@@ -2247,10 +2261,14 @@ int parse_data_blocks(void) {
         x = *(t++);
 
         if (x == DATA_TYPE_BLOCK) {
+          if (!_file_has_bytes(t, p, 8))
+            goto invalid_block;
           /* address */
           i = READ_T;
           /* amount of bytes */
           x = READ_T;
+          if (x < 0 || !_file_has_bytes(t, p, (size_t)x))
+            goto invalid_block;
 
           /* create a what-we-are-doing message for mem_insert*() warnings/errors */
           snprintf(g_mem_insert_action, sizeof(g_mem_insert_action), "Writing fixed data block from \"%s\".", g_obj_tmp->name);
@@ -2311,26 +2329,6 @@ int parse_data_blocks(void) {
           }
           buf[i] = 0;
           t++;
-          if (buf[0] == 0)
-            s->nspace = NULL;
-          else {
-            struct namespace_def *nspace;
-
-            hashmap_get(g_namespace_map, buf, (void*)&nspace);
-            if (nspace == NULL) {
-              nspace = calloc(1, sizeof(struct namespace_def));
-              if (nspace == NULL) {
-                print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
-                free(s);
-                return FAILED;
-              }
-              nspace->label_map = hashmap_new();
-              strcpy(nspace->name, buf);
-              hashmap_put(g_namespace_map, nspace->name, nspace);
-            }
-
-            s->nspace = nspace;
-          }
 
           /* banks */
           if (s->status == SECTION_STATUS_SEMISUPERFREE) {
@@ -2369,12 +2367,15 @@ int parse_data_blocks(void) {
           }
           s->span_banks[i] = 0;
           t++;
-          
-          s->id = READ_T;
-          if (s->id >= 0x10000) {
-            print_text(NO, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside an object file. Please open an issue about this in GitHub!\n", s->name, s->id);
+          if (!_file_has_bytes(t, p, 49)) {
+            free(s);
+            goto invalid_block;
           }
-          s->id += section_id_base;
+          s->id = READ_T;
+          if (_rebase_section_id(&s->id, section_id_base) == FAILED) {
+            free(s);
+            return FAILED;
+          }
           s->slot = *(t++);
           s->file_id_source = READ_T;
           s->address = READ_T;
@@ -2387,22 +2388,16 @@ int parse_data_blocks(void) {
           s->bitwindow = READ_T;
           s->window_start = READ_T;
           s->window_end = READ_T;
-          s->data = t;
-
           s->library_status = OFF;
-          s->label_map = hashmap_new();
-          t += s->size;
-
-          /* listfile block */
-          if (listfile_block_read(&t, s) == FAILED)
-            return FAILED;
-
-          if (add_section(s) == FAILED)
+          if (_finish_section(&t, p, s, buf) == FAILED)
             return FAILED;
         }
+        else
+          goto invalid_block;
       }
       g_obj_tmp = g_obj_tmp->next;
-      section_id_base += 0x10000;
+      if (g_obj_tmp != NULL)
+        section_id_base += 0x10000;
       continue;
     }
     /* LIBRARY FILE */
@@ -2460,32 +2455,16 @@ int parse_data_blocks(void) {
         }
         buf[i] = 0;
         t++;
-        if (buf[0] == 0)
-          s->nspace = NULL;
-        else {
-          struct namespace_def *nspace;
-
-          hashmap_get(g_namespace_map, buf, (void*)&nspace);
-          if (nspace == NULL) {
-            nspace = calloc(1, sizeof(struct namespace_def));
-            if (nspace == NULL) {
-              print_text(NO, "PARSE_DATA_BLOCKS: Out of memory.\n");
-              free(s);
-              return FAILED;
-            }
-            nspace->label_map = hashmap_new();
-            strcpy(nspace->name, buf);
-            hashmap_put(g_namespace_map, nspace->name, nspace);
-          }
-
-          s->nspace = nspace;
+        if (!_file_has_bytes(t, p, 36)) {
+          free(s);
+          goto invalid_block;
         }
 
         s->id = READ_T;
-        if (s->id >= 0x10000) {
-          print_text(NO, "PARSE_DATA_BLOCKS: Section \"%s\"'s ID %d is too much! Currently we allow only 65535 sections inside a library file. Please open an issue about this in GitHub!\n", s->name, s->id);
+        if (_rebase_section_id(&s->id, section_id_base) == FAILED) {
+          free(s);
+          return FAILED;
         }
-        s->id += section_id_base;
         s->file_id_source = READ_T;
         s->size = READ_T;
         s->alignment = READ_T;
@@ -2494,16 +2473,12 @@ int parse_data_blocks(void) {
         s->bitwindow = READ_T;
         s->window_start = READ_T;
         s->window_end = READ_T;
-        s->data = t;
-          
         s->address = 0;
         s->bank = g_obj_tmp->bank;
         s->slot = g_obj_tmp->slot;
         s->base = g_obj_tmp->base;
         s->library_status = ON;
         s->base_defined = g_obj_tmp->base_defined;
-        s->label_map = hashmap_new();
-        t += s->size;
 
         /* library RAM sections have no slots nor banks unless given in [rambanks] in linkfile */
         if (s->status == SECTION_STATUS_RAM_FREE || s->status == SECTION_STATUS_RAM_FORCE ||
@@ -2512,26 +2487,29 @@ int parse_data_blocks(void) {
           s->slot = -1;
         }
 
-        /* listfile block */
-        if (listfile_block_read(&t, s) == FAILED)
+        if (_finish_section(&t, p, s, buf) == FAILED)
           return FAILED;
-
-        add_section(s);
       }
       g_obj_tmp = g_obj_tmp->next;
-      section_id_base += 0x10000;
+      if (g_obj_tmp != NULL)
+        section_id_base += 0x10000;
       continue;
     }
+    goto invalid_block;
   }
 
   return SUCCEEDED;
+
+invalid_block:
+  print_text(NO, "PARSE_DATA_BLOCKS: Invalid or truncated data block in \"%s\".\n", g_obj_tmp->name);
+  return FAILED;
 }
 
 
 int obtain_rombanks(void) {
 
   unsigned char *t;
-  int rb = 0, k, s;
+  int rb = 0, k, s, bank_size;
 
 
   /* obtain the biggest rom size */
@@ -2541,8 +2519,21 @@ int obtain_rombanks(void) {
   while (g_obj_tmp != NULL) {
     if (g_obj_tmp->format == WLA_VERSION_OBJ) {
 
+      if (g_obj_tmp->size < OBJ_ROMBANKMAP + 5)
+        goto invalid_rombanks;
       t = g_obj_tmp->data + OBJ_ROMBANKS;
-      k = t[3] + (t[2] << 8) + (t[1] << 16) + (t[0] << 24);
+      k = READ_T;
+      if (k <= 0 || (unsigned long)k > (size_t)-1 / sizeof(int))
+        goto invalid_rombanks;
+      /* Validate the bank-map shape before allocating the bank arrays. */
+      if (*t == 0) {
+        t++;
+        bank_size = READ_T;
+        if (bank_size <= 0 || bank_size > INT_MAX / k)
+          goto invalid_rombanks;
+      }
+      else if (*t != 1 || (size_t)k > (size_t)(g_obj_tmp->size - OBJ_ROMBANKMAP - 1) / 4)
+        goto invalid_rombanks;
 
       g_obj_tmp->rom_banks = k;
 
@@ -2561,6 +2552,10 @@ int obtain_rombanks(void) {
     print_text(NO, "OBTAIN_ROMBANKS: Using the biggest selected amount of ROM banks (%d).\n", g_rombanks);
 
   return SUCCEEDED;
+
+invalid_rombanks:
+  print_text(NO, "OBTAIN_ROMBANKS: Invalid or truncated ROM bank count or map in \"%s\".\n", g_obj_tmp->name);
+  return FAILED;
 }
 
 
