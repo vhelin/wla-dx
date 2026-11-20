@@ -73,7 +73,7 @@ int add_pointer_to_a_pointer_array(void *ptr, int id, void ***array, int *max, i
   }
   if (id >= *array_max) {
     j = (id / size_increase + 1) * size_increase;
-    if ((unsigned long)j > (size_t)-1 / sizeof(*new_array)) {
+    if ((size_t)j > (size_t)-1 / sizeof(*new_array)) {
       print_text(NO, "ADD_POINTER: Table size is too large.\n");
       return FAILED;
     }
@@ -2523,7 +2523,7 @@ int obtain_rombanks(void) {
         goto invalid_rombanks;
       t = g_obj_tmp->data + OBJ_ROMBANKS;
       k = READ_T;
-      if (k <= 0 || (unsigned long)k > (size_t)-1 / sizeof(int))
+      if (k <= 0 || (size_t)k > (size_t)-1 / sizeof(int))
         goto invalid_rombanks;
       /* Validate the bank-map shape before allocating the bank arrays. */
       if (*t == 0) {
