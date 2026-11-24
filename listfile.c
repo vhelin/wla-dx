@@ -36,7 +36,7 @@ int listfile_collect(void) {
 
   int add = 0, skip = 0, file_name_id = 0, inz, line_number = 0, command = 0, global_command = 0, inside_macro = 0, inside_repeat = 0;
   int x, y, dstruct_start = -1, bits_current = 0, base = 0, bank = 0, origin = 0, origin_old = 0, slot = 0, running_id = 0;
-  int real_line_number = 0, real_file_name_id = 0, generated = NO, err, base_backup = -1;
+  int real_line_number = 0, real_file_name_id, generated, err, base_backup = -1;
   int macro_file_name_ids[256], macro_stack_size = 0;
   struct section_def *section = NULL;
   char c;

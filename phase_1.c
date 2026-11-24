@@ -142,13 +142,13 @@ extern int g_resolve_stack_calculations;
 
 #if defined(W65816)
 char g_snesid[4];
-char g_snesexpandedheader_makercode[2];
+char g_snesex_makercode[2];
 int g_snesid_defined = 0, g_snesid_size = 0, g_snesromsize = 0;
-int g_snesexpandedheader_defined = 0, g_snesexpandedheader_makercode_defined = 0;
-int g_snesexpandedheader_expansionflashsize = 0, g_snesexpandedheader_expansionflashsize_defined = 0;
-int g_snesexpandedheader_expansionramsize = 0, g_snesexpandedheader_expansionramsize_defined = 0;
-int g_snesexpandedheader_specialversion = 0, g_snesexpandedheader_specialversion_defined = 0;
-int g_snesexpandedheader_chipsetsubtype = 0, g_snesexpandedheader_chipsetsubtype_defined = 0;
+int g_snesex_defined = 0, g_snesex_makercode_defined = 0;
+int g_snesex_expansionflashsize = 0, g_snesex_expansionflashsize_defined = 0;
+int g_snesex_expansionramsize = 0, g_snesex_expansionramsize_defined = 0;
+int g_snesex_specialversion = 0, g_snesex_specialversion_defined = 0;
+int g_snesex_chipsetsubtype = 0, g_snesex_chipsetsubtype_defined = 0;
 int g_snesheader_defined = 0;
 int g_sramsize_defined = 0, g_sramsize = 0, g_country_defined = 0, g_country = 0;
 int g_cartridgetype = 0, g_cartridgetype_defined = 0, g_licenseecode_defined = 0, g_licenseecode = 0;
@@ -11321,7 +11321,7 @@ static int _directive_snesexpandedheader(void) {
 
   int token_result;
 
-  if (g_snesexpandedheader_defined != 0) {
+  if (g_snesex_defined != 0) {
     print_error(ERROR_DIR, ".SNESEXPANDEDHEADER can be defined only once.\n");
     return FAILED;
   }
@@ -11346,7 +11346,7 @@ static int _directive_snesexpandedheader(void) {
       if ((token_result = get_next_token()) == FAILED)
         return FAILED;
 
-      if (g_snesexpandedheader_makercode_defined != 0) {
+      if (g_snesex_makercode_defined != 0) {
         print_error(ERROR_DIR, "MAKERCODE can be defined only once.\n");
         return FAILED;
       }
@@ -11355,9 +11355,9 @@ static int _directive_snesexpandedheader(void) {
         return FAILED;
       }
 
-      g_snesexpandedheader_makercode[0] = g_tmp[0];
-      g_snesexpandedheader_makercode[1] = g_tmp[1];
-      g_snesexpandedheader_makercode_defined = 1;
+      g_snesex_makercode[0] = g_tmp[0];
+      g_snesex_makercode[1] = g_tmp[1];
+      g_snesex_makercode_defined = 1;
     }
     else if (strcaselesscmp(g_tmp, "GAMECODE") == 0) {
       int i;
@@ -11385,23 +11385,23 @@ static int _directive_snesexpandedheader(void) {
       }
     }
     else if (strcaselesscmp(g_tmp, "EXPANSIONFLASHSIZE") == 0) {
-      if (_parse_snesexpandedheader_byte("EXPANSIONFLASHSIZE", &g_snesexpandedheader_expansionflashsize,
-                                         &g_snesexpandedheader_expansionflashsize_defined) == FAILED)
+      if (_parse_snesexpandedheader_byte("EXPANSIONFLASHSIZE", &g_snesex_expansionflashsize,
+                                         &g_snesex_expansionflashsize_defined) == FAILED)
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "EXPANSIONRAMSIZE") == 0) {
-      if (_parse_snesexpandedheader_byte("EXPANSIONRAMSIZE", &g_snesexpandedheader_expansionramsize,
-                                         &g_snesexpandedheader_expansionramsize_defined) == FAILED)
+      if (_parse_snesexpandedheader_byte("EXPANSIONRAMSIZE", &g_snesex_expansionramsize,
+                                         &g_snesex_expansionramsize_defined) == FAILED)
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "SPECIALVERSION") == 0) {
-      if (_parse_snesexpandedheader_byte("SPECIALVERSION", &g_snesexpandedheader_specialversion,
-                                         &g_snesexpandedheader_specialversion_defined) == FAILED)
+      if (_parse_snesexpandedheader_byte("SPECIALVERSION", &g_snesex_specialversion,
+                                         &g_snesex_specialversion_defined) == FAILED)
         return FAILED;
     }
     else if (strcaselesscmp(g_tmp, "CHIPSETSUBTYPE") == 0) {
-      if (_parse_snesexpandedheader_byte("CHIPSETSUBTYPE", &g_snesexpandedheader_chipsetsubtype,
-                                         &g_snesexpandedheader_chipsetsubtype_defined) == FAILED)
+      if (_parse_snesexpandedheader_byte("CHIPSETSUBTYPE", &g_snesex_chipsetsubtype,
+                                         &g_snesex_chipsetsubtype_defined) == FAILED)
         return FAILED;
     }
     else {
@@ -11415,7 +11415,7 @@ static int _directive_snesexpandedheader(void) {
     return FAILED;
   }
 
-  g_snesexpandedheader_defined = 1;
+  g_snesex_defined = 1;
 
   return SUCCEEDED;
 }
