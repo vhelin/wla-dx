@@ -4,6 +4,8 @@
            6809/8008/8080/HUC6280/SH-2/CP1610/SPC-700/SuperFX/Cx4 History
 -------------------------------------------------------------------------------
 
+v10.9 (25-Nov-2026) 
+
 v10.8 (25-Nov-2026) [ALL] Fixed "Assembler reported ROM use can go over 100%".
                     [ALL] .MACRO calls should now work properly in listfiles.
                     [ALL] WLA assembles now "WLAK" library files and "WLAo"
@@ -1625,6 +1627,8 @@ v1.0 (10-Jul-2000) The first public release.
 4... WLALINK History
 ------------------------------------------------------------------------------
 
+v5.25 (25-Nov-2026) 
+
 v5.24 (25-Nov-2026) Added support for paword(a).
                     -C removes duplicate definitions in symbol file.
                     WLALINK now places same-size sections in a stable
@@ -1632,7 +1636,7 @@ v5.24 (25-Nov-2026) Added support for paword(a).
                       on the host C library's qsort().
                     Fixed a namespace buffer overflow in wlalink
                       (CVE-2026-131871, thanks to Deus Rex / Cyrex).
-                    Other Buffer over- and underflow fixes.
+                    Other buffer over- and underflow fixes.
                     Reject malformed source-file name tables in object and
                       library files (thanks to jak01lr).
                     Validate bank maps, metadata, section IDs, and data and
